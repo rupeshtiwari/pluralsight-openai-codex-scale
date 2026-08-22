@@ -79,8 +79,10 @@ log "       platform-specific migration guidance"
 
 # ---------------------------------------------------------------- environment
 $FMT section "environment"
+# preflight-logs is excluded: this script writes its own transcript there,
+# so including it would make the check fail because the check ran.
 check "all" "working tree clean" \
-  '[ -z "$(git status --porcelain)" ]' \
+  '[ -z "$(git status --porcelain -- ":!preflight-logs")" ]' \
   "Every demo starts from a clean tree; leftover edits change what the diff shows." \
   "./module1/scripts/demo-reset.sh" \
   "Show me every uncommitted change in this repository and what produced it."
