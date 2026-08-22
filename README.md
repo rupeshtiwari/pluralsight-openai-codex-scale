@@ -65,10 +65,10 @@ migrate a legacy Express 4 service.
 
 | Demo | Runbook |
 |---|---|
-| Map noisy TypeScript modules with Codex before editing | [module1/m1-demo2-map-noisy-typescript-modules-with-codex-before-editing.md](module1/m1-demo2-map-noisy-typescript-modules-with-codex-before-editing.md) |
-| Execute a Codex refactor with ExecPlan checkpoints | [module1/m1-demo3-execute-a-codex-refactor-with-execplan-checkpoints.md](module1/m1-demo3-execute-a-codex-refactor-with-execplan-checkpoints.md) |
-| Inventory a legacy Express 4 service with Codex | [module1/m1-demo5-inventory-a-legacy-express-4-service-with-codex.md](module1/m1-demo5-inventory-a-legacy-express-4-service-with-codex.md) |
-| Migrate one Express route to TypeScript with framework guidance | [module1/m1-demo6-migrate-one-express-route-to-typescript-with-framework-guidance.md](module1/m1-demo6-migrate-one-express-route-to-typescript-with-framework-guidance.md) |
+| Map noisy TypeScript modules with Codex before editing | [module1/demo/m1-demo2-map-noisy-typescript-modules-with-codex-before-editing.md](module1/demo/m1-demo2-map-noisy-typescript-modules-with-codex-before-editing.md) |
+| Execute a Codex refactor with ExecPlan checkpoints | [module1/demo/m1-demo3-execute-a-codex-refactor-with-execplan-checkpoints.md](module1/demo/m1-demo3-execute-a-codex-refactor-with-execplan-checkpoints.md) |
+| Inventory a legacy Express 4 service with Codex | [module1/demo/m1-demo5-inventory-a-legacy-express-4-service-with-codex.md](module1/demo/m1-demo5-inventory-a-legacy-express-4-service-with-codex.md) |
+| Migrate one Express route to TypeScript with framework guidance | [module1/demo/m1-demo6-migrate-one-express-route-to-typescript-with-framework-guidance.md](module1/demo/m1-demo6-migrate-one-express-route-to-typescript-with-framework-guidance.md) |
 
 Source: [apps/api/](apps/api/) · [apps/legacy-ticket-api/](apps/legacy-ticket-api/) · [plans/](plans/)
 
@@ -79,10 +79,10 @@ then review and recover automation changes that went wrong.
 
 | Demo | Runbook |
 |---|---|
-| Run a manual Codex triage sweep across Sentry and GitHub | [module2/m2-demo2-run-a-manual-codex-triage-sweep-across-sentry-and-github.md](module2/m2-demo2-run-a-manual-codex-triage-sweep-across-sentry-and-github.md) |
-| Schedule Codex triage and route work to Slack and Linear | [module2/m2-demo3-schedule-codex-triage-and-route-work-to-slack-and-linear.md](module2/m2-demo3-schedule-codex-triage-and-route-work-to-slack-and-linear.md) |
-| Inspect automation diffs in the Codex review pane | [module2/m2-demo5-inspect-automation-diffs-in-the-codex-review-pane.md](module2/m2-demo5-inspect-automation-diffs-in-the-codex-review-pane.md) |
-| Trace a failed Codex automation and recover safely | [module2/m2-demo6-trace-a-failed-codex-automation-and-recover-safely.md](module2/m2-demo6-trace-a-failed-codex-automation-and-recover-safely.md) |
+| Run a manual Codex triage sweep across Sentry and GitHub | [module2/demo/m2-demo2-run-a-manual-codex-triage-sweep-across-sentry-and-github.md](module2/demo/m2-demo2-run-a-manual-codex-triage-sweep-across-sentry-and-github.md) |
+| Schedule Codex triage and route work to Slack and Linear | [module2/demo/m2-demo3-schedule-codex-triage-and-route-work-to-slack-and-linear.md](module2/demo/m2-demo3-schedule-codex-triage-and-route-work-to-slack-and-linear.md) |
+| Inspect automation diffs in the Codex review pane | [module2/demo/m2-demo5-inspect-automation-diffs-in-the-codex-review-pane.md](module2/demo/m2-demo5-inspect-automation-diffs-in-the-codex-review-pane.md) |
+| Trace a failed Codex automation and recover safely | [module2/demo/m2-demo6-trace-a-failed-codex-automation-and-recover-safely.md](module2/demo/m2-demo6-trace-a-failed-codex-automation-and-recover-safely.md) |
 
 Source: [automation/](automation/) · [docs/triage-rubric.md](docs/triage-rubric.md)
 
