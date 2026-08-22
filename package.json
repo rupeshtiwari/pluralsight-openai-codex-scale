@@ -1,0 +1,21 @@
+{
+  "name": "supporthub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SupportHub API - demo monorepo for the Pluralsight course OpenAI Codex at Scale",
+  "workspaces": [
+    "apps/api",
+    "apps/legacy-ticket-api"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "lint": "npm run lint --workspace=apps/api",
+    "typecheck": "npm run typecheck --workspace=apps/api",
+    "build": "npm run build --workspace=apps/api",
+    "test": "npm run test --workspace=apps/api",
+    "test:route": "npm run test:route --workspace=apps/api",
+    "test:legacy": "npm run test --workspace=apps/legacy-ticket-api"
+  }
+}
