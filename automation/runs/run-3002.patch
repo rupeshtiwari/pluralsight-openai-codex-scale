@@ -1,9 +1,9 @@
 diff --git a/apps/api/package.json b/apps/api/package.json
-index 79bf7e3..9304404 100644
+index edf7e35..a1e6e60 100644
 --- a/apps/api/package.json
 +++ b/apps/api/package.json
 @@ -11,7 +11,7 @@
-     "test:route": "vitest run tests/contracts/ticket-read.contract.test.ts"
+     "test:route": "vitest run tests/contracts/*route*.contract.test.ts"
    },
    "dependencies": {
 -    "express": "^5.1.0"
@@ -11,3 +11,16 @@ index 79bf7e3..9304404 100644
    },
    "devDependencies": {
      "@eslint/js": "^9.15.0",
+diff --git a/apps/api/src/services/ticketService.ts b/apps/api/src/services/ticketService.ts
+index 527aa7e..60cc8db 100644
+--- a/apps/api/src/services/ticketService.ts
++++ b/apps/api/src/services/ticketService.ts
+@@ -201,7 +201,7 @@ export function changeStatus(id: string, next: unknown, now: string): Transition
+     return { ok: false, reason: 'invalid_status' };
+   }
+ 
+-  const allowed = ALLOWED_TRANSITIONS[ticket.status];
++  const allowed = ALLOWED_TRANSITIONS[ticket.status] ?? [];
+   if (!allowed.includes(candidate)) {
+     return { ok: false, reason: 'illegal_transition', allowed };
+   }

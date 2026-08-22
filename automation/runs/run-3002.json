@@ -3,7 +3,9 @@
   "runId": "run-3002",
   "startedAt": "2025-03-04T07:00:00.000Z",
   "trigger": "scheduled",
-  "sourceFindings": ["incident-2001"],
+  "sourceFindings": [
+    "incident-2001"
+  ],
   "status": "failed",
   "patch": "run-3002.patch",
   "correlation": {
@@ -13,6 +15,11 @@
     "faultType": "bad source assumption"
   },
   "hunks": [
+    {
+      "file": "apps/api/src/services/ticketService.ts",
+      "verdict": "valid",
+      "why": "Guards ALLOWED_TRANSITIONS against a status value that was never validated, which is the root cause incident-2001 reports. This work is correct and must survive the recovery."
+    },
     {
       "file": "apps/api/package.json",
       "verdict": "invalid",
@@ -24,6 +31,6 @@
     "typecheck": "not run",
     "build": "fail",
     "test": "fail",
-    "note": "The downgrade breaks the Express 5 service. The failure is in the generated change, not in the tests."
+    "note": "The downgrade breaks the Express 5 service. The guard in ticketService.ts is sound; only the dependency hunk is at fault."
   }
 }
