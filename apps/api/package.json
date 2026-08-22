@@ -8,7 +8,7 @@
     "lint": "eslint src tests",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "test:route": "vitest run tests/contracts/ticket-read.contract.test.ts"
+    "test:route": "vitest run tests/contracts/*route*.contract.test.ts"
   },
   "dependencies": {
     "express": "^5.1.0"
