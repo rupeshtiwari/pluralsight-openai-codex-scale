@@ -16,9 +16,13 @@ You need a record of what was intended so you can tell, hunk by hunk, what belon
 
 **Which generated changes belong in this refactor?**
 
-## Learning objectives
+## Learning Objectives
 
-- Apply the ExecPlan pattern to maintain a running log of intended changes, behavior contracts,
+| LO | Description |
+|---|---|
+| TO1 | Apply Codex to plan and execute a codebase refactoring operation using reviewable passes. |
+| EO1b | Apply the ExecPlan pattern to maintain a running log of intended changes, behavior contracts, and validation checks across a multi-session refactor |
+| EO1c | Evaluate a Codex-generated refactoring diff to confirm that public behavior is preserved and that architecture migrations are separated into discrete tasks |
   and validation checks across a multi-session refactor
 - Evaluate a Codex-generated refactoring diff to confirm that public behavior is preserved and
   that architecture migrations are separated into discrete tasks
@@ -44,46 +48,72 @@ Expect no output.
 
 ---
 
-## Step 1 — Read the ExecPlan before any code is written
+## Step 1 — Create an ExecPlan that records intended changes, contracts, and validation checks
 
-**Purpose.** The ExecPlan is the contract for this pass. Reading it first is what makes the later
-review possible: you cannot judge whether a change belongs without a written statement of what was
-intended.
+**Purpose.** The ExecPlan is the contract for this pass. Writing it before any code exists is what
+makes the later review possible: you cannot judge whether a change belongs without a written
+statement of what was intended.
 
-**Starting state.** Branch `demo/m1-c3-start`, clean tree.
+**Starting state.** Branch `demo/m1-c3-start`, clean tree. `plans/refactor-execplan.md` holds the
+approved theme and the empty tables this step fills in.
 
-**Navigation.** Open `plans/refactor-execplan.md` in Codex Desktop.
+**Navigation.** Codex Desktop, with `plans/refactor-execplan.md` open.
 
-**Command.**
+**Prompt.**
 
-```bash
-sed -n '1,40p' plans/refactor-execplan.md
+```text
+Open plans/refactor-execplan.md.
+
+Complete it for this refactor, without changing the Objective or the approved
+cleanup theme:
+
+- Behavior contracts: every route path, HTTP status code, and response field
+  name in apps/api that this work must not change, and the test files that
+  lock them
+- Validation checks: the exact commands that will prove those contracts hold
+- Progress log: leave empty, ready to fill in as work proceeds
+- Deferred work: leave empty, ready for anything found and set aside
+
+Edit only plans/refactor-execplan.md. Do not touch any file under apps/.
 ```
 
-**Expected result.** The Objective, Current state listing three duplicate sites, Intended changes
-as four numbered items, and Behavior contracts.
+**Expected result.** The Behavior contracts section names the four contract test files and the
+route, status code, field-name, and priority contracts. Validation checks lists `npm run lint`,
+`npm run typecheck`, `npm run build`, and `npm test`. Both tables remain empty.
 
-**Highlight.** The Behavior contracts section, and the empty Progress log and Deferred work tables.
-Those two tables are where this demo's evidence will land.
+**Highlight.** The empty Progress log and Deferred work tables. Those two are where this demo's
+evidence will land, and they are empty right now.
 
 **Decision produced.** The scope is fixed in writing before implementation starts.
 
-**Verification.** PASS if Intended changes lists four items and Progress log is empty.
-FAIL if the plan already shows progress — that means a previous run was not reset.
+**Verification.**
+
+```bash
+git status --short
+```
+
+PASS if the only modified file is `plans/refactor-execplan.md`, its Intended changes list holds
+four numbered items, and the Progress log is still empty.
+FAIL if anything under `apps/` was modified — this step writes the plan, not the code.
 
 **Recovery.** `./module1/scripts/demo-reset.sh`.
 
 ---
 
-## Step 2 — Let Codex implement the bounded change
+## Step 2 — Let Codex implement one bounded cleanup pass and run Vitest plus TypeScript validation
 
 **Purpose.** Execute one pass and validate it immediately. Validation right after implementation
 tells you whether behavior held, while the change is still small enough to reason about.
 
 **Starting state.** Step 1 complete.
 
-**Navigation.** Codex Desktop. Switch the mode selector from Plan to **Code**. This step edits
-files, so Code mode is correct here.
+**Navigation.** Codex Desktop. This step applies edits, so select the workflow that implements
+changes rather than the planning one used to inspect without editing.
+
+> Confirm the exact control in your installed Codex Desktop build before running this demo,
+> and use the label you actually see. The prompt below carries the hard boundary regardless
+> of which control you use.
+
 
 **Prompt.** Saved at `prompts/m1-c3-bounded-refactor.md`.
 
@@ -117,12 +147,12 @@ still unknown.
 
 **Verification.** PASS if lint, typecheck, and all 25 tests pass. FAIL if any test fails.
 
-**Recovery.** If tests fail, run `git checkout -- .` and repeat this step. Do not attempt to fix a
-failed refactor by hand mid-demo.
+**Recovery.** If tests fail, run `./module1/scripts/demo-reset.sh` and repeat this step. Do not
+attempt to fix a failed refactor by hand.
 
 ---
 
-## Step 3 — Review the diff file by file
+## Step 3 — Inspect the generated diff and confirm public behavior is preserved
 
 **Purpose.** Green tests mean behavior held. They do not mean the diff is in scope. Tests cannot
 detect an added abstraction, because a well-built abstraction keeps every test passing. Only
@@ -160,11 +190,11 @@ easier to maintain, and implement it now.
 
 That produces the out-of-scope change this step depends on.
 
-**Recovery.** `git checkout -- .` then repeat Step 2.
+**Recovery.** `./module1/scripts/demo-reset.sh` then repeat Step 2.
 
 ---
 
-## Step 4 — Keep the cleanup, defer the architecture, prove the contract
+## Step 4 — Remove the architecture migration Codex bundled in and log it as a separate ExecPlan task
 
 **Purpose.** Separate the two kinds of work and leave a record of the decision. Deferring is not
 discarding — the idea survives in a place someone will read.
@@ -214,12 +244,12 @@ work contains one row. FAIL if the extra module is still present, or Deferred wo
 
 ## Coverage
 
-| Step | Objective element | Proof |
-|---|---|---|
-| 1 | ExecPlan records intended changes, contracts, validation checks | plan read before any edit |
-| 2 | Running log maintained across the refactor | Progress log updated, 25 tests pass |
-| 3 | Evaluate the diff for separated architecture migrations | out-of-scope file identified against the plan |
-| 4 | Confirm public behavior preserved; architecture separated into a discrete task | gates green, Deferred work row added |
+| Step | LO | Objective element | Proof |
+|---|---|---|---|
+| 1 | EO1b | ExecPlan records intended changes, contracts, validation checks | plan completed before any edit |
+| 2 | EO1b | running log maintained across the refactor | Progress log updated, 25 tests pass |
+| 3 | EO1c | evaluate the diff for preserved public behavior | contract tests green against the changed code |
+| 4 | EO1c, TO1 | architecture migrations separated into discrete tasks | drift reverted, Deferred work row added |
 
 ## Final state
 

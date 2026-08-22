@@ -16,9 +16,13 @@ changes something a caller depends on — a status code, a field name, an auth r
 
 **Can this migrated route be accepted safely?**
 
-## Learning objectives
+## Learning Objectives
 
-- Apply validation checks (lint, type-check, focused tests) after each migration milestone rather
+| LO | Description |
+|---|---|
+| TO2 | Demonstrate how to orchestrate a legacy-to-modern stack migration with Codex using incremental checkpoints. |
+| EO2c | Apply validation checks (lint, type-check, focused tests) after each migration milestone rather than batching cleanup |
+| EO2d | Use the ASP.NET Core skill or equivalent framework skill to apply platform-specific migration guidance |
   than batching cleanup
 - Use the ASP.NET Core skill or equivalent framework skill to apply platform-specific migration
   guidance
@@ -47,68 +51,35 @@ Expect no output from the first, and `Tests  4 passed` from the second.
 
 ---
 
-## Step 1 — Load the framework guidance and state the exact conversions
+## Step 1 — Apply the framework skill to migrate one Express route slice
 
 **Purpose.** Generic migration advice produces generic mistakes. The skill in this repository names
-the specific conversions this stack needs. Making Codex state them before editing means you can
-check its understanding while it is still cheap to correct.
+the conversions this stack actually needs. Bounded work is reviewable work: one route produces a
+diff you can read in full, which is what makes accepting or rejecting it a real decision.
 
 **Starting state.** Branch `demo/m1-c6-start`, clean tree.
 
-**Navigation.** Codex Desktop, **Plan** mode for this step.
+**Navigation.** Codex Desktop. This step applies edits, so select the workflow that implements
+changes.
+
+> Confirm the exact control in your installed Codex Desktop build before running this demo,
+> and use the label you actually see.
 
 **Prompt.**
 
 ```text
-Read .codex/skills/express-typescript-migration/SKILL.md.
+Read .codex/skills/express-typescript-migration/SKILL.md and follow its guidance.
 
-Then, for apps/legacy-ticket-api/routes/tickets.js and the modules it requires,
-list the exact conversions needed to move the GET /tickets/:id route to ESM
-TypeScript on Express 5:
-
-- each require() and what it becomes
-- each module.exports shape and what it becomes
-- every use of __dirname and what replaces it
-- what changes about route params under Express 5
-
-Do not edit any files yet.
-```
-
-**Expected result.** A conversion list: `require('express')` becomes a default import;
-`module.exports = router` becomes `export default`; `module.exports = { get, create }` in
-`ticketService.js` becomes named exports; `__dirname` in the service becomes
-`moduleDir(import.meta.url)`; route params need a declared shape because Express 5 types them as
-`string | string[]`.
-
-**Highlight.** The two different `module.exports` shapes in the same service. They convert
-differently, and getting it wrong produces `undefined` at runtime with no compile error.
-
-**Decision produced.** The conversions are understood before any file changes.
-
-**Verification.** PASS if both export shapes are distinguished and `__dirname` is addressed.
-FAIL if the answer is generic advice with no file names.
-
-**Recovery.** Ask: `Which two files use different module.exports shapes, and how does each convert?`
-
----
-
-## Step 2 — Migrate exactly one route slice
-
-**Purpose.** Bounded work is reviewable work. One route produces a diff you can read in full,
-which is what makes accepting or rejecting it a real decision rather than a guess.
-
-**Starting state.** Step 1 complete.
-
-**Navigation.** Codex Desktop. Switch the mode selector to **Code**.
-
-**Prompt.**
-
-```text
 Migrate ONLY the GET /tickets/:id route from apps/legacy-ticket-api to the modern
 service in apps/api.
 
-Create apps/api/src/routes/legacyTickets.ts as ESM TypeScript for Express 5, and
-mount it in apps/api/src/app.ts under the path prefix /v1.
+Before editing, state the exact conversions the skill requires for this slice:
+each require() and what it becomes, each module.exports shape and what it
+becomes, every __dirname use and what replaces it, and what changes about route
+params under Express 5.
+
+Then create apps/api/src/routes/legacyTickets.ts as ESM TypeScript for Express 5,
+and mount it in apps/api/src/app.ts under the path prefix /v1.
 
 It must preserve the legacy behavior exactly:
 - x-api-key auth, 401 when the header is missing, 403 when the key is invalid
@@ -123,13 +94,15 @@ Do not upgrade or change any dependency.
 Do not modify apps/legacy-ticket-api.
 ```
 
-**Expected result.** Two new files, plus a small edit to `app.ts`. Nothing under
-`apps/legacy-ticket-api/` changes.
+**Expected result.** A stated conversion list, then two new files plus a small edit to `app.ts`.
+The conversions should distinguish `module.exports = router` (a default export) from
+`module.exports = { get, create }` (named exports), and replace `__dirname` with
+`moduleDir(import.meta.url)`.
 
-**Highlight.** The changed-file count. Three files for one route — small enough to read line by
-line.
+**Highlight.** The two different `module.exports` shapes in the same service. They convert
+differently, and getting it wrong produces `undefined` at runtime with no compile error.
 
-**Decision produced.** The change exists and is bounded. Whether it is correct is Step 3.
+**Decision produced.** One route is migrated under the skill's guidance, and the change is bounded.
 
 **Verification.**
 
@@ -140,17 +113,18 @@ git status --short
 PASS if only `apps/api/` files are listed. FAIL if `apps/legacy-ticket-api/` or `package.json`
 appears — that would mean the checkpoint scope was breached.
 
-**Recovery.** `git checkout -- .` and repeat with the constraint restated.
+**Recovery.** `./module1/scripts/demo-reset.sh` and repeat with the constraint restated.
 
 ---
 
-## Step 3 — Run all four validation gates
+## Step 2 — Run ESLint, type-checking, build validation, and focused tests immediately
 
 **Purpose.** Each gate catches a different class of failure and a later one cannot substitute for
-an earlier one. Running them immediately, on one small change, is what makes a red result
-diagnostic instead of mysterious.
+an earlier one. Running them straight after one small change is what makes a red result diagnostic
+instead of mysterious — which is the whole argument for validating per milestone rather than
+batching cleanup to the end.
 
-**Starting state.** Step 2 complete.
+**Starting state.** Step 1 complete.
 
 **Navigation.** Terminal.
 
@@ -176,27 +150,67 @@ the original route's contract still holds.
 A type error on `req.params` means the params shape was not declared. The fix is
 `(req: Request<{ id: string }>, res: Response)`, which is in the skill.
 
-**Recovery.** `git checkout -- .` and repeat Step 2.
+**Recovery.** `./module1/scripts/demo-reset.sh` and repeat Step 1.
 
 ---
 
-## Step 4 — Verify the contract, record the exception, record the checkpoint
+## Step 3 — Inspect the diff and verify the CommonJS-to-ESM compatibility contract
 
 **Purpose.** Passing gates prove the code works. They do not prove it behaves the way the old
-service behaved. This step compares the two directly, records the one difference that was accepted
-on purpose, and leaves a commit to return to.
+service behaved. This step compares the two directly, before anything is accepted.
 
-**Starting state.** Step 3 complete, all gates green.
+**Starting state.** Step 2 complete, all four gates green.
 
 **Navigation.** Terminal, then Codex Desktop.
 
-**Command.** Compare the migrated route against the legacy contract:
+**Commands.**
 
 ```bash
+git diff --stat
 grep -c "expect(res.status)" apps/api/tests/contracts/legacy-route.contract.test.ts
 ```
 
-Expect `4` — one assertion per status code: 200, 401, 403, 404.
+Expect three changed files, and `4` — one assertion per status code: 200, 401, 403, 404.
+
+**Prompt.**
+
+```text
+Compare the migrated route against the legacy original in
+apps/legacy-ticket-api/routes/tickets.js.
+
+For each of these, state whether it is identical or different, and if different,
+exactly how:
+- the response field names and their order
+- the status code for success, missing key, invalid key, and unknown id
+- the auth mechanism
+
+Then confirm the ESM conversion is complete in the migrated file: no require(),
+no module.exports, no __dirname.
+```
+
+**Expected result.** Field names and all four status codes identical; auth identical; the migrated
+file free of CommonJS constructs. The one difference is the path prefix.
+
+**Highlight.** Four status codes preserved, nine field names preserved, zero CommonJS constructs
+remaining.
+
+**Decision produced.** The compatibility contract holds, with one difference to account for.
+
+**Verification.** PASS if all four status codes and the field set are identical and no CommonJS
+construct remains. FAIL if any status code or field name changed.
+
+**Recovery.** `./module1/scripts/demo-reset.sh` and repeat Step 1.
+
+---
+
+## Step 4 — Record the checkpoint so the migration can continue or roll back
+
+**Purpose.** A milestone nobody wrote down is a milestone you cannot return to. This step leaves
+the accepted state, the one deliberate difference, and the commit to roll back to.
+
+**Starting state.** Step 3 complete, contract verified.
+
+**Navigation.** Codex Desktop.
 
 **Prompt.**
 
@@ -219,20 +233,19 @@ Do not start checkpoint 2.
 **Operator action.** Accept the route. The path prefix is the only difference, it is deliberate,
 and it is now written down.
 
-**Highlight.** Three things: four status codes preserved, one documented exception, one rollback
-commit recorded.
+**Highlight.** One documented exception, one rollback commit, checkpoint 2 untouched.
 
 **Verification.**
 
 ```bash
-npm run lint && npm run typecheck && npm run build && npm run test:route
 grep -A4 "## Behavioral exceptions" plans/migration-execplan.md
 git rev-parse --short HEAD
+npm run lint && npm run typecheck && npm run build && npm run test:route
 ```
 
-PASS if all four gates pass, the exception is recorded with a reason, and a rollback commit is
-named. FAIL if the exception table is still empty, or if dependencies were changed — that belongs
-to checkpoint 2.
+PASS if the exception is recorded with a reason, a rollback commit is named, and all four gates
+still pass. FAIL if the exception table is still empty, or if dependencies were changed — that
+belongs to checkpoint 2.
 
 **Recovery.** `./module1/scripts/demo-reset.sh` returns to the starting state.
 
@@ -240,12 +253,12 @@ to checkpoint 2.
 
 ## Coverage
 
-| Step | Objective element | Proof |
-|---|---|---|
-| 1 | Framework skill applies platform-specific guidance | conversions named per file from the skill |
-| 2 | One milestone, not batched cleanup | three files changed, one route |
-| 3 | Apply lint, type-check, and focused tests after the milestone | four gates green, test:route reports 8 |
-| 4 | Validation after each milestone rather than batching | contract verified, exception and rollback recorded |
+| Step | LO | Objective element | Proof |
+|---|---|---|---|
+| 1 | EO2d | equivalent framework skill applies platform-specific guidance | conversions named per file, one route migrated |
+| 2 | EO2c | lint, type-check, and focused tests after the milestone | four gates green, test:route reports 8 |
+| 3 | EO2c | validation after each milestone rather than batching cleanup | four status codes and nine fields identical |
+| 4 | TO2 | incremental checkpoints with rollback | exception and rollback commit recorded |
 
 ## Final state
 

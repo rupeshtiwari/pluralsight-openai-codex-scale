@@ -38,7 +38,10 @@ LEARNING OBJECTIVES
 
 $ [ -z "$(git status --porcelain -- ":!preflight-logs")" ]
 
-RESULT PASS  [all] working tree clean
+RESULT FAIL  [all] working tree clean
+WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
+HOW TO FIX      ./module1/scripts/demo-reset.sh
+CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
 
 $ [ -d node_modules ]
 
@@ -158,8 +161,8 @@ $ npm run test:route
 
  Test Files  1 passed (1)
       Tests  4 passed (4)
-   Start at  11:51:46
-   Duration  530ms (transform 106ms, setup 0ms, collect 196ms, tests 47ms, environment 0ms, prepare 55ms)
+   Start at  12:24:16
+   Duration  536ms (transform 101ms, setup 0ms, collect 197ms, tests 47ms, environment 0ms, prepare 51ms)
 RESULT PASS  [c6] focused route tests pass
 
 $ [ "$(node -p "require(\"./node_modules/express/package.json\").version" | cut -d. -f1)" = "5" ]
@@ -180,4 +183,10 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 1    EO2d  framework skill guidance
   Clip 6 step 2-4  EO2c  validation after the milestone
 
-VERDICT  READY - all Module 1 demos can be run.
+FAILED CHECKS
+  [all] working tree clean
+    why it matters : Every demo starts from a clean tree; leftover edits change what the diff shows.
+    how to fix     : ./module1/scripts/demo-reset.sh
+    codex prompt   : Show me every uncommitted change in this repository and what produced it.
+
+VERDICT  NOT READY - 1 check(s) failed.

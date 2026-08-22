@@ -17,10 +17,13 @@ a human between the finding and the send.
 
 **Which findings should be routed?**
 
-## Learning objectives
+## Learning Objectives
 
-- Convert a tested manual triage sweep into a scheduled automation using the same thread context
-- Apply a routing workflow to draft Slack updates, Linear issues, or GitHub comments after triage
+| LO | Description |
+|---|---|
+| TO3 | Apply Codex automations to run recurring bug triage across multiple data sources at team scale. |
+| EO3c | Convert a tested manual triage sweep into a scheduled automation using the same thread context |
+| EO3d | Apply a routing workflow to draft Slack updates, Linear issues, or GitHub comments after triage approval |
   approval
 
 ## Terms used here
@@ -44,7 +47,7 @@ Expect no output.
 
 ---
 
-## Step 1 — Convert the validated thread into a scheduled task
+## Step 1 — Convert the tested manual sweep into a scheduled automation using the same thread context
 
 **Purpose.** Scheduling from the validated conversation, rather than writing a fresh prompt, is
 what carries the corrections forward. A new prompt would start from the same naive reasoning that
@@ -85,7 +88,7 @@ from a blank conversation.
 
 ---
 
-## Step 2 — Run it and compare against the validated baseline
+## Step 2 — Run the scheduled workflow and compare its report with the validated manual pattern
 
 **Purpose.** A scheduled run is only trustworthy if it reproduces reasoning you already checked.
 Comparing against a recorded baseline turns "looks right" into a specific pass or fail.
@@ -131,7 +134,7 @@ differs, or if the duplicates came back apart — the schedule did not inherit t
 
 ---
 
-## Step 3 — Approve a subset, not the report
+## Step 3 — Approve selected findings before drafting Slack updates or Linear issues
 
 **Purpose.** Two of four findings deserve routing. Approving per finding rather than approving the
 report is what keeps a P3 and a deferred item out of the team's channel.
@@ -172,7 +175,7 @@ findings as approved. FAIL if anything was sent, or if all four are treated as a
 
 ---
 
-## Step 4 — Draft the routed work and verify the evidence survived
+## Step 4 — Verify Slack and Linear drafts preserve the evidence and priority from the triage decision
 
 **Purpose.** A routed message is only useful if a reader can act on it without going back to the
 source. This step checks that priority and evidence made it through the handoff intact.
@@ -235,12 +238,12 @@ item was actually created.
 
 ## Coverage
 
-| Step | Objective element | Proof |
-|---|---|---|
-| 1 | Convert a tested manual sweep into a scheduled automation | task created from the validated conversation |
-| 2 | Using the same thread context | scheduled report matches the baseline exactly |
-| 3 | Routing workflow follows triage approval | two of four approved, nothing sent before approval |
-| 4 | Draft Slack updates and Linear issues after approval | three drafts, evidence and priority preserved |
+| Step | LO | Objective element | Proof |
+|---|---|---|---|
+| 1 | EO3c | convert a tested manual sweep into a scheduled automation | task created from the validated conversation |
+| 2 | EO3c | using the same thread context | scheduled report matches the baseline exactly |
+| 3 | EO3d | routing workflow follows triage approval | two of four approved, nothing sent before approval |
+| 4 | EO3d, TO3 | drafts preserve evidence and priority | three drafts, evidence and priority intact |
 
 ## Final state
 

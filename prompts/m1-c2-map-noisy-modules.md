@@ -1,6 +1,8 @@
 # M1 C2 — Map noisy TypeScript modules before editing
 
-Use in Plan mode. This prompt must not produce edits.
+Two prompts, used in order. Neither may produce edits.
+
+## Step 1 — Map the code
 
 ```text
 Analyze the TypeScript service in apps/api. Do not edit any files.
@@ -13,12 +15,45 @@ Produce:
 4. Any exported function with no importers anywhere in apps/api.
 5. Any business logic located in a route handler rather than a service.
 
-Then propose exactly ONE bounded cleanup theme that:
-- can be completed without changing any public behavior listed in item 2
+Report your findings only. Do not propose changes yet. Do not edit files.
+```
+
+## Step 2 — Constrain to one theme
+
+```text
+From those findings, propose exactly ONE bounded cleanup theme that:
+- can be completed without changing any public behavior you listed
 - is verifiable by the tests in apps/api/tests/contracts
 
-Do not propose architectural restructuring. Do not introduce new abstractions,
-layers, or directories. Do not edit files. Stop after the proposal.
+State the theme in one sentence, then list the exact files it would change.
+
+Propose one theme only. Do not propose architectural restructuring, new
+abstractions, layers, or directories. Do not edit files.
+```
+
+## Step 3 — Surface what is out of scope
+
+```text
+List anything in your analysis that would change the architecture rather than
+remove duplication: new layers, new abstractions, moved persistence boundaries,
+or reorganized directories.
+
+For each one, state how many files it would touch and why it is not part of a
+duplication cleanup. Do not implement any of them.
+```
+
+## Step 4 — Close the pass
+
+```text
+Summarize this pass as a reviewable plan:
+
+- the single cleanup theme, in one sentence
+- the exact files it will change
+- the behavior contracts it must preserve
+- the commands that will prove those contracts still hold
+- what you identified but deliberately deferred
+
+Do not implement it.
 ```
 
 ## Expected shape of a good response

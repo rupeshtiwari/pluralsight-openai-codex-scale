@@ -17,9 +17,13 @@ Before planning anything, you need to know what is actually in there.
 
 **Is this migration milestone safe enough to validate and roll back independently?**
 
-## Learning objectives
+## Learning Objectives
 
-- Direct Codex to inventory a legacy system's routing, data models, auth, build tooling, tests,
+| LO | Description |
+|---|---|
+| TO2 | Demonstrate how to orchestrate a legacy-to-modern stack migration with Codex using incremental checkpoints. |
+| EO2a | Direct Codex to inventory a legacy system's routing, data models, auth, build tooling, tests, and external contracts before proposing a migration plan |
+| EO2b | Evaluate a Codex-generated migration plan for compatibility layers, explicit behavioral exceptions, and rollback visibility |
   and external contracts before proposing a migration plan
 - Evaluate a Codex-generated migration plan for compatibility layers, explicit behavioral
   exceptions, and rollback visibility
@@ -47,7 +51,7 @@ Expect no output from the first, and `# pass 8` from the second.
 
 ---
 
-## Step 1 — Inventory all six categories before planning
+## Step 1 — Inventory the legacy service across routes, data models, auth, build tooling, tests, and external contracts
 
 **Purpose.** A migration plan built on a partial inventory hides work that surfaces halfway
 through, when returning to a clean state costs the most. Naming the six categories explicitly is
@@ -55,8 +59,13 @@ what stops the inventory from being just a file listing.
 
 **Starting state.** Branch `demo/m1-c5-start`, clean tree.
 
-**Navigation.** Codex Desktop. Switch the mode selector to **Plan**. Nothing in this demo edits
-code.
+**Navigation.** Codex Desktop. Nothing in this demo edits code, so select the planning workflow
+rather than one that applies changes.
+
+> Confirm the exact control in your installed Codex Desktop build before running this demo,
+> and use the label you actually see. The prompt below carries the hard boundary regardless
+> of which control you use.
+
 
 **Prompt.**
 
@@ -93,7 +102,7 @@ missing or answered only in general terms.
 
 ---
 
-## Step 2 — Demand a compatibility layer, exceptions, and rollback
+## Step 2 — Review the migration plan for the CommonJS-to-ESM compatibility layer, behavioral exceptions, and rollback visibility
 
 **Purpose.** A plan that lists steps but not how to undo them is a plan you can only follow
 forwards. This step forces three things into the plan that make it survivable.
@@ -136,79 +145,85 @@ listed, and each step has a rollback point. FAIL if compatibility is described o
 
 ---
 
-## Step 3 — Reject the milestone that batches two kinds of change
+## Step 3 — Split the migration into incremental milestones that can be validated independently
 
-**Purpose.** This is the decision the whole demo exists for. A milestone that migrates a route
-*and* upgrades Express fails for two different reasons, and a red test cannot tell you which half
-broke. Spotting that before implementation is what makes the migration recoverable.
+**Purpose.** A migration planned as one move can only be judged after it is finished. Broken into
+milestones, each one can be proved or undone on its own — which is what makes the whole thing
+recoverable rather than a commitment.
 
-**Starting state.** Step 2 produced a milestone list.
+**Starting state.** Step 2 produced a plan with a compatibility layer and rollback points.
 
 **Navigation.** Same Codex conversation.
 
 **Prompt.**
 
 ```text
-For each milestone you proposed, state:
-- does it change application code, upgrade a dependency, or both?
-- which single command proves it worked?
-- which single commit undoes it?
+Break the migration into incremental milestones.
 
-Flag any milestone that does more than one of those things.
+Each milestone must:
+- change one thing, not several
+- be provable on its own by a single named command
+- be undoable on its own, to a named commit
+
+List them in order. For each, give the files it touches, the command that
+validates it, and the commit it rolls back to. Do not implement anything.
 ```
 
-**Expected result.** At least one milestone combines migrating a route with upgrading Express 4 to
-Express 5.
+**Expected result.** A short ordered list, typically three to five milestones, covering the route
+slice, the framework upgrade, the build tooling, and the test runner.
 
-**Operator action.** **Reject that milestone.** Say why out loud: a route migration is verified by
-focused route tests, a framework upgrade changes behavior across every route at once and needs the
-full suite. Batched, a failure is ambiguous.
+**Highlight.** The validation command beside each milestone. A milestone without one cannot be
+checked, and a milestone with two is doing two jobs.
 
-**Highlight.** The milestone that answers "both" to the first question.
+**Decision produced.** The migration now has units small enough to accept or reject one at a time.
 
-**Decision produced.** The batched milestone is rejected before any code is written.
+**Verification.** PASS if every milestone names one command and one rollback commit. FAIL if any
+milestone has no validation command.
 
-**Verification.** PASS if a batched milestone is identified and rejected. FAIL if every milestone
-is accepted as proposed.
-
-**Recovery.** If no milestone is batched, ask: `Combine the route migration and the Express 5
-upgrade into one milestone and show me what that would look like.` Then reject it.
+**Recovery.** Ask: `Which single command proves milestone 1 worked?`
 
 ---
 
-## Step 4 — Split it into two checkpoints and prove no code was written
+## Step 4 — Reject the milestone that batches route migration with dependency upgrades
 
-**Purpose.** Rejecting is only half the decision. The replacement has to be two milestones that
-each pass the gate from Step 3. And the whole planning stage must end with the code untouched.
+**Purpose.** This is the decision the whole demo exists for. A milestone that migrates a route
+*and* upgrades Express fails for two different reasons, and a red test cannot tell you which half
+broke. Catching that before implementation is what keeps the migration recoverable — and the
+planning stage must end with the code untouched.
 
-**Starting state.** Step 3 complete.
+**Starting state.** Step 3 produced the milestone list.
 
 **Navigation.** Same Codex conversation, then the terminal.
 
 **Prompt.**
 
 ```text
-Split the rejected milestone into two independent checkpoints:
+For each milestone, state whether it changes application code, upgrades a
+dependency, or both. Flag any that answers "both".
+```
+
+**Expected result.** At least one milestone combines migrating a route with upgrading Express 4 to
+Express 5.
+
+**Operator action.** **Reject that milestone.** Say why out loud: a route migration is verified by
+focused route tests; a framework upgrade changes behavior across every route at once and needs the
+full suite. Batched, a failure is ambiguous.
+
+Then have Codex split it:
+
+```text
+Split the milestone you flagged into two independent checkpoints:
 
 Checkpoint 1: migrate one route slice, language and module system only
 Checkpoint 2: upgrade Express 4 to Express 5
 
-For each, give:
-- the exact files it touches
-- the exact command that validates it
-- the exact commit to roll back to
-- the external contract it must not change
+For each, give the exact files it touches, the exact command that validates it,
+the exact commit to roll back to, and the external contract it must not change.
 
 Record both in plans/migration-execplan.md under Milestones. Change no other file.
 ```
 
-**Expected result.** Two checkpoints, each with one validation command and one rollback point.
-Checkpoint 1 touches one route and validates with `npm run test:route`; Checkpoint 2 touches
-`package.json` and validates with the full suite.
-
-**Operator action.** Accept the split.
-
-**Highlight.** Each checkpoint now answers Step 3's three questions with a single answer.
+**Highlight.** Each checkpoint now answers "code or dependency" with one answer, not both.
 
 **Verification.**
 
@@ -216,22 +231,23 @@ Checkpoint 1 touches one route and validates with `npm run test:route`; Checkpoi
 git status --short
 ```
 
-PASS if the only modified file is `plans/migration-execplan.md`, and its Milestones table has two
-rows. FAIL if any file under `apps/` was modified — this demo plans, it does not implement.
+PASS if the only modified file is `plans/migration-execplan.md`, its Milestones table has two rows,
+and the batched milestone is gone.
+FAIL if any file under `apps/` was modified — this demo plans, it does not implement.
 
-**Recovery.** `git checkout -- apps/` restores any accidental edit.
+**Recovery.** `./module1/scripts/demo-reset.sh` restores any accidental edit.
 
 ---
 
 ## Coverage
 
-| Step | Objective element | Proof |
-|---|---|---|
-| 1 | Inventory routing, models, auth, build tooling, tests, external contracts | six categories with file paths |
-| 2 | Evaluate plan for compatibility layers and behavioral exceptions | compat files named, exceptions listed |
-| 2 | Evaluate plan for rollback visibility | rollback point per step |
-| 3 | Evaluate milestone independence | batched milestone identified and rejected |
-| 4 | Milestones validated independently | two checkpoints, one command and one rollback each |
+| Step | LO | Objective element | Proof |
+|---|---|---|---|
+| 1 | EO2a | inventory routing, models, auth, build tooling, tests, external contracts | six categories with file paths |
+| 2 | EO2b | compatibility layers and explicit behavioral exceptions | compat files named, exceptions listed |
+| 2 | EO2b | rollback visibility | rollback point per step |
+| 3 | EO2b | milestones validated independently | one command and one rollback per milestone |
+| 4 | TO2, EO2b | incremental checkpoints; batched milestone rejected | two checkpoints, no application code modified |
 
 ## Final state
 

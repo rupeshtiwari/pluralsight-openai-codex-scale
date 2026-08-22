@@ -16,9 +16,12 @@ Both arrived in the same run. Accepting or rejecting the run as a whole gets one
 
 **Which hunks should survive review?**
 
-## Learning objectives
+## Learning Objectives
 
-- Use the Codex review pane to inspect uncommitted diffs from an automation run, including
+| LO | Description |
+|---|---|
+| TO4 | Demonstrate how to debug and trace Codex automations |
+| EO4a | Use the Codex review pane to inspect uncommitted diffs from an automation run, including per-hunk staging and revert controls |
   per-hunk staging and revert controls
 
 ## Terms used here
@@ -82,7 +85,7 @@ git diff --stat
 PASS if exactly two files are listed. FAIL if the patch did not apply — run
 `./module2/scripts/demo-reset.sh` and re-apply.
 
-**Recovery.** `git checkout -- .` then re-apply the patch.
+**Recovery.** `./module2/scripts/demo-reset.sh` then re-apply the patch.
 
 ---
 
@@ -169,7 +172,7 @@ git diff --stat
 PASS if `--cached` lists only `apps/api/src/utils/priority.ts`, and `git diff` lists nothing.
 FAIL if the rubric file appears in either, or if `git diff` still shows unstaged work.
 
-**Recovery.** `git reset && git checkout -- .` then re-apply the patch and repeat.
+**Recovery.** `./module2/scripts/demo-reset.sh` then re-apply the patch and repeat.
 
 ---
 
@@ -216,12 +219,12 @@ passing. The kept change added behavior without breaking any contract.
 
 ## Coverage
 
-| Step | Objective element | Proof |
-|---|---|---|
-| 1 | Inspect uncommitted diffs from an automation run in the review pane | two changed files shown as a diff |
-| 2 | Review hunks against the evidence that caused the run | rubric edit shown to be unrequested |
-| 3 | Per-hunk staging and revert controls | valid hunk staged, invalid hunk reverted |
-| 4 | Only approved changes remain | one file staged, nothing unstaged, threshold restored |
+| Step | LO | Objective element | Proof |
+|---|---|---|---|
+| 1 | EO4a | inspect uncommitted diffs from an automation run in the review pane | two changed files shown as a diff |
+| 2 | EO4a | review hunks against the evidence that caused the run | rubric edit shown to be unrequested |
+| 3 | EO4a | per-hunk staging and revert controls | valid hunk staged, invalid hunk reverted |
+| 4 | TO4 | only approved changes remain | one file staged, nothing unstaged, threshold restored |
 
 ## Final state
 

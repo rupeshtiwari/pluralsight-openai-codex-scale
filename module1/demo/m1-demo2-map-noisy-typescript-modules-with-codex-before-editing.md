@@ -17,81 +17,60 @@ things you never intended to change, and you cannot tell which parts are safe.
 
 **What should Codex change first, and what must remain untouched?**
 
-## Learning objectives
+## Learning Objectives
 
-- Construct a refactoring prompt that instructs Codex to map noisy modules, identify dead code,
-  and propose one cleanup theme at a time before editing
-- Explain when to use Plan mode before committing Codex to implementation
+| LO | Description |
+|---|---|
+| TO1 | Apply Codex to plan and execute a codebase refactoring operation using reviewable passes. |
+| EO1a | Construct a refactoring prompt that instructs Codex to map noisy modules, identify dead code, and propose one cleanup theme at a time before editing |
+| EO1d | Explain when to use Plan mode before committing Codex to implementation |
 
 ## Terms used here
 
-- **Plan mode** — a Codex mode that analyzes and proposes but does not edit files.
+- **Plan mode** — a Codex planning workflow used here to inspect the repository and propose a
+  bounded change before implementation.
 - **Cleanup theme** — one narrow kind of change, such as removing a duplicate, as opposed to a
   general tidy-up.
 - **Behavior contract** — something callers depend on, such as a route path or a response field
   name, which a refactor must not change.
 
-## Before you start
+## Starting state
 
-These are already in place and are not part of this demo:
+These are in place before the demo begins and are not part of it:
 
 - Codex Desktop is open on the `pluralsight-openai-codex-scale` repository
 - dependencies are installed
-- the working tree is clean on `demo/m1-c2-start`
+- the working tree is clean
 
-Confirm the starting state:
-
-```bash
-git status --short
-```
-
-Expect no output. If anything is listed, run `./module1/scripts/demo-reset.sh`.
-
----
-
-## Step 1 — Show the service works before touching it
-
-**Purpose.** Establish that this is a working service, not a broken one. Everything found later is
-a maintainability problem, not a bug. This matters because it sets what "success" means: the code
-gets easier to change, and behavior stays identical.
-
-**Starting state.** Branch `demo/m1-c2-start`, clean tree, repository root.
-
-**Navigation.** Terminal.
-
-**Command.**
+Confirm the service is healthy and the tree is untouched:
 
 ```bash
 npm test
+git status --short
 ```
 
-**Expected result.**
+Expect `Tests  25 passed (25)` and no output from `git status`. Those 25 contract tests are the
+behavior contract this work must preserve, and the clean tree is the baseline every later `git
+status` is compared against.
 
-```text
-Test Files  4 passed (4)
-     Tests  25 passed (25)
-```
-
-**Highlight.** `25 passed`, and the four contract file names. These tests are the behavior
-contract — the thing the refactor must not break.
-
-**Decision produced.** The baseline is green, so any later red result is caused by the refactor.
-
-**Verification.** PASS if 25 tests pass. FAIL if any test fails or the count differs.
-
-**Recovery.** If tests fail, run `npm install`, then `./module1/scripts/demo-reset.sh`.
+If either is wrong, run `./module1/scripts/demo-reset.sh`.
 
 ---
 
-## Step 2 — Ask Codex to map the code without editing it
+## Step 1 — Map modules, dependencies, public behavior, and dead-code candidates
 
-**Purpose.** Get evidence before making changes. This is what Plan mode is for: the agent reads,
-reports, and stops. You decide what happens next.
+**Purpose.** Get evidence before making changes. An agent that edits before it understands
+produces a diff you cannot review. This step gathers what is actually in the codebase, in specific
+files, and changes nothing.
 
-**Starting state.** Same as Step 1.
+**Starting state.** Clean tree, repository root.
 
-**Navigation.** Codex Desktop. In the composer, switch the mode selector to **Plan**. Do not use
-Code mode — that mode edits files, and this step must not produce edits.
+**Navigation.** Codex Desktop, with the repository open. Select the planning workflow for this
+step rather than one that applies edits.
+
+> Confirm the exact control in your installed Codex Desktop build before running this demo, and
+> use the label you actually see. The prompt below carries the hard boundary regardless of which
+> control you use: it instructs Codex not to edit any files.
 
 **Prompt.** Paste exactly this. It is also saved at `prompts/m1-c2-map-noisy-modules.md`.
 
@@ -106,12 +85,7 @@ Produce:
 4. Any exported function with no importers anywhere in apps/api.
 5. Any business logic located in a route handler rather than a service.
 
-Then propose exactly ONE bounded cleanup theme that:
-- can be completed without changing any public behavior listed in item 2
-- is verifiable by the tests in apps/api/tests/contracts
-
-Do not propose architectural restructuring. Do not introduce new abstractions,
-layers, or directories. Do not edit files. Stop after the proposal.
+Report your findings only. Do not propose changes yet. Do not edit files.
 ```
 
 **Expected result.** A written analysis naming:
@@ -120,37 +94,65 @@ layers, or directories. Do not edit files. Stop after the proposal.
 - priority normalization appearing in **three** files
 - `normalizeLegacySeverity` in `utils/legacy.ts` with **no** importers
 - priority branching inside the `POST /tickets` route handler
-- one proposed cleanup theme
 
-**Highlight.** The three file paths for the duplicated logic, and the zero-importer finding.
-Those are the evidence, and they came from the repository rather than from a guess.
+**Highlight.** The three file paths for the duplicated logic, and the zero-importer finding. Those
+came from the repository, not from a guess.
 
-**Decision produced.** You now know what is wrong, in specific files, without having changed
-anything.
+**Decision produced.** You know what is wrong, in named files, having changed nothing.
 
-**Verification.** PASS if all three duplicate sites are named and the dead helper is found.
-FAIL if Codex proposes more than one theme, or if any file was modified.
+**Verification.** PASS if all three duplicate sites are named and the dead helper is found, and
+`git status --short` is empty. FAIL if any file was modified.
 
-Confirm nothing was edited:
-
-```bash
-git status --short
-```
-
-Expect no output.
-
-**Recovery.** If Codex edited files, it was in Code mode. Run `git checkout -- .`, switch the mode
-selector to Plan, and repeat this step.
+**Recovery.** `./module1/scripts/demo-reset.sh` restores the starting state.
 
 ---
 
-## Step 3 — Reject the work that does not belong
+## Step 2 — Constrain Codex to propose one cleanup theme before editing any files
+
+**Purpose.** Findings are not a plan. An agent given a list of problems will offer to fix all of
+them at once, which is how a cleanup becomes an unreviewable diff. Asking for exactly one theme is
+what keeps the first pass small enough to check.
+
+**Starting state.** Step 1 produced the analysis.
+
+**Navigation.** Same Codex conversation.
+
+**Prompt.**
+
+```text
+From those findings, propose exactly ONE bounded cleanup theme that:
+- can be completed without changing any public behavior you listed
+- is verifiable by the tests in apps/api/tests/contracts
+
+State the theme in one sentence, then list the exact files it would change.
+
+Propose one theme only. Do not propose architectural restructuring, new
+abstractions, layers, or directories. Do not edit files.
+```
+
+**Expected result.** One theme — *centralize duplicate ticket-priority normalization while
+preserving external behavior* — naming three files.
+
+**Highlight.** One sentence, three files. Compare that against the five categories of finding from
+Step 1: most of what was found is deliberately not being acted on yet.
+
+**Decision produced.** A single candidate theme exists, scoped to named files.
+
+**Verification.** PASS if exactly one theme is proposed and the files are named. FAIL if Codex
+offers several themes or begins implementing.
+
+**Recovery.** Ask: `You proposed more than one theme. Give me the single smallest one that
+preserves all public behavior.`
+
+---
+
+## Step 3 — Inspect repository evidence and reject unrelated architectural changes
 
 **Purpose.** A capable agent will offer improvements beyond what you asked for. Some are
 reasonable. Reasonable is not the same as in scope. This is where you practise saying no to a good
-idea at the wrong time.
+idea at the wrong time — before it is in a diff, when saying no is free.
 
-**Starting state.** Codex has produced the analysis from Step 2.
+**Starting state.** Step 2 produced one theme.
 
 **Navigation.** Same Codex conversation.
 
@@ -161,63 +163,66 @@ List anything in your analysis that would change the architecture rather than
 remove duplication: new layers, new abstractions, moved persistence boundaries,
 or reorganized directories.
 
-For each one, state what it would touch and why it is not part of a duplication
-cleanup. Do not implement any of them.
+For each one, state how many files it would touch and why it is not part of a
+duplication cleanup. Do not implement any of them.
 ```
 
 **Expected result.** A short list, typically including a repository or data-access layer, and
 possibly splitting `ticketService.ts` into several modules.
 
-**Highlight.** For each item, the number of files it would touch. Architecture changes touch many
-files; the duplication cleanup touches three.
+**Highlight.** The file count per item. Architecture changes touch many files; the approved
+cleanup touches three. That ratio is the argument.
 
-**Decision produced.** These are recorded as out of scope. They are not rejected forever, only
-rejected for this pass.
+**Decision produced.** Architectural work is rejected for this pass — set aside, not discarded.
 
 **Verification.** PASS if at least one architectural change is named and set aside, and no file was
 edited. FAIL if Codex began implementing any of them.
 
-**Recovery.** `git checkout -- .` restores the tree if anything was edited.
+**Recovery.** `./module1/scripts/demo-reset.sh`.
 
 ---
 
-## Step 4 — Approve exactly one theme and prove nothing changed
+## Step 4 — Confirm Plan mode produced a bounded, reviewable first pass
 
-**Purpose.** Close the plan with a single approved theme and evidence that the planning stage
-produced no edits. A plan you cannot point at is not a plan.
+**Purpose.** Close the planning pass with proof rather than belief. A plan you cannot point at is
+not a plan, and the whole value of planning before implementing rests on the code being untouched
+when you finish.
 
-**Starting state.** Steps 2 and 3 complete.
+**Starting state.** Steps 1 to 3 complete.
 
 **Navigation.** Same Codex conversation, then the terminal.
 
 **Prompt.**
 
 ```text
-State the single cleanup theme you are proposing, in one sentence.
+Summarize this pass as a reviewable plan:
 
-Then list:
+- the single cleanup theme, in one sentence
 - the exact files it will change
 - the behavior contracts it must preserve
 - the commands that will prove those contracts still hold
+- what you identified but deliberately deferred
 
 Do not implement it.
 ```
 
-**Expected result.** The theme is *centralize duplicate ticket-priority normalization while
-preserving external behavior*, changing three files, preserving the route and priority contracts,
-verified by `npm run lint`, `npm run typecheck`, and `npm test`.
+**Expected result.** One theme, three files, the route and priority contracts, the commands
+`npm run lint`, `npm run typecheck`, and `npm test`, and the deferred architectural work listed
+separately.
 
 **Operator action.** Approve that theme. Approve nothing else.
 
-**Highlight.** One theme. Three files. Four contracts.
+**Highlight.** The plan fits on one screen, and the deferred list is not empty — planning produced
+both a decision and a record of what was declined.
 
-**Verification.** Run:
+**Verification.**
 
 ```bash
 git status --short
 ```
 
-PASS if there is no output — the entire demo produced analysis and a decision, and zero edits.
+PASS if there is no output. The entire demo produced analysis, a bounded plan, and a decision,
+with zero edits — which is the case for planning before implementing.
 FAIL if any file is listed.
 
 **Recovery.** `./module1/scripts/demo-reset.sh` returns the repository to the starting state.
@@ -226,12 +231,12 @@ FAIL if any file is listed.
 
 ## Coverage
 
-| Step | Objective element | Proof |
-|---|---|---|
-| 1 | Plan mode is used before implementation | 25 baseline tests pass, tree clean |
-| 2 | Map noisy modules; identify dead code | three duplicate sites named, zero-importer helper found |
-| 3 | Propose one cleanup theme at a time | architectural work named and set aside |
-| 4 | Plan mode precedes committing to implementation | one theme approved, `git status` empty |
+| Step | LO | Objective element | Proof |
+|---|---|---|---|
+| 1 | EO1a | map noisy modules, identify dead code | three duplicate sites named, zero-importer helper found |
+| 2 | EO1a | propose one cleanup theme at a time before editing | exactly one theme, three files |
+| 3 | TO1 | reviewable passes: unrelated work separated | architectural work named and set aside |
+| 4 | EO1d, TO1 | Plan mode used before committing to implementation | bounded plan produced, `git status` empty |
 
 ## Final state
 

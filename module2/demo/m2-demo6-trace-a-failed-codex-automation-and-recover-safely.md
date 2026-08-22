@@ -17,9 +17,12 @@ harder question is which part failed, and why.
 
 **What failed, and what should be rerun?**
 
-## Learning objectives
+## Learning Objectives
 
-- Use the Codex review pane to inspect uncommitted diffs from an automation run, including
+| LO | Description |
+|---|---|
+| TO4 | Demonstrate how to debug and trace Codex automations |
+| EO4a | Use the Codex review pane to inspect uncommitted diffs from an automation run, including per-hunk staging and revert controls |
   per-hunk staging and revert controls
 
 ## Terms used here
@@ -46,7 +49,7 @@ Expect two modified files: `apps/api/package.json` and
 
 ---
 
-## Step 1 — Read the evidence chain in order
+## Step 1 — Trace the source evidence, generated change, and validation outcome of the failed run
 
 **Purpose.** A failed run has three layers: what it was told, what it produced, and what the
 validation said. Reading them in that order finds the cause. Reading only the error message finds
@@ -93,7 +96,7 @@ FAIL if the run's own summary is taken at face value without checking the correl
 
 ---
 
-## Step 2 — Separate the sound work from the faulty work
+## Step 2 — Isolate the incorrect hunk instead of discarding the entire run
 
 **Purpose.** A failed run is not uniformly wrong. Judging each hunk against the finding shows that
 one change follows from the evidence and the other follows from the bad assumption — which is what
@@ -129,10 +132,11 @@ correlation. FAIL if the run is judged wholly bad.
 
 ---
 
-## Step 3 — Revert only the bad hunk
+## Step 3 — Revert the bad change, preserve valid work, and rerun with corrected context
 
-**Purpose.** Discard the faulty change without disturbing the sound one. Per-hunk controls make
-this a precise operation instead of a rollback and a rewrite.
+**Purpose.** Discard the faulty change without disturbing the sound one, then fix what the
+automation was *told* rather than hand-editing what it produced. Rerunning on corrected context is
+what proves the failure is resolved rather than patched over.
 
 **Starting state.** Step 2 complete. Both changes still present.
 
@@ -147,11 +151,7 @@ this a precise operation instead of a rollback and a rewrite.
    **revert** control — the curved arrow — to discard it. Do not use the discard control beside the
    filename; that acts on the whole file.
 
-**Expected result.** `ticketService.ts` is staged. `package.json` is back to `"express": "^5.1.0"`.
-
-**Highlight.** The staged change survived a revert happening in the same working tree.
-
-**Verification.**
+**Verify the revert before rerunning:**
 
 ```bash
 git diff --cached --stat
@@ -159,24 +159,9 @@ git diff --stat
 grep '"express"' apps/api/package.json
 ```
 
-PASS if `--cached` lists only `ticketService.ts`, `git diff` lists nothing, and express reads
-`^5.1.0`. FAIL if the pin remains or the guard was lost.
+Expect `ticketService.ts` staged, nothing unstaged, and express back at `^5.1.0`.
 
-**Recovery.** `git reset && git checkout -- .`, re-apply the patch, repeat.
-
----
-
-## Step 4 — Rerun with corrected context and verify the result
-
-**Purpose.** The fix is to correct what the automation was told, not to hand-edit what it produced.
-Rerunning on corrected context is what proves the failure is actually resolved rather than patched
-over.
-
-**Starting state.** Step 3 complete. Bad hunk gone, good hunk staged.
-
-**Navigation.** Codex Desktop, same conversation.
-
-**Prompt.**
+**Then rerun, in Codex Desktop:**
 
 ```text
 Rerun the fix for incident-2001 with corrected context.
@@ -187,13 +172,33 @@ package.json and package-lock.json, neither of which appears in any failing stac
 
 Complete the fix in apps/api/src/services/ticketService.ts only. Change no
 dependency.
-
-Then run: npm run lint && npm run typecheck && npm run build && npm test
 ```
 
-**Expected result.** Changes confined to `ticketService.ts`. All four gates pass.
+**Expected result.** The staged guard survives, the dependency pin is gone, and the rerun's changes
+are confined to `ticketService.ts`.
 
-**Command.** Confirm against what the corrected run should look like:
+**Highlight.** The staged change survived a revert happening in the same working tree, and the
+rerun touched no dependency.
+
+**Decision produced.** Valid work preserved, faulty work discarded, corrected run produced.
+
+**Verification.** PASS if express reads `^5.1.0`, the guard is still present, and every change is
+inside `ticketService.ts`. FAIL if the pin remains or the guard was lost.
+
+**Recovery.** `./module2/scripts/demo-reset.sh`, re-apply the patch, repeat.
+
+---
+
+## Step 4 — Verify the recovered run produces a clean reviewable diff before acceptance
+
+**Purpose.** Close the recovery with evidence rather than belief. A rerun that nobody validated is
+just a second guess.
+
+**Starting state.** Step 3 complete.
+
+**Navigation.** Terminal.
+
+**Commands.**
 
 ```bash
 python3 -c "
@@ -205,6 +210,8 @@ print('  files  :', [h['file'] for h in r['hunks']])
 print('  gates  :', r['validation'])
 "
 npm run lint && npm run typecheck && npm run build && npm test
+git diff --stat
+git diff --cached --stat
 ```
 
 **Expected output.**
@@ -223,16 +230,9 @@ Tests  25 passed (25)
 **Highlight.** One file changed, no dependency touched, four gates green, and the diff small enough
 to read in full.
 
-**Verification.**
-
-```bash
-git diff --stat
-git diff --cached --stat
-```
-
-PASS if every remaining change is inside `apps/api/src/services/ticketService.ts`, no dependency
-file appears, and all four gates pass. FAIL if `package.json` appears anywhere, or if any gate is
-red.
+**Verification.** PASS if every remaining change is inside `apps/api/src/services/ticketService.ts`,
+no dependency file appears in either diff, and all four gates pass. FAIL if `package.json` appears
+anywhere, or if any gate is red.
 
 **Recovery.** `./module2/scripts/demo-reset.sh`.
 
@@ -240,12 +240,12 @@ red.
 
 ## Coverage
 
-| Step | Objective element | Proof |
-|---|---|---|
-| 1 | Inspect an automation run's uncommitted diff and its inputs | evidence chain read, bad source assumption named |
-| 2 | Review hunks against the evidence that caused the run | sound hunk separated from faulty hunk |
-| 3 | Per-hunk revert keeps valid work | pin reverted, guard staged, express back to ^5.1.0 |
-| 4 | Only approved changes remain before acceptance | one file changed, four gates green |
+| Step | LO | Objective element | Proof |
+|---|---|---|---|
+| 1 | EO4a | inspect an automation run's uncommitted diff and its inputs | evidence chain read, bad source assumption named |
+| 2 | EO4a | review hunks against the evidence that caused the run | sound hunk separated from faulty hunk |
+| 3 | EO4a | per-hunk revert keeps valid work; rerun on corrected context | pin reverted, guard staged, express back to ^5.1.0 |
+| 4 | TO4 | trace and debug to a clean reviewable diff | one file changed, four gates green |
 
 ## Final state
 

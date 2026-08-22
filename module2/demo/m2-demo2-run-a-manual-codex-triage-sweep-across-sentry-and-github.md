@@ -18,9 +18,13 @@ correct answers scales the wrong answers.
 
 **Which incidents deserve action, and why?**
 
-## Learning objectives
+## Learning Objectives
 
-- Configure a bug triage automation using the Sentry, Slack, Linear, and GitHub plugins to sweep a
+| LO | Description |
+|---|---|
+| TO3 | Apply Codex automations to run recurring bug triage across multiple data sources at team scale. |
+| EO3a | Configure a bug triage automation using the Sentry, Slack, Linear, and GitHub plugins to sweep a defined time window |
+| EO3b | Evaluate a Codex-generated triage report for correct P0–P3 prioritization, deduplicated bug entries, and evidence-backed recommendations |
   defined time window
 - Evaluate a Codex-generated triage report for correct P0–P3 prioritization, deduplicated bug
   entries, and evidence-backed recommendations
@@ -49,7 +53,7 @@ Expect no output from the first, and both fixture files from the second.
 
 ---
 
-## Step 1 — Name the sources, the destinations, and the window
+## Step 1 — Configure Sentry and GitHub evidence sources, connect Slack and Linear destinations, and define the time window
 
 **Purpose.** A sweep with no boundary is not repeatable. Fixing the window and naming each source's
 role up front is what lets you compare two runs later and know the difference came from the
@@ -94,7 +98,7 @@ these.
 
 ---
 
-## Step 2 — Run the sweep in this thread
+## Step 2 — Run the sweep manually so the same thread context captures source evidence
 
 **Purpose.** Produce the triage in the same conversation that will later become the automation.
 Doing it manually first is the whole point: you validate the reasoning while a human is watching,
@@ -137,7 +141,7 @@ missing.
 
 ---
 
-## Step 3 — Check the report against the rubric
+## Step 3 — Inspect the report for P0-P3 priority, deduplicated bugs, and evidence-backed recommendations
 
 **Purpose.** Reading a report for plausibility is not review. Checking each claim against a written
 standard is. This step is where the rubric earns its place.
@@ -178,7 +182,7 @@ evt-1042?`
 
 ---
 
-## Step 4 — Correct the report and accept the pattern
+## Step 4 — Correct weak prioritization and duplicate entries before automation is promoted
 
 **Purpose.** End with a report you would act on, and a reasoning pattern worth repeating. The
 corrections are what will make the scheduled version trustworthy.
@@ -233,12 +237,12 @@ priority differs or the duplicates are still separate.
 
 ## Coverage
 
-| Step | Objective element | Proof |
-|---|---|---|
-| 1 | Configure Sentry, GitHub, Slack, Linear sources over a defined window | 5 issues and 3 commits confirmed in window |
-| 2 | Sweep produces a triage report | all five issues triaged with evidence |
-| 3 | Evaluate for deduplication and evidence-backed recommendations | shared stack frame found, correlation shown to be timing-only |
-| 4 | Evaluate for correct P0–P3 prioritization | four findings match the rubric-derived baseline |
+| Step | LO | Objective element | Proof |
+|---|---|---|---|
+| 1 | EO3a | configure Sentry, GitHub, Slack, Linear over a defined time window | 5 issues and 3 commits confirmed in window |
+| 2 | EO3a | sweep run manually so the thread captures source evidence | manual run artifact in this thread |
+| 3 | EO3b | evaluate for deduplication and evidence-backed recommendations | shared stack frame found, correlation shown to be timing-only |
+| 4 | EO3b, TO3 | evaluate for correct P0–P3 prioritization | four findings match the rubric-derived baseline |
 
 ## Final state
 
