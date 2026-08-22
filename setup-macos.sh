@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-# Convenience wrapper. The single source of truth is env-setup/setup.sh.
-exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env-setup/setup.sh" "$@"
+# Convenience wrapper. The single source of truth is environment-setup/install-macos-requirements.sh.
+exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/environment-setup/install-macos-requirements.sh" "$@"

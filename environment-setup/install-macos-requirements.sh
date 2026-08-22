@@ -6,12 +6,12 @@
 # expected version for each item and ends with an overall readiness verdict.
 #
 # Run once after cloning:
-#   ./env-setup/setup.sh
+#   ./environment-setup/setup.sh
 
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-LOG="${REPO_ROOT}/env-setup/install.log"
+LOG="${REPO_ROOT}/environment-setup/install.log"
 FMT="python3 ${REPO_ROOT}/scripts/fmt.py"
 
 NODE_MAJOR_EXPECTED=24
@@ -118,9 +118,9 @@ else
     $FMT item "npm install completed"
     log "PASS npm install completed"
   else
-    $FMT item "npm install FAILED - see env-setup/install.log"
+    $FMT item "npm install FAILED - see environment-setup/install.log"
     log "FAIL npm install"
-    FAILURES+=("project dependencies|Run 'npm install' from the repository root and read env-setup/install.log")
+    FAILURES+=("project dependencies|Run 'npm install' from the repository root and read environment-setup/install.log")
   fi
 fi
 
@@ -134,7 +134,7 @@ fi
 
 # --- Verdict --------------------------------------------------------------
 if [ ${#FAILURES[@]} -eq 0 ]; then
-  $FMT verdict pass "Environment is ready. Full transcript: env-setup/install.log"
+  $FMT verdict pass "Environment is ready. Full transcript: environment-setup/install.log"
   exit 0
 fi
 
