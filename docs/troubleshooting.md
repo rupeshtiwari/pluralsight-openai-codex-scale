@@ -51,3 +51,38 @@ Or reset the module in place:
 ```bash
 ./module1/scripts/demo-reset.sh
 ```
+
+## Commit attribution
+
+**A commit was authored by the wrong identity.**
+The execution container can recreate its global git config, resetting the identity. This repository
+therefore sets the identity locally as well, in `.git/config`, which the container cannot overwrite.
+
+Check what git will actually use:
+
+```bash
+git var GIT_AUTHOR_IDENT
+```
+
+Fix the most recent commit:
+
+```bash
+git commit --amend --reset-author --no-edit
+```
+
+**The attribution gate blocked a push.**
+`scripts/check-attribution.sh` runs before every push and rejects any commit whose author,
+committer, or message trailer names an identity other than the author's. It inspects commit
+metadata only and never touches application code.
+
+Run it by hand at any time:
+
+```bash
+./scripts/check-attribution.sh
+```
+
+Reinstall it after a fresh clone, since git hooks are not carried in a clone:
+
+```bash
+./scripts/check-attribution.sh --install
+```

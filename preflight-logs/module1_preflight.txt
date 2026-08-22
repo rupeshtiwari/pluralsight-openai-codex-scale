@@ -154,12 +154,12 @@ $ npm run test:route
 
  RUN  v2.1.9 /home/user/pluralsight-openai-codex-scale/apps/api
 
- ✓ tests/contracts/ticket-read-route.contract.test.ts (4 tests) 31ms
+ ✓ tests/contracts/ticket-read-route.contract.test.ts (4 tests) 47ms
 
  Test Files  1 passed (1)
       Tests  4 passed (4)
-   Start at  11:40:46
-   Duration  483ms (transform 80ms, setup 0ms, collect 178ms, tests 31ms, environment 0ms, prepare 57ms)
+   Start at  11:51:46
+   Duration  530ms (transform 106ms, setup 0ms, collect 196ms, tests 47ms, environment 0ms, prepare 55ms)
 RESULT PASS  [c6] focused route tests pass
 
 $ [ "$(node -p "require(\"./node_modules/express/package.json\").version" | cut -d. -f1)" = "5" ]
