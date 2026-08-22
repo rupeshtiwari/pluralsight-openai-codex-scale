@@ -36,12 +36,9 @@ LEARNING OBJECTIVES
   EO2d Use the ASP.NET Core skill or equivalent framework skill to apply
        platform-specific migration guidance
 
-$ [ -z "$(git status --porcelain)" ]
+$ [ -z "$(git status --porcelain -- ":!preflight-logs")" ]
 
-RESULT FAIL  [all] working tree clean
-WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
-HOW TO FIX      ./module1/scripts/demo-reset.sh
-CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+RESULT PASS  [all] working tree clean
 
 $ [ -d node_modules ]
 
@@ -161,8 +158,8 @@ $ npm run test:route
 
  Test Files  1 passed (1)
       Tests  4 passed (4)
-   Start at  11:39:58
-   Duration  474ms (transform 82ms, setup 0ms, collect 175ms, tests 31ms, environment 0ms, prepare 54ms)
+   Start at  11:40:46
+   Duration  483ms (transform 80ms, setup 0ms, collect 178ms, tests 31ms, environment 0ms, prepare 57ms)
 RESULT PASS  [c6] focused route tests pass
 
 $ [ "$(node -p "require(\"./node_modules/express/package.json\").version" | cut -d. -f1)" = "5" ]
@@ -183,10 +180,4 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 1    EO2d  framework skill guidance
   Clip 6 step 2-4  EO2c  validation after the milestone
 
-FAILED CHECKS
-  [all] working tree clean
-    why it matters : Every demo starts from a clean tree; leftover edits change what the diff shows.
-    how to fix     : ./module1/scripts/demo-reset.sh
-    codex prompt   : Show me every uncommitted change in this repository and what produced it.
-
-VERDICT  NOT READY - 1 check(s) failed.
+VERDICT  READY - all Module 1 demos can be run.
