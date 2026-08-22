@@ -1,0 +1,5 @@
+{
+  "maxSubjectLength": 200,
+  "maxOpenTicketsPerAccount": 25,
+  "defaultPriority": "normal"
+}
