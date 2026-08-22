@@ -1,0 +1,27 @@
+{
+  "name": "@supporthub/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src tests",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:route": "vitest run tests/contracts/ticket-read.contract.test.ts"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.9.0",
+    "@types/supertest": "^6.0.2",
+    "eslint": "^9.15.0",
+    "supertest": "^7.0.0",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.15.0",
+    "vitest": "^2.1.5"
+  }
+}
