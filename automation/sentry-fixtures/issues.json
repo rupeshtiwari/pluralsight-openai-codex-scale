@@ -1,0 +1,99 @@
+{
+  "_comment": "Deterministic Sentry evidence. Every stack frame names a file that exists in this repository so evidence can be cross-referenced against real code.",
+  "query_window": {
+    "from": "2025-03-03T00:00:00.000Z",
+    "to": "2025-03-04T00:00:00.000Z"
+  },
+  "project": "supporthub-demo",
+  "issues": [
+    {
+      "id": "evt-1042",
+      "title": "TypeError: Cannot read properties of undefined (reading 'includes')",
+      "culprit": "ticketService.changeStatus",
+      "firstSeen": "2025-03-03T09:12:04.000Z",
+      "lastSeen": "2025-03-03T23:41:52.000Z",
+      "affectedUsers": 412,
+      "occurrences": 1204,
+      "release": "supporthub@2025.03.01",
+      "stack": [
+        "at changeStatus (apps/api/src/services/ticketService.ts:196)",
+        "at handler (apps/api/src/routes/tickets.ts:62)"
+      ],
+      "workaround": "none",
+      "userImpact": "Status updates fail for tickets whose status came from the pager bridge."
+    },
+    {
+      "id": "evt-1043",
+      "title": "TypeError: Cannot read properties of undefined (reading 'includes')",
+      "culprit": "ticketService.changeStatus",
+      "firstSeen": "2025-03-03T09:14:31.000Z",
+      "lastSeen": "2025-03-03T22:58:07.000Z",
+      "affectedUsers": 88,
+      "occurrences": 305,
+      "release": "supporthub@2025.03.01",
+      "stack": [
+        "at changeStatus (apps/api/src/services/ticketService.ts:196)",
+        "at bulkImport (apps/api/src/services/ticketService.ts:214)"
+      ],
+      "workaround": "none",
+      "userImpact": "Same fault reached through bulk import instead of the status route."
+    },
+    {
+      "id": "evt-1088",
+      "title": "Slow response: GET /tickets exceeded 2000ms",
+      "culprit": "routes/tickets.listTickets",
+      "firstSeen": "2025-03-03T01:20:11.000Z",
+      "lastSeen": "2025-03-03T23:59:02.000Z",
+      "affectedUsers": 3,
+      "occurrences": 890,
+      "release": "supporthub@2025.02.24",
+      "stack": [
+        "at listTickets (apps/api/src/routes/tickets.ts:18)"
+      ],
+      "workaround": "Request completes; the response is slow.",
+      "userImpact": "Three internal agents see a slow ticket list. No customer impact."
+    },
+    {
+      "id": "evt-1099",
+      "title": "Unhandled rejection while linking an incident",
+      "culprit": "ticketService.linkIncident",
+      "firstSeen": "2025-03-03T17:03:44.000Z",
+      "lastSeen": "2025-03-03T17:09:12.000Z",
+      "affectedUsers": 2,
+      "occurrences": 4,
+      "release": "supporthub@2025.03.01",
+      "stack": [
+        "at linkIncident (apps/api/src/services/ticketService.ts:?)"
+      ],
+      "workaround": "unknown",
+      "userImpact": "Unclear. No line number captured and no reproduction."
+    },
+    {
+      "id": "incident-2002",
+      "title": "PriorityMappingError: unrecognized severity 'SEV2'",
+      "culprit": "ticketService.toPriority",
+      "firstSeen": "2025-03-03T11:47:19.000Z",
+      "lastSeen": "2025-03-03T21:15:40.000Z",
+      "affectedUsers": 61,
+      "occurrences": 140,
+      "release": "supporthub@2025.03.01",
+      "stack": [
+        "at toPriority (apps/api/src/services/ticketService.ts:71)"
+      ],
+      "workaround": "An agent can set the priority manually after the ticket is created.",
+      "userImpact": "Pager-bridge tickets land at default priority instead of their real one."
+    }
+  ],
+  "groups": [
+    {
+      "id": "incident-2001",
+      "members": [
+        "evt-1042",
+        "evt-1043"
+      ],
+      "rootCause": "changeStatus indexes ALLOWED_TRANSITIONS with a status value that was never validated",
+      "combinedAffectedUsers": 500,
+      "combinedOccurrences": 1509
+    }
+  ]
+}

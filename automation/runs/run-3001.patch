@@ -1,0 +1,27 @@
+diff --git a/apps/api/src/utils/priority.ts b/apps/api/src/utils/priority.ts
+index 7637a4c..703be03 100644
+--- a/apps/api/src/utils/priority.ts
++++ b/apps/api/src/utils/priority.ts
+@@ -22,5 +22,9 @@ export function normalizePriority(input: unknown): TicketPriority {
+   if (value === 'p2' || value === 'normal' || value === 'medium') return 'normal';
+   if (value === 'p3' || value === 'low' || value === 'minor') return 'low';
+ 
++  if (value === 'sev1') return 'urgent';
++  if (value === 'sev2') return 'high';
++  if (value === 'sev3') return 'normal';
++
+   return 'normal';
+ }
+diff --git a/docs/triage-rubric.md b/docs/triage-rubric.md
+index 03eb838..17e29d9 100644
+--- a/docs/triage-rubric.md
++++ b/docs/triage-rubric.md
+@@ -8,7 +8,7 @@ A high occurrence count with a small blast radius is noise. A low count that blo
+ | Priority | Impact | Affected users | Workaround | Response |
+ |---|---|---|---|---|
+ | **P0** | Core workflow unavailable; data loss or corruption | Any number — severity alone qualifies | None | Immediate |
+-| **P1** | Core workflow degraded or failing for many users | 100 or more | None, or manual only | Same day |
++| **P1** | Core workflow degraded or failing for many users | 50 or more | None, or manual only | Same day |
+ | **P2** | Non-core workflow failing, or core workflow with a workaround | 10 to 99 | Documented workaround exists | Next sprint |
+ | **P3** | Cosmetic, noisy, or self-recovering | Fewer than 10 | Unaffected in practice | Backlog |
+ 

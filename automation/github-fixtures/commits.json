@@ -1,0 +1,37 @@
+{
+  "_comment": "GitHub change evidence. The genuine root cause is OLDER than the misleading change, so recency alone must not decide correlation.",
+  "repository": "rupeshtiwari/pluralsight-openai-codex-scale",
+  "commits": [
+    {
+      "sha": "a1b2c3d",
+      "message": "Accept status values from the pager bridge without re-validating",
+      "author": "agent-11",
+      "committedAt": "2025-03-01T14:06:22.000Z",
+      "filesChanged": [
+        "apps/api/src/services/ticketService.ts"
+      ],
+      "note": "Touches changeStatus, the frame both evt-1042 and evt-1043 share."
+    },
+    {
+      "sha": "d4e5f6a",
+      "message": "Bump express from 4.21.0 to 4.21.1",
+      "author": "dependabot",
+      "committedAt": "2025-03-03T08:55:10.000Z",
+      "filesChanged": [
+        "package.json",
+        "package-lock.json"
+      ],
+      "note": "Landed 17 minutes before the first error. Touches no application code on the failing path."
+    },
+    {
+      "sha": "f7a8b9c",
+      "message": "Add incident link audit entry",
+      "author": "agent-04",
+      "committedAt": "2025-03-02T16:30:00.000Z",
+      "filesChanged": [
+        "apps/api/src/services/ticketService.ts"
+      ],
+      "note": "Touches linkIncident but the evidence for evt-1099 is too thin to correlate."
+    }
+  ]
+}

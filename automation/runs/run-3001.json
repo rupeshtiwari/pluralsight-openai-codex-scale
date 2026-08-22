@@ -1,0 +1,21 @@
+{
+  "_comment": "Seeded automation run for the review demo. Produces uncommitted changes: one valid, one not.",
+  "runId": "run-3001",
+  "startedAt": "2025-03-04T06:00:00.000Z",
+  "trigger": "scheduled",
+  "sourceFindings": ["incident-2002"],
+  "status": "completed",
+  "patch": "run-3001.patch",
+  "hunks": [
+    {
+      "file": "apps/api/src/utils/priority.ts",
+      "verdict": "valid",
+      "why": "incident-2002 reports unrecognized severity SEV2. Adding the pager-bridge severity mapping addresses the reported finding directly."
+    },
+    {
+      "file": "docs/triage-rubric.md",
+      "verdict": "invalid",
+      "why": "Lowers the P1 affected-user threshold from 100 to 50. No finding asked for this. It edits the standard the automation is judged against so its own prioritization would qualify."
+    }
+  ]
+}

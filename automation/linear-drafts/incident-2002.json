@@ -1,0 +1,12 @@
+{
+  "_comment": "DRAFT ONLY. No issue is created until a human approves.",
+  "status": "draft",
+  "team": "supporthub-demo",
+  "project": "SupportHub reliability",
+  "sourceFinding": "incident-2002",
+  "approvedBy": null,
+  "title": "P2: inbound severity SEV2 is not mapped to a ticket priority",
+  "priority": "P2",
+  "labels": ["bug", "p2", "triage-automation"],
+  "description": "Affected users: 61\nOccurrences: 140\nWorkaround: an agent can set the priority manually after the ticket is created\nConfidence: high\n\nPriority reasoning\n- 61 affected users falls in the P2 band, which is 10 to 99\n- a documented workaround exists, which the rubric requires for P2 rather than P1\n\nProposed fix\n- Add the pager-bridge SEV codes to the inbound priority mapping."
+}

@@ -1,0 +1,13 @@
+diff --git a/apps/api/package.json b/apps/api/package.json
+index 79bf7e3..9304404 100644
+--- a/apps/api/package.json
++++ b/apps/api/package.json
+@@ -11,7 +11,7 @@
+     "test:route": "vitest run tests/contracts/ticket-read.contract.test.ts"
+   },
+   "dependencies": {
+-    "express": "^5.1.0"
++    "express": "4.21.0"
+   },
+   "devDependencies": {
+     "@eslint/js": "^9.15.0",

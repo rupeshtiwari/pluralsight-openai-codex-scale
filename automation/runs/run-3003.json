@@ -1,0 +1,22 @@
+{
+  "_comment": "Corrected rerun after the bad correlation was fixed and the bad hunk reverted.",
+  "runId": "run-3003",
+  "startedAt": "2025-03-04T07:20:00.000Z",
+  "trigger": "manual rerun with corrected context",
+  "sourceFindings": ["incident-2001"],
+  "status": "completed",
+  "correlation": {
+    "chose": "a1b2c3d",
+    "chosenBecause": "touches changeStatus, the frame evt-1042 and evt-1043 share",
+    "correct": "a1b2c3d",
+    "faultType": null
+  },
+  "hunks": [
+    {
+      "file": "apps/api/src/services/ticketService.ts",
+      "verdict": "valid",
+      "why": "Validates the stored status before indexing ALLOWED_TRANSITIONS, which is the reported root cause."
+    }
+  ],
+  "validation": { "lint": "pass", "typecheck": "pass", "build": "pass", "test": "pass" }
+}

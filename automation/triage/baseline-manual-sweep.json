@@ -1,0 +1,72 @@
+{
+  "_comment": "The corrected manual triage result. Scheduled runs are compared against this baseline.",
+  "runType": "manual",
+  "window": {
+    "from": "2025-03-03T00:00:00.000Z",
+    "to": "2025-03-04T00:00:00.000Z"
+  },
+  "findings": [
+    {
+      "id": "incident-2001",
+      "merged": [
+        "evt-1042",
+        "evt-1043"
+      ],
+      "priority": "P0",
+      "affectedUsers": 500,
+      "occurrences": 1509,
+      "workaround": "none",
+      "confidence": "high",
+      "correlatedCommit": "a1b2c3d",
+      "evidence": "Both events share the changeStatus frame in ticketService.ts. a1b2c3d changed that function.",
+      "recommendation": "Validate the incoming status before indexing ALLOWED_TRANSITIONS.",
+      "route": true
+    },
+    {
+      "id": "incident-2002",
+      "merged": [],
+      "priority": "P2",
+      "affectedUsers": 61,
+      "occurrences": 140,
+      "workaround": "Agent can set priority manually after creation.",
+      "confidence": "high",
+      "correlatedCommit": null,
+      "evidence": "61 affected users falls in the P2 band. A documented workaround exists.",
+      "recommendation": "Add SEV2 to the inbound priority mapping.",
+      "route": true
+    },
+    {
+      "id": "evt-1088",
+      "merged": [],
+      "priority": "P3",
+      "affectedUsers": 3,
+      "occurrences": 890,
+      "workaround": "Query completes; results are delayed.",
+      "confidence": "high",
+      "correlatedCommit": null,
+      "evidence": "High occurrence count with a blast radius of three internal agents. Count does not set priority.",
+      "recommendation": "Backlog. Revisit if customer-facing search regresses.",
+      "route": false
+    },
+    {
+      "id": "evt-1099",
+      "merged": [],
+      "priority": "deferred",
+      "affectedUsers": 2,
+      "occurrences": 4,
+      "workaround": "unknown",
+      "confidence": "low",
+      "correlatedCommit": null,
+      "evidence": "No line number captured and no reproduction. Correlation to f7a8b9c is circumstantial.",
+      "recommendation": "Defer pending more evidence. Low confidence is not a priority.",
+      "route": false
+    }
+  ],
+  "rejectedCorrelations": [
+    {
+      "commit": "d4e5f6a",
+      "proposedFor": "incident-2001",
+      "rejectedBecause": "Proximity in time only. A dependency bump touches no code on the failing path."
+    }
+  ]
+}

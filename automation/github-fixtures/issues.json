@@ -1,0 +1,15 @@
+{
+  "_comment": "GitHub-only evidence. Retrieving this proves the GitHub integration is reachable, which pushing a repository does not.",
+  "issues": [
+    {
+      "number": 17,
+      "title": "Checkout token null after session refresh",
+      "state": "open",
+      "author": "agent-11",
+      "createdAt": "2025-03-03T10:02:00.000Z",
+      "labels": ["bug", "checkout"],
+      "marker": "SUPPORTHUB-DEMO-MARKER-17",
+      "body": "Customers report checkout failing with a null token. Started this morning. Suspect the lazy refresh added in a1b2c3d."
+    }
+  ]
+}
