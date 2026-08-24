@@ -8,11 +8,20 @@
  *
  *   node scripts/check.mjs <name>      exit 0 = holds, 1 = broken
  *   node scripts/check.mjs --list      show every check
+ *
+ * File reads resolve against CHECK_ROOT when it is set, so a check can be run
+ * against a mutated copy of the repository without touching the working tree.
+ * That is how scripts/check-negatives.mjs proves each check fails on the
+ * condition it exists to detect. See "Prove the negative case" in
+ * docs/troubleshooting.md. Checks that shell out to git ignore CHECK_ROOT and
+ * are marked below; they are proven a different way.
  */
 import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 
-const read = (p) => readFileSync(p, 'utf8');
+const ROOT = process.env.CHECK_ROOT || '.';
+const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 
 const CHECKS = {
   /** createTicket must carry all four responsibilities, so one cleanup pass touches them together. */
@@ -40,7 +49,11 @@ const CHECKS = {
     return /routes\/tickets\.js.*routes\/tickets\.ts/.test(m) && /express.{0,4}4\.x to 5\.x/.test(m);
   },
 
-  /** Clip 2 writes nothing, so its two checkpoints must be the same commit. */
+  /**
+   * Clip 2 writes nothing, so its two checkpoints must be the same commit.
+   * Reads git, not files: ignores CHECK_ROOT. Proven by the clean-clone check,
+   * where the local-refs-only version failed as it should have.
+   */
   'c2-refs-identical': () => {
     // A fresh clone has no local branches beyond the checked-out one, so resolve
     // the local ref first and fall back to the remote-tracking ref. Checking only
@@ -60,7 +73,11 @@ const CHECKS = {
     return a !== '' && a === b;
   },
 
-  /** No route has migrated yet, so the baseline is genuinely pure JavaScript. */
+  /**
+   * No route has migrated yet, so the baseline is genuinely pure JavaScript.
+   * Globs the real tree: ignores CHECK_ROOT. Proven by creating a throwaway
+   * routes/*.ts and watching this go red.
+   */
   'no-route-migrated': () => {
     try { return execSync('ls supporthub-api/migration/routes/*.ts 2>/dev/null || true').toString().trim() === ''; }
     catch { return true; }

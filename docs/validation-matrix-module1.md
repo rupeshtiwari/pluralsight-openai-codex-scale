@@ -24,6 +24,11 @@ starting state has drifted teaches nothing. But they prove the trap is set, not 
 watched it spring. Filed as `PASS`, that distinction disappears; filed as `SEEDED`, it survives.
 Every `SEEDED` bullet is confirmed the same way a `READY` one is — by walking the demo.
 
+**`SEEDED` is a pre-walkthrough state, not a permanent one.** Both rows are only `SEEDED` because
+the captured branch that would let the assertion span start *and* end does not exist yet. See
+[Re-classify the SEEDED rows after the walkthroughs](#re-classify-the-seeded-rows-after-the-walkthroughs)
+— leaving them frozen here would misreport the repository once those branches are cut.
+
 ---
 
 ## M1 C2 — Map noisy TypeScript modules with Codex before editing
@@ -78,6 +83,28 @@ Objectives: **TO2, EO2c, EO2d** · Checkpoint: `demo/m1-c6-start` — **BLOCKED 
 | **BLOCKED** | **0 / 16** |
 
 Ten of the sixteen — `SEEDED` plus `READY` — are confirmed by walking the demo, not by a script.
+Two of those ten stop needing the walkthrough once it has happened once; see below.
+
+## Re-classify the SEEDED rows after the walkthroughs
+
+Both `SEEDED` rows are held there by a missing checkpoint, not by anything unprovable. When C5 and
+C6 are walked and the four remaining branches are cut, revisit both — and re-run
+`npm run check:negatives` afterwards, since each promotion changes what the check parses.
+
+**C5 bullet 4 becomes `PASS`.** Today `milestone-batched` can only assert the start state: one
+unreviewed milestone combining a route migration with a dependency upgrade. Once
+`demo/m1-c5-captured` exists, the assertion can span both ends — one batched entry at
+`m1-c5-start`, exactly two entries and no batched one at `m1-c5-captured`. That is the outcome the
+bullet claims, asserted end to end, which is `PASS`. Extend the check to take a ref rather than
+reading the working tree, and add the negative case: a captured branch that still shows one
+milestone must go red.
+
+**C2 bullet 3 becomes `PASS` only if the walkthrough leaves an artifact.** The bullet is about
+rejecting an architectural suggestion, and a rejection that happens only in conversation is not
+capturable — the two C2 branches are deliberately identical, so nothing is written to diff. It is
+promotable only if walking C2 produces something durable that records the rejection and its reason.
+If it does not, C2 bullet 3 stays `SEEDED` permanently, and that is the honest classification
+rather than a gap. Decide this while walking C2, not afterwards from memory.
 
 Every bullet has an artifact and a checkpoint. Nothing is unbacked.
 
