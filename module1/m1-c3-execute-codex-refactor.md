@@ -23,9 +23,6 @@ You need a record of what was intended so you can tell, hunk by hunk, what belon
 | TO1 | Apply Codex to plan and execute a codebase refactoring operation using reviewable passes. |
 | EO1b | Apply the ExecPlan pattern to maintain a running log of intended changes, behavior contracts, and validation checks across a multi-session refactor |
 | EO1c | Evaluate a Codex-generated refactoring diff to confirm that public behavior is preserved and that architecture migrations are separated into discrete tasks |
-  and validation checks across a multi-session refactor
-- Evaluate a Codex-generated refactoring diff to confirm that public behavior is preserved and
-  that architecture migrations are separated into discrete tasks
 
 ## Terms used here
 
@@ -81,6 +78,17 @@ npm install                     # only on a fresh checkout
 npm test                        # Tests  25 passed (25)
 git status --short              # must print nothing at all
 ```
+
+**Run the module preflight once per recording session, not per clip.** It validates the
+preconditions for all four Module 1 demos in a single pass, so it does not need repeating
+between clips.
+
+```bash
+module1/scripts/preflight_check.sh
+```
+
+It must end `PASS: Module 1 is ready.` If any check fails it names the check, why it matters,
+and the command that fixes it. Do not record against a failing preflight.
 
 Run these outside the recording, not in the integrated terminal.
 

@@ -25,9 +25,6 @@ correct answers scales the wrong answers.
 | TO3 | Apply Codex automations to run recurring bug triage across multiple data sources at team scale. |
 | EO3a | Configure a bug triage automation using the Sentry, Slack, Linear, and GitHub plugins to sweep a defined time window |
 | EO3b | Evaluate a Codex-generated triage report for correct P0–P3 prioritization, deduplicated bug entries, and evidence-backed recommendations |
-  defined time window
-- Evaluate a Codex-generated triage report for correct P0–P3 prioritization, deduplicated bug
-  entries, and evidence-backed recommendations
 
 ## Terms used here
 
@@ -50,6 +47,16 @@ ls automation/sentry-fixtures automation/github-seed
 ```
 
 Expect no output from the first, and both fixture files from the second.
+
+**Run the module preflight once per recording session, not per clip.** It validates the
+preconditions for all four Module 2 demos in a single pass.
+
+```bash
+module2/scripts/preflight_check.sh
+```
+
+It must end `PASS: Module 2 is ready.` If a check fails it names the check, why it matters, and the
+command that fixes it. Do not record against a failing preflight.
 
 ---
 

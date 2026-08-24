@@ -24,9 +24,6 @@ Before planning anything, you need to know what is actually in there.
 | TO2 | Demonstrate how to orchestrate a legacy-to-modern stack migration with Codex using incremental checkpoints. |
 | EO2a | Direct Codex to inventory a legacy system's routing, data models, auth, build tooling, tests, and external contracts before proposing a migration plan |
 | EO2b | Evaluate a Codex-generated migration plan for compatibility layers, explicit behavioral exceptions, and rollback visibility |
-  and external contracts before proposing a migration plan
-- Evaluate a Codex-generated migration plan for compatibility layers, explicit behavioral
-  exceptions, and rollback visibility
 
 ## Terms used here
 
@@ -84,6 +81,17 @@ npm install                     # only on a fresh checkout
 npm test                        # Tests  25 passed (25)
 git status --short              # must print nothing at all
 ```
+
+**Run the module preflight once per recording session, not per clip.** It validates the
+preconditions for all four Module 1 demos in a single pass, so it does not need repeating
+between clips.
+
+```bash
+module1/scripts/preflight_check.sh
+```
+
+It must end `PASS: Module 1 is ready.` If any check fails it names the check, why it matters,
+and the command that fixes it. Do not record against a failing preflight.
 
 Run these outside the recording, not in the integrated terminal.
 

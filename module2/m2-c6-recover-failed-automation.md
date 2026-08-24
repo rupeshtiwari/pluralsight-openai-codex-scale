@@ -23,7 +23,6 @@ harder question is which part failed, and why.
 |---|---|
 | TO4 | Demonstrate how to debug and trace Codex automations |
 | EO4a | Use the Codex review pane to inspect uncommitted diffs from an automation run, including per-hunk staging and revert controls |
-  per-hunk staging and revert controls
 
 ## Terms used here
 
@@ -45,6 +44,16 @@ git status --short
 ```
 
 Expect two modified files: `supporthub-api/modern/package.json` and
+
+**Run the module preflight once per recording session, not per clip.** It validates the
+preconditions for all four Module 2 demos in a single pass.
+
+```bash
+module2/scripts/preflight_check.sh
+```
+
+It must end `PASS: Module 2 is ready.` If a check fails it names the check, why it matters, and the
+command that fixes it. Do not record against a failing preflight.
 `supporthub-api/modern/src/services/ticketService.ts`.
 
 ---
