@@ -321,6 +321,13 @@ Values live only in `.env.example` and are never printed.
 - [ ] `git log -p | grep -iE 'token|secret|dsn'` returns nothing
 - [ ] tech-stack report shows each technology genuinely used, not merely mentioned
 - [ ] no .NET / ASP.NET Core / C# in author-written implementation (EO2d text only)
+- [ ] `npm audit` clean, or remaining advisories are dev-only and documented
+
+  As of the M1 C2 rehearsal: 5 advisories, all in the dev toolchain — `vitest` (critical, via
+  `@vitest/mocker`) and `vite` (high, path traversal in optimized-deps `.map` handling). No runtime
+  dependency is affected. Bumping them changes the version banner the demos show on screen, so it
+  must happen **after** choreography freezes, with every preflight re-run to confirm the expected
+  output still matches.
 
 ---
 
