@@ -101,7 +101,7 @@ $ [ "$(grep -c "value === 'p0'" supporthub-api/modern/src/routes/tickets.ts)" -e
 
 RESULT PASS  [c2] the route does not normalize priority
 
-$ [ "$(git rev-parse --verify -q demo/m1-c2-start 2>/dev/null)" = "$(git rev-parse --verify -q demo/m1-c2-captured 2>/dev/null)" ] && [ -n "$(git rev-parse --verify -q demo/m1-c2-start 2>/dev/null)" ]
+$ node "${ROOT}/scripts/check.mjs" c2-refs-identical
 
 RESULT PASS  [c2] start and captured checkpoints are the same commit
 
@@ -177,12 +177,12 @@ $ npm run test:route
 
  RUN  v2.1.9 /home/user/pluralsight-openai-codex-scale/supporthub-api/modern
 
- ✓ tests/contracts/ticket-read-route.contract.test.ts (4 tests) 34ms
+ ✓ tests/contracts/ticket-read-route.contract.test.ts (4 tests) 32ms
 
  Test Files  1 passed (1)
       Tests  4 passed (4)
-   Start at  09:44:26
-   Duration  505ms (transform 87ms, setup 0ms, collect 184ms, tests 34ms, environment 0ms, prepare 59ms)
+   Start at  10:25:14
+   Duration  453ms (transform 68ms, setup 0ms, collect 163ms, tests 32ms, environment 0ms, prepare 54ms)
 RESULT PASS  [c6] focused route tests pass
 
 $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
