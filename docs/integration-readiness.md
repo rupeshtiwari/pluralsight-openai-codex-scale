@@ -49,7 +49,34 @@ run, the demo cannot be redesigned around it — that is a **BLOCKING PRODUCT GA
 conversation, not an implementation problem.
 
 Validate scheduling in a **scratch workspace**, not the demo one. Test schedules created during
-validation would otherwise fire against the demo checkpoints later.
+validation would otherwise fire against the demo checkpoints later — a schedule discovering
+`demo/m2-c3-start` weeks from now is an ugly surprise.
+
+### Gate 1 procedure
+
+The failure mode is not binary. Check these in order and record the answer to each, because a
+partial pass is the likeliest outcome and it is the one that changes the demo:
+
+1. **Can a scheduled task be created from inside an existing thread**, rather than only from a fresh
+   one? If scheduling is only ever thread-fresh, the objective's wording cannot be met at all.
+2. **Does the scheduled run inherit the corrections made during the manual sweep**, or does it
+   re-derive from the prompt alone?
+3. **Do the plugins work in the scheduled run** — Sentry read, GitHub read, Slack and Linear write?
+   A scheduled run with no plugin access produces a report with no evidence in it.
+
+**Point 2 is the one that matters and the one most likely to disappoint.** EO3c says "Convert a
+*tested* manual triage sweep into a scheduled automation using the same thread context." *Tested*
+means C2's corrections have to survive into C3. If the scheduled run produces a clean re-derivation
+instead, C3's second bullet compares two independent results rather than one carried forward, and
+the teaching point changes shape.
+
+**That case is a partial pass, not a clean fail, and §23 does not cover it.** Do not silently
+redesign around it and do not file it as a `BLOCKING PRODUCT GAP` either — both would be wrong. Stop
+and raise it, because it may be a Curriculum conversation about the word *tested* rather than a
+product defect. A clean fail on point 1 is the `BLOCKING PRODUCT GAP` §23 describes.
+
+Record the outcome of all three points here before building any Module 2 fixture, whichever way they
+go.
 
 ## Author preparation
 

@@ -107,16 +107,55 @@ check "c5" "milestone batches" 'node "${ROOT}/scripts/check.mjs" milestone-batch
 `scripts/check.mjs` holds the named invariants; `scripts/json.mjs` holds the JSON queries. Both exit
 0 or 1 and say what broke.
 
-This matters more on recording day than during development. **A false FAIL costs a take. A false
-PASS costs a re-record**, because the demo proceeds on an assertion that was never true.
+## Prove the negative case
 
-The same failure class produced two earlier bugs worth recognising:
+**A new assertion is not trusted until it has been observed to fail on the condition it exists to
+detect.** Write the failing input, run the check against it, watch it go red. Only then wire it into
+the preflight. Reading a check proves that it looks right, which is a different claim.
 
-- `grep -q` inside a pipeline under `set -o pipefail` kills the producer with SIGPIPE and reports
-  failure on a passing check. It surfaced only on commands whose output exceeded the pipe buffer, so
-  smaller checks passed by luck. Count matches instead, so the producer always drains.
-- A stale lockfile mapped workspace paths that no longer existed, so `npm install` silently
-  installed nothing and reported success.
+This is not a style preference. It is the most common defect in this repository, and it has now
+appeared often enough to be predictable rather than unlucky:
 
-In all three the tooling lied about the artifact. Prefer checks that fail loudly and name the
-artifact they inspected.
+| # | The harness said | The truth was | Direction | Caught by |
+|---|---|---|---|---|
+| 1 | check failed | the artifact was fine; `grep -q` under `pipefail` killed the producer with SIGPIPE | false FAIL | it only bit when output exceeded the pipe buffer, so small checks passed by luck |
+| 2 | `npm install` succeeded | a stale lockfile mapped workspace paths that no longer existed, so nothing installed | false PASS | a later gate failing for an unrelated-looking reason |
+| 3 | `c2-refs-identical` held | it resolved local refs only, so it held solely in a tree where those refs happened to exist | false PASS | the clean-clone check |
+| 4 | `milestone-batched` held | its slice spanned two milestone entries, so its two patterns could match in different ones — it passed on the correctly-split plan | false PASS | simulating the split instead of re-reading the code |
+| 5 | the attribution gate passed | it invoked a deleted `fmt.py` with verbs `fmt.mjs` never had; the gate ran but printed nothing | false PASS | a sweep for references to a renamed file |
+
+Four of the five are false passes, and that asymmetry is the point. **A false FAIL costs a take. A
+false PASS costs a re-record**, because the demo proceeds on an assertion that was never true — and
+you keep trusting it right up to the moment the camera is on.
+
+### How to prove it
+
+Do not edit the working tree to test a check. Build a throwaway copy instead:
+
+```bash
+npm run check:negatives
+```
+
+`scripts/check-negatives.mjs` copies each inspected file into a temporary `CHECK_ROOT`, applies a
+mutation, and asserts the check goes red. Three rules make it worth running:
+
+1. **State the mutation in the demo's terms.** "Codex split the batched milestone into two
+   checkpoints", not "delete line 84". A mutation you cannot describe as something the demo might
+   actually produce is testing the regex, not the invariant.
+2. **Assert the control too.** Each case first confirms the check is green on the *unmutated* copy.
+   Without that, a mutation that fails for an unrelated reason — a typo, a bad path — reads as proof
+   when it is noise.
+3. **Fail on unproven checks.** A check in `check.mjs` with no case in `check-negatives.mjs` is
+   reported as unproven. Two checks read git rather than files and cannot be relocated by
+   `CHECK_ROOT`; each names how it was proven instead, in `GIT_BACKED`.
+
+Adding a check to `check.mjs` therefore means adding a case to `check-negatives.mjs` in the same
+change. Run it after touching either file, and after any edit to a file a check parses — a
+restructure that is correct in itself can still move the text a check anchors on.
+
+### The wider class
+
+The same blindness applies to any tooling that reports on other tooling. Prefer checks that fail
+loudly and name the artifact they inspected. When something reports success, ask what it would have
+printed had it done nothing at all — instance 5 was a gate that had been reporting a clean pass for
+weeks while writing three usage errors to stderr and no verdict to stdout.

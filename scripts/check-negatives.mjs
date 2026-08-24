@@ -1,0 +1,142 @@
+#!/usr/bin/env node
+/**
+ * Proves every named check FAILS on the condition it exists to detect.
+ *
+ * A check that cannot fail is worse than no check: it reports green on the one
+ * state it was written to catch, and it is believed. Reading a check does not
+ * establish that it works — `milestone-batched` read correctly for weeks while
+ * passing on a correctly-split plan, because its slice spanned two milestone
+ * entries and its two patterns matched in different ones.
+ *
+ * So each case below states the mutation in the terms the demo would produce —
+ * "Codex split the milestone in two", not "delete line 84" — writes it into a
+ * throwaway CHECK_ROOT, and asserts the check goes red. Each case also asserts
+ * the UNMUTATED copy goes green, so a mutation that fails for an unrelated
+ * reason (a typo, a bad path) cannot be mistaken for proof.
+ *
+ *   node scripts/check-negatives.mjs        exit 0 = every check discriminates
+ *
+ * See "Prove the negative case" in docs/troubleshooting.md. Adding a check to
+ * scripts/check.mjs without adding a case here leaves it unproven, and this
+ * script fails if any relocatable check has no case.
+ */
+import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+
+const TMP = join(process.cwd(), '.check-negatives-tmp');
+
+/**
+ * Checks that read git rather than files. CHECK_ROOT cannot relocate them, so
+ * they are not provable here; each names how it was proven instead.
+ */
+const GIT_BACKED = {
+  'c2-refs-identical': 'clean-clone check — the local-refs-only version failed there, as it should have',
+  'no-route-migrated': 'create a throwaway supporthub-api/migration/routes/x.ts and watch it go red',
+};
+
+const CASES = [
+  {
+    check: 'load-bearing-function',
+    file: 'supporthub-api/modern/src/services/ticketService.ts',
+    what: 'the cleanup already happened — storage access moved out of createTicket',
+    mutate: (s) => {
+      const i = s.indexOf('export function createTicket(');
+      const j = s.indexOf('export interface TransitionResult');
+      if (i < 0 || j < 0) throw new Error('createTicket bounds not found');
+      // Extracting the store write is exactly what the C3 cleanup pass does.
+      const body = s.slice(i, j).replace(/tickets\.set\(/, 'storeTicket(');
+      return s.slice(0, i) + body + s.slice(j);
+    },
+  },
+  {
+    check: 'milestone-batched',
+    file: 'plans/migration-plan.md',
+    what: 'Codex split the batched milestone into two checkpoints',
+    mutate: (s) => {
+      const line = s.split('\n').find((l) => l.startsWith('| Scope |') && l.includes('4.x to 5.x'));
+      if (!line) throw new Error('batched scope row not found');
+      return s.replace(
+        line,
+        '| Scope | `routes/tickets.js` to `routes/tickets.ts` |\n'
+          + '\n### Milestone 2 — Upgrade Express 4.x to 5.x\n\n| | |\n|---|---|\n'
+          + '| Scope | `express` 4.x to 5.x |',
+      );
+    },
+  },
+  {
+    check: 'milestone-batched',
+    file: 'plans/migration-plan.md',
+    what: 'the milestone lost its route migration and is only a dependency bump',
+    mutate: (s) => s.replace('`routes/tickets.js` to `routes/tickets.ts`; ', ''),
+  },
+];
+
+function runCheck(name, root) {
+  try {
+    execFileSync(process.execPath, ['scripts/check.mjs', name], {
+      env: { ...process.env, CHECK_ROOT: root },
+      stdio: 'ignore',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function build(file, contents) {
+  rmSync(TMP, { recursive: true, force: true });
+  const dest = join(TMP, file);
+  mkdirSync(dirname(dest), { recursive: true });
+  cpSync(file, dest);
+  if (contents !== undefined) writeFileSync(dest, contents);
+  return TMP;
+}
+
+let failures = 0;
+const pass = (m) => process.stdout.write(`  ok    ${m}\n`);
+const fail = (m) => { failures += 1; process.stdout.write(`  FAIL  ${m}\n`); };
+
+process.stdout.write('PROVING EACH CHECK FAILS ON ITS NEGATIVE CASE\n\n');
+
+for (const c of CASES) {
+  const original = readFileSync(c.file, 'utf8');
+
+  // Control: the check must be green on the unmutated copy, or the negative
+  // result below proves nothing about the mutation.
+  if (runCheck(c.check, build(c.file, original))) pass(`${c.check}: green on the unmutated copy`);
+  else fail(`${c.check}: RED on the unmutated copy — the harness is broken, not the artifact`);
+
+  let mutated;
+  try {
+    mutated = c.mutate(original);
+  } catch (err) {
+    fail(`${c.check}: mutation could not be applied (${err.message})`);
+    continue;
+  }
+  if (mutated === original) {
+    fail(`${c.check}: mutation changed nothing — "${c.what}" was not actually simulated`);
+    continue;
+  }
+  if (runCheck(c.check, build(c.file, mutated))) fail(`${c.check}: STILL GREEN when ${c.what}`);
+  else pass(`${c.check}: red when ${c.what}`);
+}
+
+rmSync(TMP, { recursive: true, force: true });
+
+// A check with no case here is an unproven check. Fail rather than stay quiet.
+const listed = execFileSync(process.execPath, ['scripts/check.mjs', '--list']).toString().trim().split('\n');
+const proven = new Set(CASES.map((c) => c.check));
+process.stdout.write('\n');
+for (const name of listed) {
+  if (proven.has(name)) continue;
+  if (name in GIT_BACKED) pass(`${name}: not relocatable; proven by ${GIT_BACKED[name]}`);
+  else fail(`${name}: no negative case — add one to scripts/check-negatives.mjs`);
+}
+
+process.stdout.write(
+  failures === 0
+    ? '\n  PASS: every check discriminates.\n'
+    : `\n  FAIL: ${failures} problem(s) above.\n`,
+);
+process.exit(failures === 0 ? 0 : 1);

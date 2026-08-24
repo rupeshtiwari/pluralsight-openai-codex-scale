@@ -8,3 +8,6 @@ build/
 .DS_Store
 *.log
 coverage/
+
+# throwaway CHECK_ROOT built by scripts/check-negatives.mjs
+.check-negatives-tmp/
