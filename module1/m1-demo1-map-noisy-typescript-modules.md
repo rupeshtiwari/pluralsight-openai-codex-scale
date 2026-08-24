@@ -34,31 +34,77 @@ things you never intended to change, and you cannot tell which parts are safe.
 - **Behavior contract** — something callers depend on, such as a route path or a response field
   name, which a refactor must not change.
 
-## Starting state
+## AUTHOR PREP — DO NOT NARRATE
 
-These are in place before the demo begins and are not part of it:
+**Surface: Stage A — VS Code with Codex panel**
 
-- Codex Desktop is open on the `pluralsight-openai-codex-scale` repository
-- dependencies are installed
-- the working tree is clean
+| | |
+|---|---|
+| Starting checkpoint | `demo/m1-c2-start` |
+| Working directory | repository root |
+| Application | VS Code, opened on the repository root |
+| Panes visible | editor and Codex panel. Integrated terminal stays hidden — this demo needs no terminal evidence |
+| Secondary surface | none |
+| Exact file to have open | `supporthub-api/modern/src/services/ticketService.ts` |
+| Expected Git state | clean working tree, nothing staged |
+| External integrations | none |
 
-Confirm the service is healthy and the tree is untouched:
+**Reset command**
 
 ```bash
-npm install          # only needed once, on a fresh checkout
-npm test
-git status --short
+./module1/scripts/demo_reset.sh
 ```
 
-Expect `Tests  25 passed (25)` and **no output at all** from `git status`. The clean tree is the
-baseline every later `git status` is compared against, so an untracked file left anywhere in the
-repository will break the closing proof in Step 4. Those 25 contract tests are the
-behavior contract this work must preserve, and the clean tree is the baseline every later `git
-status` is compared against.
+The reset refuses to run if changes exist outside the demo surface, lists what it would have
+discarded, and changes nothing. That guard exists because a plain reset destroyed unstaged work
+three times while this repository was being built. Between takes the tree will be dirty with demo
+artifacts and the reset proceeds normally; if it refuses, read the list before reaching for
+`--force`.
 
-If either is wrong, run `./module1/scripts/demo_reset.sh`.
+**Prepare before recording**
+
+```bash
+git checkout demo/m1-c2-start
+npm install                     # only on a fresh checkout
+./module1/scripts/demo_reset.sh
+npm test                        # Tests  25 passed (25)
+git status --short              # must print nothing at all
+```
+
+Run these in a terminal outside the recording, not in the integrated terminal. Installing packages
+is setup work and does not belong on camera.
+
+`git status --short` must be completely empty. Step 4's proof reads the whole repository through
+the Source Control view, so a stray untracked file anywhere — a nested clone, an editor backup —
+will show there and break the closing evidence for a reason unrelated to the teaching.
+
+**Expected values**
+
+| Evidence | Value |
+|---|---|
+| Baseline tests | 25 passed |
+| Duplicate normalization sites | 2 — `utils/priority.ts` and inline inside `createTicket()` |
+| Unreferenced exports | `normalizeLegacySeverity`, `toPriority`, `validateNewTicket` |
+| Unreachable branch | second status check inside `changeStatus()` |
+| Source Control changes at the end | 0 |
+
+**Recovery path**
+
+If Codex edits a file, the pass is void: reset and start again rather than continuing from a dirty
+tree. If Codex proposes several cleanup themes, the narrowing prompt in Step 2 recovers it. If it
+surfaces no architectural work, the fallback prompt in Step 3 recovers it.
+
+**Troubleshooting**
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `npm test` reports `Missing script: "test"` | wrong branch — `main` has no `package.json` | `git checkout demo/m1-c2-start` |
+| Tests fail on a fresh checkout | dependencies not installed | `npm install` |
+| Source Control shows changes before Step 1 | previous run not reset | `./module1/scripts/demo_reset.sh` |
 
 ---
+
+# ON-CAMERA
 
 ## Step 1 — Map modules, dependencies, public behavior, and dead-code candidates
 
@@ -68,10 +114,11 @@ files, and changes nothing.
 
 **Starting state.** Clean tree, repository root.
 
-**Navigation.** Codex Desktop, with the repository open. Select the planning workflow for this
-step rather than one that applies edits.
+**Navigation.** VS Code. Open the Codex panel. Select the planning workflow for this step rather
+than one that applies edits. Keep the editor showing `ticketService.ts` so the file being analyzed
+is visible beside the panel.
 
-> Confirm the exact control in your installed Codex Desktop build before running this demo, and
+> Confirm the exact control in your installed Codex panel before running this demo, and
 > use the label you actually see. The prompt below carries the hard boundary regardless of which
 > control you use: it instructs Codex not to edit any files.
 
@@ -118,7 +165,7 @@ what keeps the first pass small enough to check.
 
 **Starting state.** Step 1 produced the analysis.
 
-**Navigation.** Same Codex conversation.
+**Navigation.** Same Codex panel conversation in VS Code.
 
 **Prompt.**
 
@@ -157,7 +204,7 @@ idea at the wrong time — before it is in a diff, when saying no is free.
 
 **Starting state.** Step 2 produced one theme.
 
-**Navigation.** Same Codex conversation.
+**Navigation.** Same Codex panel conversation in VS Code.
 
 **Prompt.**
 
@@ -193,7 +240,7 @@ when you finish.
 
 **Starting state.** Steps 1 to 3 complete.
 
-**Navigation.** Same Codex conversation, then the terminal.
+**Navigation.** Same Codex panel conversation in VS Code.
 
 **Prompt.**
 
@@ -218,15 +265,18 @@ separately.
 **Highlight.** The plan fits on one screen, and the deferred list is not empty — planning produced
 both a decision and a record of what was declined.
 
-**Verification.**
+**Verification.** Switch focus to the **Source Control** view in the VS Code activity bar — the
+branch-shaped icon on the left. Add a callout there, and remove the callout that was on the Codex
+panel before doing so.
 
-```bash
-git status --short
-```
+PASS if **Changes** is empty and the view shows no pending changes. The entire demo produced
+analysis, a bounded plan and a decision, with zero edits — which is the case for planning before
+implementing.
+FAIL if any file is listed under Changes.
 
-PASS if there is no output. The entire demo produced analysis, a bounded plan, and a decision,
-with zero edits — which is the case for planning before implementing.
-FAIL if any file is listed.
+The Source Control view is the proof surface here rather than a terminal command, because the
+integrated terminal has stayed hidden all demo and opening it now would introduce a second surface
+for a single number.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` returns the repository to the starting state.
 
