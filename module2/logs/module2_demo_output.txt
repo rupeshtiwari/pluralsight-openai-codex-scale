@@ -1,0 +1,63 @@
+MODULE 2 DEMO OUTPUT CAPTURE
+============================
+
+CLIP 2 - Run a manual Codex triage sweep across Sentry and GitHub
+  Objective: EO3a, EO3b
+
+$ sentry issues in the query window
+  window from: 2025-03-03T00:00:00.000Z
+  window to:   2025-03-04T00:00:00.000Z
+  id=evt-1042  affectedUsers=412  occurrences=1204
+  id=evt-1043  affectedUsers=88  occurrences=305
+  id=evt-1088  affectedUsers=3  occurrences=890
+  id=evt-1099  affectedUsers=2  occurrences=4
+  id=incident-2002  affectedUsers=61  occurrences=140
+  EXPECTED  five issues
+
+$ commit timing - recency is not causation
+  sha=a1b2c3d  committedAt=2025-03-01T14:06:22.000Z
+  sha=d4e5f6a  committedAt=2025-03-03T08:55:10.000Z
+  sha=f7a8b9c  committedAt=2025-03-02T16:30:00.000Z
+  EXPECTED  d4e5f6a is newer than a1b2c3d but touches no failing-path file
+  CHECK     misleading-newer = 1
+
+CLIP 3 - Schedule Codex triage and route work to Slack and Linear
+  Objective: EO3c, EO3d
+
+$ validated triage baseline
+  id=incident-2001  priority=P0  affectedUsers=500  route=true
+  id=incident-2002  priority=P2  affectedUsers=61  route=true
+  id=evt-1088  priority=P3  affectedUsers=3  route=false
+  id=evt-1099  priority=deferred  affectedUsers=2  route=false
+  EXPECTED  P0, P2, P3, deferred; exactly two routable
+
+CLIP 5 - Inspect automation diffs
+  Objective: EO4a
+
+$ run-3001 hunks
+  verdict=valid  file=apps/api/src/utils/priority.ts
+  verdict=invalid  file=docs/triage-rubric.md
+  EXPECTED  one valid, one invalid
+  CHECK     one-of-each = 1
+
+$ git apply --check automation/runs/run-3001.patch
+error: apps/api/src/utils/priority.ts: No such file or directory
+
+CLIP 6 - Trace a failed automation and recover
+  Objective: EO4a
+
+$ run-3002 failure trace
+  status       = failed
+  chose commit = d4e5f6a
+  correct      = a1b2c3d
+  fault type   = bad source assumption
+  verdict=valid  file=apps/api/src/services/ticketService.ts
+  verdict=invalid  file=apps/api/package.json
+  EXPECTED  failed, bad source assumption, at least one valid hunk to preserve
+
+$ run-3003 corrected rerun
+  status = completed
+  commit = a1b2c3d
+  verdict=valid  file=apps/api/src/services/ticketService.ts
+
+END OF CAPTURE

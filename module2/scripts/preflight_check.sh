@@ -3,12 +3,12 @@
 #
 # Runs every precondition the four Module 2 demos depend on, in runbook order,
 # prints each command and its result, and writes a plain-text transcript to
-# preflight-logs/. Ends with a readiness verdict.
+# module1/logs/. Ends with a readiness verdict.
 
 set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-FMT="python3 ${ROOT}/scripts/fmt.py"
-LOG="${ROOT}/preflight-logs/module2_preflight.txt"
+FMT="node ${ROOT}/scripts/fmt.mjs"
+LOG="${ROOT}/module2/logs/module2_preflight.txt"
 cd "$ROOT"
 mkdir -p "$(dirname "$LOG")"
 : > "$LOG"
@@ -32,7 +32,7 @@ check(){
   fi
 }
 
-$FMT box "Module 2 preflight" "Verify every precondition the four demos depend on"
+$FMT title "Module 2 preflight" "Verify every precondition the four demos depend on"
 
 log "MODULE 2 PREFLIGHT - Automating and debugging Codex workflows at team scale"
 log "=========================================================================="
@@ -64,11 +64,11 @@ log "  EO4a Use the Codex review pane to inspect uncommitted diffs from an"
 log "       automation run, including per-hunk staging and revert controls"
 
 $FMT section "environment"
-# preflight-logs is excluded: this script writes its own transcript there,
+# module2/logs is excluded: this script writes its own transcript there,
 # so including it would make the check fail because the check ran.
-check "all" "working tree clean" '[ -z "$(git status --porcelain -- ":!preflight-logs")" ]' \
+check "all" "working tree clean" '[ -z "$(git status --porcelain -- ":!module2/logs")" ]' \
   "The review demos seed changes with a patch; leftover edits make the diff unreadable." \
-  "./module2/scripts/demo-reset.sh" \
+  "./module2/scripts/demo_reset.sh" \
   "Show me every uncommitted change in this repository and what produced it."
 
 check "all" "nothing left staged" '[ -z "$(git diff --cached --name-only)" ]' \
@@ -77,34 +77,27 @@ check "all" "nothing left staged" '[ -z "$(git diff --cached --name-only)" ]' \
   "git diff --cached shows staged changes. Show me what they are."
 
 $FMT section "clip 2 - manual triage sweep"
-check "c2" "sentry fixtures valid" 'python3 -m json.tool automation/sentry-fixtures/issues.json' \
+check "c2" "sentry fixtures valid" 'node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json' \
   "The whole sweep reads this file; malformed JSON stops the demo." \
   "git checkout -- automation/sentry-fixtures/issues.json" \
   "automation/sentry-fixtures/issues.json will not parse. Show the syntax error."
 
 check "c2" "five sentry issues in window" \
-  '[ "$(python3 -c "import json;print(len(json.load(open(\"automation/sentry-fixtures/issues.json\"))[\"issues\"]))")" -eq 5 ]' \
+  '[ "$(node "${ROOT}/scripts/json.mjs" count automation/sentry-fixtures/issues.json issues)" -eq 5 ]' \
   "The runbook states five issues; a different count breaks the expected output." \
   "git checkout -- automation/sentry-fixtures/issues.json" \
   "The Sentry fixture should contain five issues. Show how many it contains."
 
 check "c2" "duplicate pair shares a stack frame" \
-  '[ "$(python3 -c "
-import json
-d=json.load(open(\"automation/sentry-fixtures/issues.json\"))
-i={x[\"id\"]:x for x in d[\"issues\"]}
-print(len(set(i[\"evt-1042\"][\"stack\"]) & set(i[\"evt-1043\"][\"stack\"])))")" -ge 1 ]' \
+  '[ "$(node "${ROOT}/scripts/json.mjs" check automation/sentry-fixtures/issues.json shared-frame)" -ge 1 ]' \
   "Deduplication is taught by a shared frame; without it the merge has no evidence." \
   "git checkout -- automation/sentry-fixtures/issues.json" \
   "evt-1042 and evt-1043 must share at least one stack frame. Show their stacks."
 
 check "c2" "misleading commit is nearer in time than the real cause" \
-  '[ "$(python3 -c "
-import json
-c={x[\"sha\"]:x[\"committedAt\"] for x in json.load(open(\"automation/github-fixtures/commits.json\"))[\"commits\"]}
-print(1 if c[\"d4e5f6a\"] > c[\"a1b2c3d\"] else 0)")" -eq 1 ]' \
+  '[ "$(node "${ROOT}/scripts/json.mjs" check automation/github-seed/commits.json misleading-newer)" -eq 1 ]' \
   "The lesson that recency is not causation requires the wrong commit to be the newer one." \
-  "git checkout -- automation/github-fixtures/commits.json" \
+  "git checkout -- automation/github-seed/commits.json" \
   "d4e5f6a must be committed later than a1b2c3d. Show both timestamps."
 
 check "c2" "rubric P1 threshold is 100" \
@@ -114,19 +107,19 @@ check "c2" "rubric P1 threshold is 100" \
   "The P1 row in docs/triage-rubric.md must read 100 or more. Show what it reads."
 
 $FMT section "clip 3 - schedule and route"
-check "c3" "triage baseline present" 'python3 -m json.tool automation/triage/baseline-manual-sweep.json' \
+check "c3" "triage baseline present" 'node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json' \
   "The scheduled run is compared against this baseline." \
   "git checkout -- automation/triage/" \
   "automation/triage/baseline-manual-sweep.json will not parse. Show the error."
 
 check "c3" "baseline has four findings" \
-  '[ "$(python3 -c "import json;print(len(json.load(open(\"automation/triage/baseline-manual-sweep.json\"))[\"findings\"]))")" -eq 4 ]' \
+  '[ "$(node "${ROOT}/scripts/json.mjs" count automation/triage/baseline-manual-sweep.json findings)" -eq 4 ]' \
   "The runbook prints four rows; a different count breaks the expected output." \
   "git checkout -- automation/triage/baseline-manual-sweep.json" \
   "The triage baseline should hold four findings. Show how many it holds."
 
 check "c3" "exactly two findings are routable" \
-  '[ "$(python3 -c "import json;print(sum(1 for f in json.load(open(\"automation/triage/baseline-manual-sweep.json\"))[\"findings\"] if f[\"route\"]))")" -eq 2 ]' \
+  '[ "$(node "${ROOT}/scripts/json.mjs" rows automation/triage/baseline-manual-sweep.json findings route | grep -c "route=true")" -eq 2 ]' \
   "Clip 3 approves a subset; if all four were routable there would be no subset to choose." \
   "git checkout -- automation/triage/baseline-manual-sweep.json" \
   "Exactly two baseline findings should have route true. Show which do."
@@ -156,10 +149,7 @@ check "c5" "run-3001 touches exactly two files" \
   "run-3001.patch should change exactly two files. Show which it changes."
 
 check "c5" "run-3001 declares one valid and one invalid hunk" \
-  '[ "$(python3 -c "
-import json
-h=json.load(open(\"automation/runs/run-3001.json\"))[\"hunks\"]
-print(1 if sorted(x[\"verdict\"] for x in h)==[\"invalid\",\"valid\"] else 0)")" -eq 1 ]' \
+  '[ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3001.json one-of-each)" -eq 1 ]' \
   "The review decision depends on exactly one of each." \
   "git checkout -- automation/runs/run-3001.json" \
   "run-3001.json must declare one valid and one invalid hunk. Show its hunks."
@@ -171,10 +161,7 @@ check "c6" "run-3002 patch applies" 'git apply --check automation/runs/run-3002.
   "automation/runs/run-3002.patch does not apply. Show the conflict."
 
 check "c6" "run-3002 carries work worth preserving" \
-  '[ "$(python3 -c "
-import json
-h=json.load(open(\"automation/runs/run-3002.json\"))[\"hunks\"]
-print(sum(1 for x in h if x[\"verdict\"]==\"valid\"))")" -ge 1 ]' \
+  '[ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3002.json has-valid-hunk)" -ge 1 ]' \
   "Recovery teaches preserving valid work; a wholly bad run has nothing to preserve." \
   "git checkout -- automation/runs/run-3002.json automation/runs/run-3002.patch" \
   "run-3002 must contain at least one valid hunk alongside the faulty one."
@@ -210,7 +197,7 @@ $FMT section "verdict"
 if [ ${#FAILED[@]} -eq 0 ]; then
   $FMT item "all checks passed"
   log ""; log "VERDICT  READY - all Module 2 demos can be run."
-  $FMT verdict pass "Module 2 is ready. Transcript: preflight-logs/module2_preflight.txt"
+  $FMT verdict pass "Module 2 is ready. Transcript: module2/logs/module2_preflight.txt"
   exit 0
 fi
 log ""; log "FAILED CHECKS"
@@ -221,5 +208,5 @@ for e in "${FAILED[@]}"; do
   $FMT item "[$demo] $name -> $fix"
 done
 log ""; log "VERDICT  NOT READY - ${#FAILED[@]} check(s) failed."
-$FMT verdict fail "${#FAILED[@]} check(s) failed. See preflight-logs/module2_preflight.txt"
+$FMT verdict fail "${#FAILED[@]} check(s) failed. See module2/logs/module2_preflight.txt"
 exit 1

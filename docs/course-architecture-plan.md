@@ -106,7 +106,7 @@ Decision: **Which generated changes belong in this refactor?**
 
 | Step | Action | Outline bullet | LO | Proof |
 |---|---|---|---|---|
-| 1 | Create ExecPlan: intended changes, contracts, validation checks, progress | 1 | EO1b | `plans/refactor-execplan.md` |
+| 1 | Create ExecPlan: intended changes, contracts, validation checks, progress | 1 | EO1b | `plans/ExecPlan.md` |
 | 2 | Codex implements one bounded pass; run Vitest + TypeScript validation | 2 | EO1b | tests + typecheck green |
 | 3 | Inspect diff; confirm public behavior preserved | 3 | EO1c | contract tests pass |
 | 4 | Remove bundled architecture migration; log as separate ExecPlan task | 4 | EO1c | deferred-work entry |
@@ -178,7 +178,7 @@ Decision: **What failed, and what should be rerun?**
 ```text
 pluralsight-openai-codex-scale/
   README.md  AGENTS.md  .env.example  package.json  requirements.txt
-  setup-macos.sh                      # wrapper -> environment-setup/
+  setup-macos.sh                      # wrapper -> env-setup/
 
   apps/
     api/                              # modern TS · ESM · Express 5 — refactor target
@@ -193,30 +193,30 @@ pluralsight-openai-codex-scale/
       package.json                    # no "type": "module"
 
   automation/
-    sentry-fixtures/ github-fixtures/ triage/
+    sentry-fixtures/ github-seed/ triage/
     slack-drafts/ linear-drafts/ runs/
 
-  plans/     execplan-template.md refactor-execplan.md migration-execplan.md
+  plans/     execplan-template.md ExecPlan.md migration-plan.md
   prompts/   one copy-paste Codex prompt per demo
-  .codex/skills/express-typescript-migration/
+  framework-skill/node-express-migration/
 
   module1/  README.md  m1-demo{2,3,5,6}-<clip-title>.md  scripts/
   module2/  README.md  m2-demo{2,3,5,6}-<clip-title>.md  scripts/
 
   scripts/              fmt.py  demo_module{1,2}.py
-                        module{1,2}-demo-reset.sh  validate_module{1,2}.sh
-  preflight-logs/       committed preflight and validation transcripts
+                        module{1,2}-demo_reset.sh  validate_module{1,2}.sh
+  module1/logs/       committed preflight and validation transcripts
   docs/                 triage-rubric.md  migration-inventory-checklist.md
                         troubleshooting.md  tech-stack-matrix.md
   data/payloads/
-  environment-setup/    install-macos-requirements.sh
+  env-setup/    install-macos-requirements.sh
 ```
 
 Runbook filenames use **clip numbers**, not sequential demo numbers, so a filename maps
 directly onto the outline. Demos sit at clips 2, 3, 5, and 6 in both modules.
 
 Structure follows the conventions already established across the author's Pluralsight course
-repositories: `environment-setup/` for the single macOS installer, `preflight-logs/` committed at
+repositories: `env-setup/` for the single macOS installer, `module1/logs/` committed at
 root, `scripts/` holding per-module reset and validation entry points, and one folder per module.
 `apps/` is plural here because this course carries two codebases at once — the migration source
 and its target — which is the one deliberate divergence from the single-`app/` layout.

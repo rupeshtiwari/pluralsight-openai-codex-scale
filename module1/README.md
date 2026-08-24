@@ -7,20 +7,20 @@ migrate a legacy Express 4 service.
 
 | Clip | Demo | Runbook |
 |---|---|---|
-| 2 | Map noisy TypeScript modules with Codex before editing | [m1-demo2-map-noisy-typescript-modules-with-codex-before-editing.md](demo/m1-demo2-map-noisy-typescript-modules-with-codex-before-editing.md) |
-| 3 | Execute a Codex refactor with ExecPlan checkpoints | [m1-demo3-execute-a-codex-refactor-with-execplan-checkpoints.md](demo/m1-demo3-execute-a-codex-refactor-with-execplan-checkpoints.md) |
-| 5 | Inventory a legacy Express 4 service with Codex | [m1-demo5-inventory-a-legacy-express-4-service-with-codex.md](demo/m1-demo5-inventory-a-legacy-express-4-service-with-codex.md) |
-| 6 | Migrate one Express route to TypeScript with framework guidance | [m1-demo6-migrate-one-express-route-to-typescript-with-framework-guidance.md](demo/m1-demo6-migrate-one-express-route-to-typescript-with-framework-guidance.md) |
+| 2 | Map noisy TypeScript modules with Codex before editing | [m1-demo2-map-noisy-typescript-modules-with-codex-before-editing.md]m1-demo1-map-noisy-typescript-modules.md) |
+| 3 | Execute a Codex refactor with ExecPlan checkpoints | [m1-demo3-execute-a-codex-refactor-with-execplan-checkpoints.md]m1-demo2-execute-codex-refactor.md) |
+| 5 | Inventory a legacy Express 4 service with Codex | [m1-demo5-inventory-a-legacy-express-4-service-with-codex.md]m1-demo3-inventory-legacy-express4.md) |
+| 6 | Migrate one Express route to TypeScript with framework guidance | [m1-demo6-migrate-one-express-route-to-typescript-with-framework-guidance.md]m1-demo4-migrate-one-express-route.md) |
 
 ## Source
 
-- Modern service — [../apps/api/](../apps/api/)
-- Legacy service — [../apps/legacy-ticket-api/](../apps/legacy-ticket-api/)
+- Modern service — [../supporthub-api/modern/](../supporthub-api/modern/)
+- Legacy service — [../supporthub-api/migration/](../supporthub-api/migration/)
 - ExecPlans — [../plans/](../plans/)
-- Framework guidance — [../.codex/skills/express-typescript-migration/](../.codex/skills/express-typescript-migration/)
+- Framework guidance — [../framework-skill/node-express-migration/](../framework-skill/node-express-migration/)
 
 ## Reset
 
 ```bash
-./module1/scripts/demo-reset.sh
+./module1/scripts/demo_reset.sh
 ```

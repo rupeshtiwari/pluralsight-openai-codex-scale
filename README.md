@@ -22,14 +22,14 @@ what to accept, what to reject, and what to defer.
 
 | Path | What it is |
 |---|---|
-| `apps/api` | Modern service — ESM TypeScript on Express 5. The refactoring subject. |
-| `apps/legacy-ticket-api` | Legacy service — CommonJS JavaScript on Express 4. The migration source. |
+| `supporthub-api/modern` | Modern service — ESM TypeScript on Express 5. The refactoring subject. |
+| `supporthub-api/migration` | Legacy service — CommonJS JavaScript on Express 4. The migration source. |
 | `automation/` | Deterministic Sentry, GitHub, triage, Slack, and Linear fixtures. |
 | `plans/` | ExecPlan records for the refactor and the migration. |
-| `.codex/skills/` | Repo-local framework guidance Codex uses during migration. |
+| `framework-skill/` | Repo-local framework guidance Codex uses during migration. |
 | `module1/`, `module2/` | Runbooks and scripts, one folder per module. |
 | `docs/` | Triage rubric and supporting reference. |
-| `environment-setup/` | One-command macOS environment setup. |
+| `env-setup/` | One-command macOS environment setup. |
 
 Both applications are kept on purpose. The legacy service is not abandoned code — it is the
 starting point of an incremental migration toward the modern one.
@@ -39,12 +39,12 @@ starting point of an incremental migration toward the modern one.
 A machine with only macOS installed needs one command:
 
 ```bash
-./environment-setup/install-macos-requirements.sh
+./env-setup/setup.sh
 ```
 
 It verifies Homebrew, Node.js 24 LTS, npm, Git, tmux, and Python, installs whatever is missing,
 leaves correct existing versions alone, and prints the installed version beside the expected version
-for each. It ends with a readiness verdict and writes a full transcript to `environment-setup/install.log`.
+for each. It ends with a readiness verdict and writes a full transcript to `env-setup/install.log`.
 
 Then copy the environment template:
 
@@ -65,12 +65,12 @@ migrate a legacy Express 4 service.
 
 | Demo | Runbook |
 |---|---|
-| Map noisy TypeScript modules with Codex before editing | [module1/demo/m1-demo2-map-noisy-typescript-modules-with-codex-before-editing.md](module1/demo/m1-demo2-map-noisy-typescript-modules-with-codex-before-editing.md) |
-| Execute a Codex refactor with ExecPlan checkpoints | [module1/demo/m1-demo3-execute-a-codex-refactor-with-execplan-checkpoints.md](module1/demo/m1-demo3-execute-a-codex-refactor-with-execplan-checkpoints.md) |
-| Inventory a legacy Express 4 service with Codex | [module1/demo/m1-demo5-inventory-a-legacy-express-4-service-with-codex.md](module1/demo/m1-demo5-inventory-a-legacy-express-4-service-with-codex.md) |
-| Migrate one Express route to TypeScript with framework guidance | [module1/demo/m1-demo6-migrate-one-express-route-to-typescript-with-framework-guidance.md](module1/demo/m1-demo6-migrate-one-express-route-to-typescript-with-framework-guidance.md) |
+| Map noisy TypeScript modules with Codex before editing | [module1/m1-demo1-map-noisy-typescript-modules.md](module1/m1-demo1-map-noisy-typescript-modules.md) |
+| Execute a Codex refactor with ExecPlan checkpoints | [module1/m1-demo2-execute-codex-refactor.md](module1/m1-demo2-execute-codex-refactor.md) |
+| Inventory a legacy Express 4 service with Codex | [module1/m1-demo3-inventory-legacy-express4.md](module1/m1-demo3-inventory-legacy-express4.md) |
+| Migrate one Express route to TypeScript with framework guidance | [module1/m1-demo4-migrate-one-express-route.md](module1/m1-demo4-migrate-one-express-route.md) |
 
-Source: [apps/api/](apps/api/) · [apps/legacy-ticket-api/](apps/legacy-ticket-api/) · [plans/](plans/)
+Source: [supporthub-api/modern/](supporthub-api/modern/) · [supporthub-api/migration/](supporthub-api/migration/) · [plans/](plans/)
 
 ### Module 2 — Automating and debugging Codex workflows at team scale
 
@@ -79,16 +79,16 @@ then review and recover automation changes that went wrong.
 
 | Demo | Runbook |
 |---|---|
-| Run a manual Codex triage sweep across Sentry and GitHub | [module2/demo/m2-demo2-run-a-manual-codex-triage-sweep-across-sentry-and-github.md](module2/demo/m2-demo2-run-a-manual-codex-triage-sweep-across-sentry-and-github.md) |
-| Schedule Codex triage and route work to Slack and Linear | [module2/demo/m2-demo3-schedule-codex-triage-and-route-work-to-slack-and-linear.md](module2/demo/m2-demo3-schedule-codex-triage-and-route-work-to-slack-and-linear.md) |
-| Inspect automation diffs in the Codex review pane | [module2/demo/m2-demo5-inspect-automation-diffs-in-the-codex-review-pane.md](module2/demo/m2-demo5-inspect-automation-diffs-in-the-codex-review-pane.md) |
-| Trace a failed Codex automation and recover safely | [module2/demo/m2-demo6-trace-a-failed-codex-automation-and-recover-safely.md](module2/demo/m2-demo6-trace-a-failed-codex-automation-and-recover-safely.md) |
+| Run a manual Codex triage sweep across Sentry and GitHub | [module2/m2-demo1-manual-triage.md](module2/m2-demo1-manual-triage.md) |
+| Schedule Codex triage and route work to Slack and Linear | [module2/m2-demo2-schedule-triage.md](module2/m2-demo2-schedule-triage.md) |
+| Inspect automation diffs in the Codex review pane | [module2/m2-demo3-inspect-automation-diffs.md](module2/m2-demo3-inspect-automation-diffs.md) |
+| Trace a failed Codex automation and recover safely | [module2/m2-demo4-recover-failed-automation.md](module2/m2-demo4-recover-failed-automation.md) |
 
 Source: [automation/](automation/) · [docs/triage-rubric.md](docs/triage-rubric.md)
 
 ## Framework guidance
 
-Migration guidance lives in [.codex/skills/express-typescript-migration/](.codex/skills/express-typescript-migration/).
+Migration guidance lives in [framework-skill/node-express-migration/](framework-skill/node-express-migration/).
 It is kept inside this repository on purpose, so the workflow does not depend on an external
 marketplace skill that may change. It covers the CommonJS-to-ESM boundary, Express 4 to Express 5
 differences, TypeScript conventions, and a route validation checklist.

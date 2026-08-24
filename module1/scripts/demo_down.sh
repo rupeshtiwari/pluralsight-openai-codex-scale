@@ -2,10 +2,10 @@
 # Stop the Module 1 demo environment.
 set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-FMT="python3 ${ROOT}/scripts/fmt.py"
+FMT="node ${ROOT}/scripts/fmt.mjs"
 cd "$ROOT"
 
-$FMT box "Module 1 demo down" "Stop the SupportHub API started for this module"
+$FMT title "Module 1 demo down" "Stop the SupportHub API started for this module"
 
 PIDFILE="${ROOT}/.demo-server-1.pid"
 if [ -f "$PIDFILE" ]; then

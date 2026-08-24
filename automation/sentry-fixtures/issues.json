@@ -16,8 +16,8 @@
       "occurrences": 1204,
       "release": "supporthub@2025.03.01",
       "stack": [
-        "at changeStatus (apps/api/src/services/ticketService.ts:196)",
-        "at handler (apps/api/src/routes/tickets.ts:62)"
+        "at changeStatus (supporthub-api/modern/src/services/ticketService.ts:196)",
+        "at handler (supporthub-api/modern/src/routes/tickets.ts:62)"
       ],
       "workaround": "none",
       "userImpact": "Status updates fail for tickets whose status came from the pager bridge."
@@ -32,8 +32,8 @@
       "occurrences": 305,
       "release": "supporthub@2025.03.01",
       "stack": [
-        "at changeStatus (apps/api/src/services/ticketService.ts:196)",
-        "at bulkImport (apps/api/src/services/ticketService.ts:214)"
+        "at changeStatus (supporthub-api/modern/src/services/ticketService.ts:196)",
+        "at bulkImport (supporthub-api/modern/src/services/ticketService.ts:214)"
       ],
       "workaround": "none",
       "userImpact": "Same fault reached through bulk import instead of the status route."
@@ -48,7 +48,7 @@
       "occurrences": 890,
       "release": "supporthub@2025.02.24",
       "stack": [
-        "at listTickets (apps/api/src/routes/tickets.ts:18)"
+        "at listTickets (supporthub-api/modern/src/routes/tickets.ts:18)"
       ],
       "workaround": "Request completes; the response is slow.",
       "userImpact": "Three internal agents see a slow ticket list. No customer impact."
@@ -63,7 +63,7 @@
       "occurrences": 4,
       "release": "supporthub@2025.03.01",
       "stack": [
-        "at linkIncident (apps/api/src/services/ticketService.ts:?)"
+        "at linkIncident (supporthub-api/modern/src/services/ticketService.ts:?)"
       ],
       "workaround": "unknown",
       "userImpact": "Unclear. No line number captured and no reproduction."
@@ -78,7 +78,7 @@
       "occurrences": 140,
       "release": "supporthub@2025.03.01",
       "stack": [
-        "at toPriority (apps/api/src/services/ticketService.ts:71)"
+        "at toPriority (supporthub-api/modern/src/services/ticketService.ts:71)"
       ],
       "workaround": "An agent can set the priority manually after the ticket is created.",
       "userImpact": "Pager-bridge tickets land at default priority instead of their real one."

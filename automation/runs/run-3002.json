@@ -16,12 +16,12 @@
   },
   "hunks": [
     {
-      "file": "apps/api/src/services/ticketService.ts",
+      "file": "supporthub-api/modern/src/services/ticketService.ts",
       "verdict": "valid",
       "why": "Guards ALLOWED_TRANSITIONS against a status value that was never validated, which is the root cause incident-2001 reports. This work is correct and must survive the recovery."
     },
     {
-      "file": "apps/api/package.json",
+      "file": "supporthub-api/modern/package.json",
       "verdict": "invalid",
       "why": "Pins express to 4.21.0 in the modern workspace, which runs Express 5. It follows from correlating a dependency bump with a fault in changeStatus, which the bump never touched."
     }
