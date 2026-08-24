@@ -86,3 +86,37 @@ Reinstall it after a fresh clone, since git hooks are not carried in a clone:
 ```bash
 ./scripts/check-attribution.sh --install
 ```
+
+## Writing preflight checks
+
+Three assertions in this repository passed when run directly and failed inside the preflight, purely
+because of shell quoting through `eval`. Each cost several attempts to diagnose, because the check
+was wrong while the thing being checked was correct.
+
+**Rule: any assertion needing real parsing is a named check in a real language, called by one word
+from the shell.**
+
+```bash
+# wrong - an escaped program inside a single-quoted shell string
+check "c5" "milestone batches" 'node -e "const t=require(\"fs\")..."'
+
+# right
+check "c5" "milestone batches" 'node "${ROOT}/scripts/check.mjs" milestone-batched'
+```
+
+`scripts/check.mjs` holds the named invariants; `scripts/json.mjs` holds the JSON queries. Both exit
+0 or 1 and say what broke.
+
+This matters more on recording day than during development. **A false FAIL costs a take. A false
+PASS costs a re-record**, because the demo proceeds on an assertion that was never true.
+
+The same failure class produced two earlier bugs worth recognising:
+
+- `grep -q` inside a pipeline under `set -o pipefail` kills the producer with SIGPIPE and reports
+  failure on a passing check. It surfaced only on commands whose output exceeded the pipe buffer, so
+  smaller checks passed by luck. Count matches instead, so the producer always drains.
+- A stale lockfile mapped workspace paths that no longer existed, so `npm install` silently
+  installed nothing and reported success.
+
+In all three the tooling lied about the artifact. Prefer checks that fail loudly and name the
+artifact they inspected.

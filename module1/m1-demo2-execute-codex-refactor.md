@@ -48,6 +48,19 @@ You need a record of what was intended so you can tell, hunk by hunk, what belon
 | Exact file to have open | `supporthub-api/modern/src/services/ticketService.ts` and `plans/ExecPlan.md` |
 | Expected Git state | clean working tree, nothing staged |
 | External integrations | none |
+| Narration budget | 774 words — see below |
+
+**Narration budget**
+
+This is a six-minute demo, so the planning target is **774 words**. Presentation clips are 405.
+
+Clip duration is the hard ceiling and the word count never overrides it. Render the narration and
+measure it against six minutes before recording; if it runs long, cut narration rather than
+extending the clip or speeding up delivery.
+
+A larger word budget buys deeper explanation of mechanism, evidence, operator decision and
+production consequence. It does not buy more technical actions: the demo stays at four major steps.
+Editing out agent waits frees screen time, not narration time — do not add words to fill it.
 
 **Reset command**
 
