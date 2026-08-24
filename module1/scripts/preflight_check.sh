@@ -118,9 +118,9 @@ check "all" "contract tests (expect 25)" \
 
 # ------------------------------------------------------------------- clip 2
 $FMT section "clip 2 - map noisy modules"
-check "c2" "three duplicate normalization sites" \
-  '[ "$(grep -rl "value === '"'"'p0'"'"'" supporthub-api/modern/src | wc -l | tr -d " ")" -eq 3 ]' \
-  "Clip 2 depends on Codex finding duplication in exactly three files." \
+check "c2" "two duplicate normalization sites" \
+  '[ "$(grep -rl "value === '"'"'p0'"'"'" supporthub-api/modern/src | wc -l | tr -d " ")" -eq 2 ]' \
+  "The duplication must exist in exactly two places: the util and the inline copy inside createTicket." \
   "git checkout -- supporthub-api/modern/src" \
   "Priority normalization should appear in exactly three files under supporthub-api/modern/src. List where it appears now."
 
@@ -130,11 +130,23 @@ check "c2" "dead helper has no importers" \
   "Remove any import of utils/legacy" \
   "Find every importer of supporthub-api/modern/src/utils/legacy.ts and remove them."
 
-check "c2" "route handler contains priority logic" \
-  'grep -q "priority = '"'"'urgent'"'"'" supporthub-api/modern/src/routes/tickets.ts' \
-  "The mixed route/business-logic finding depends on this branching being present." \
+check "c2" "one load-bearing function carries all four responsibilities" \
+  'node -e "
+    const fs=require(\"fs\");
+    const s=fs.readFileSync(\"supporthub-api/modern/src/services/ticketService.ts\",\"utf8\");
+    const fn=s.slice(s.indexOf(\"export function createTicket(\"), s.indexOf(\"export interface TransitionResult\"));
+    const ok = /failures\.push/.test(fn) && /value === .p0./.test(fn) && /tickets\.set\(/.test(fn) && /createdAt: ticket\.createdAt/.test(fn);
+    process.exit(ok ? 0 : 1);
+  "' \
+  "The plan-time rejection and the diff-time removal must act on the same code. If validation, normalization, storage access and response shaping are not all inside createTicket, the two clips teach the same thing twice." \
+  "git checkout -- supporthub-api/modern/src/services/ticketService.ts" \
+  "createTicket must carry validation, priority normalization, storage access and response shaping in one body. Show which are missing."
+
+check "c2" "the route does not normalize priority" \
+  '[ "$(grep -c "value === '"'"'p0'"'"'" supporthub-api/modern/src/routes/tickets.ts)" -eq 0 ]' \
+  "A second copy in the route would be an independent smell, splitting the escalation between clips." \
   "git checkout -- supporthub-api/modern/src/routes/tickets.ts" \
-  "Restore the inline priority branching in the POST /tickets handler."
+  "The route must pass the raw priority through. Show where it normalizes."
 
 # This demo produces no diff by design, so its two checkpoints must be the same
 # commit. A difference means the planning pass edited files, which is a failure.
@@ -199,11 +211,32 @@ check "c5" "__dirname used in legacy service" \
   "git checkout -- supporthub-api/migration/services/ticketService.js" \
   "Restore the __dirname-based config load in the legacy ticket service."
 
-check "c5" "migration ExecPlan has no milestones yet" \
-  'grep -q "Not yet defined" plans/migration-plan.md' \
-  "Clip 5 produces the milestones; pre-filled ones mean a previous run was not reset." \
+check "c5" "migration plan opens on exactly one milestone" \
+  '[ "$(grep -c "^### Milestone" plans/migration-plan.md)" -eq 1 ]' \
+  "The rejection step needs a single batched milestone to act on. Two already-split checkpoints mean a previous run was not reset." \
   "git checkout -- plans/migration-plan.md" \
-  "Reset the Milestones and Rollback tables in plans/migration-plan.md."
+  "plans/migration-plan.md must contain exactly one proposed milestone. Show how many it contains."
+
+check "c5" "that milestone batches code with a dependency upgrade" \
+  'node -e "
+    const fs=require(\"fs\");
+    const t=fs.readFileSync(\"plans/migration-plan.md\",\"utf8\");
+    const i=t.indexOf(\"### Milestone 1\");
+    const j=t.indexOf(\"## Rollback visibility\");
+    const m=t.slice(i, j<0?t.length:j);
+    const code=/routes\/tickets\.js.*routes\/tickets\.ts/.test(m);
+    const dep=/express.{0,4}4\.x to 5\.x/.test(m);
+    process.exit(code \&\& dep ? 0 : 1);
+  "' \
+  "If the milestone does not combine a route migration with a dependency upgrade, there is nothing objectionable to reject." \
+  "git checkout -- plans/migration-plan.md" \
+  "Milestone 1 must combine the route migration with the Express upgrade. Show its scope."
+
+check "c5" "that milestone is unreviewed" \
+  'grep -q "Not yet reviewed" plans/migration-plan.md' \
+  "A reviewed plan means a previous run was not reset." \
+  "git checkout -- plans/migration-plan.md" \
+  "The proposed milestones must be marked as not yet reviewed."
 
 # ------------------------------------------------------------------- clip 6
 $FMT section "clip 6 - migrate one route"
