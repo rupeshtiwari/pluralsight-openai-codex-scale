@@ -16,8 +16,8 @@
  * docs/troubleshooting.md. Checks that shell out to git ignore CHECK_ROOT and
  * are marked below; they are proven a different way.
  */
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, existsSync, globSync } from 'node:fs';
+import { join, dirname, resolve } from 'node:path';
 import { execSync } from 'node:child_process';
 
 const ROOT = process.env.CHECK_ROOT || '.';
@@ -47,6 +47,47 @@ const CHECKS = {
     const j = t.indexOf('\n##', i + 1);
     const m = t.slice(i, j < 0 ? t.length : j);
     return /routes\/tickets\.js.*routes\/tickets\.ts/.test(m) && /express.{0,4}4\.x to 5\.x/.test(m);
+  },
+
+  /**
+   * Every relative markdown link must resolve, and no link may be malformed.
+   *
+   * Both halves are here because both have already happened. Every runbook link
+   * in module1/README.md and module2/README.md was written '[label]path)' --
+   * missing the opening paren -- so markdown rendered it as literal text and it
+   * pointed nowhere. That form is invisible to a checker that only validates
+   * well-formed links, because it is not a link at all. The other half guards
+   * renames: these files moved from m1-demo1..4 to clip numbers, and a stale
+   * target is exactly what a learner hits first.
+   */
+  'doc-links-resolve': () => {
+    // Globbed rather than listed by git, so the check can run against a
+    // relocated CHECK_ROOT that is not a git repository.
+    const files = globSync('**/*.md', { cwd: ROOT })
+      .filter((f) => !f.includes('node_modules') && !f.startsWith('.git/'));
+    let bad = 0;
+    for (const f of files) {
+      const abs = join(ROOT, f);
+      const text = readFileSync(abs, 'utf8');
+      // Well-formed links to repo-relative paths must resolve.
+      for (const m of text.matchAll(/\[[^\]\n]*\]\(([^)\s]+)\)/g)) {
+        const target = m[1];
+        if (/^(https?:|mailto:|#)/.test(target)) continue;
+        const path = target.split('#')[0];
+        if (!path) continue;
+        if (!existsSync(resolve(dirname(abs), path))) {
+          process.stderr.write(`  broken link  ${f} -> ${target}\n`);
+          bad += 1;
+        }
+      }
+      // '[label]something)' is a link with the opening paren dropped. It renders
+      // as plain text, so it is never reported as broken by anything else.
+      for (const m of text.matchAll(/\[[^\]\n]*\][^(\s][^\n)]*\)/g)) {
+        process.stderr.write(`  malformed link  ${f}: ${m[0].slice(0, 60)}\n`);
+        bad += 1;
+      }
+    }
+    return bad === 0;
   },
 
   /**

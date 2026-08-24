@@ -7,10 +7,10 @@ migrate a legacy Express 4 service.
 
 | Clip | Demo | Runbook |
 |---|---|---|
-| 2 | Map noisy TypeScript modules with Codex before editing | [m1-demo2-map-noisy-typescript-modules-with-codex-before-editing.md]m1-demo1-map-noisy-typescript-modules.md) |
-| 3 | Execute a Codex refactor with ExecPlan checkpoints | [m1-demo3-execute-a-codex-refactor-with-execplan-checkpoints.md]m1-demo2-execute-codex-refactor.md) |
-| 5 | Inventory a legacy Express 4 service with Codex | [m1-demo5-inventory-a-legacy-express-4-service-with-codex.md]m1-demo3-inventory-legacy-express4.md) |
-| 6 | Migrate one Express route to TypeScript with framework guidance | [m1-demo6-migrate-one-express-route-to-typescript-with-framework-guidance.md]m1-demo4-migrate-one-express-route.md) |
+| 2 | Map noisy TypeScript modules with Codex before editing | [m1-c2-map-noisy-typescript-modules.md](m1-c2-map-noisy-typescript-modules.md) |
+| 3 | Execute a Codex refactor with ExecPlan checkpoints | [m1-c3-execute-codex-refactor.md](m1-c3-execute-codex-refactor.md) |
+| 5 | Inventory a legacy Express 4 service with Codex | [m1-c5-inventory-legacy-express4.md](m1-c5-inventory-legacy-express4.md) |
+| 6 | Migrate one Express route to TypeScript with framework guidance | [m1-c6-migrate-one-express-route.md](m1-c6-migrate-one-express-route.md) |
 
 ## Source
 

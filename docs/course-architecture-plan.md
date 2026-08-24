@@ -206,10 +206,10 @@ pluralsight-openai-codex-scale/
     prompts/                          # one copy-paste Codex prompt per demo
   framework-skill/node-express-migration/SKILL.md
 
-  module1/  README.md  m1-demo{1,2,3,4}-<clip-title>.md
+  module1/  README.md  m1-c{2,3,5,6}-<clip-title>.md
             m1-c6-framework-skill-evidence.md
             scripts/  logs/
-  module2/  README.md  m2-demo{1,2,3,4}-<clip-title>.md
+  module2/  README.md  m2-c{2,3,5,6}-<clip-title>.md
             scripts/  logs/
 
   scripts/  fmt.mjs  json.mjs  check.mjs  check-attribution.sh
@@ -222,9 +222,11 @@ pluralsight-openai-codex-scale/
   env-setup/  setup.sh
 ```
 
-Runbook filenames use **sequential demo numbers within a module**, so `m1-demo1` is the module's
-first demo. The clip it occupies is written inside the runbook, because demos sit at clips 2, 3, 5,
-and 6 — a filename carrying the clip number would read as though six demos were missing.
+Runbook filenames use **clip numbers**, not sequential demo numbers, so a filename maps directly
+onto the outline. Demos sit at clips 2, 3, 5, and 6 in both modules, which is why the runbooks are
+`m1-c2`, `m1-c3`, `m1-c5`, `m1-c6` and never `m1-demo1..4`. Numbering them sequentially would
+force a translation step every time a filename is checked against the outline, and that translation
+is exactly where an off-by-one hides.
 
 `supporthub-api/` holds two workspaces rather than one because the course carries two codebases at
 once: `modern/` is what Module 1 refactors, and `migration/` is what it migrates *from*. They are

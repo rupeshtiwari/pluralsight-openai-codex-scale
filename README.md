@@ -65,10 +65,10 @@ migrate a legacy Express 4 service.
 
 | Demo | Runbook |
 |---|---|
-| Map noisy TypeScript modules with Codex before editing | [module1/m1-demo1-map-noisy-typescript-modules.md](module1/m1-demo1-map-noisy-typescript-modules.md) |
-| Execute a Codex refactor with ExecPlan checkpoints | [module1/m1-demo2-execute-codex-refactor.md](module1/m1-demo2-execute-codex-refactor.md) |
-| Inventory a legacy Express 4 service with Codex | [module1/m1-demo3-inventory-legacy-express4.md](module1/m1-demo3-inventory-legacy-express4.md) |
-| Migrate one Express route to TypeScript with framework guidance | [module1/m1-demo4-migrate-one-express-route.md](module1/m1-demo4-migrate-one-express-route.md) |
+| Map noisy TypeScript modules with Codex before editing | [module1/m1-c2-map-noisy-typescript-modules.md](module1/m1-c2-map-noisy-typescript-modules.md) |
+| Execute a Codex refactor with ExecPlan checkpoints | [module1/m1-c3-execute-codex-refactor.md](module1/m1-c3-execute-codex-refactor.md) |
+| Inventory a legacy Express 4 service with Codex | [module1/m1-c5-inventory-legacy-express4.md](module1/m1-c5-inventory-legacy-express4.md) |
+| Migrate one Express route to TypeScript with framework guidance | [module1/m1-c6-migrate-one-express-route.md](module1/m1-c6-migrate-one-express-route.md) |
 
 Source: [supporthub-api/modern/](supporthub-api/modern/) · [supporthub-api/migration/](supporthub-api/migration/) · [plans/](plans/)
 
@@ -79,10 +79,10 @@ then review and recover automation changes that went wrong.
 
 | Demo | Runbook |
 |---|---|
-| Run a manual Codex triage sweep across Sentry and GitHub | [module2/m2-demo1-manual-triage.md](module2/m2-demo1-manual-triage.md) |
-| Schedule Codex triage and route work to Slack and Linear | [module2/m2-demo2-schedule-triage.md](module2/m2-demo2-schedule-triage.md) |
-| Inspect automation diffs in the Codex review pane | [module2/m2-demo3-inspect-automation-diffs.md](module2/m2-demo3-inspect-automation-diffs.md) |
-| Trace a failed Codex automation and recover safely | [module2/m2-demo4-recover-failed-automation.md](module2/m2-demo4-recover-failed-automation.md) |
+| Run a manual Codex triage sweep across Sentry and GitHub | [module2/m2-c2-manual-triage.md](module2/m2-c2-manual-triage.md) |
+| Schedule Codex triage and route work to Slack and Linear | [module2/m2-c3-schedule-triage.md](module2/m2-c3-schedule-triage.md) |
+| Inspect automation diffs in the Codex review pane | [module2/m2-c5-inspect-automation-diffs.md](module2/m2-c5-inspect-automation-diffs.md) |
+| Trace a failed Codex automation and recover safely | [module2/m2-c6-recover-failed-automation.md](module2/m2-c6-recover-failed-automation.md) |
 
 Source: [automation/](automation/) · [docs/triage-rubric.md](docs/triage-rubric.md)
 

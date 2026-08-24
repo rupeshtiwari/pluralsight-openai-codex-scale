@@ -96,6 +96,27 @@ const CASES = [
   },
 ];
 
+/**
+ * Cases whose control and negative are written from scratch rather than mutated
+ * from a repository file. doc-links-resolve needs this: mutating one real README
+ * would drag in every path it links to, so the control could not be green for the
+ * right reason. A synthetic root isolates the two detectors instead.
+ */
+const SYNTHETIC_CASES = [
+  {
+    check: 'doc-links-resolve',
+    what: 'a link points at a file that does not exist — what a rename leaves behind',
+    control: { 'a.md': '[ok](b.md)\n', 'b.md': 'x\n' },
+    negative: { 'a.md': '[gone](m1-demo1-map-noisy-typescript-modules.md)\n' },
+  },
+  {
+    check: 'doc-links-resolve',
+    what: "a link is missing its opening paren — '[label]path)', which renders as plain text",
+    control: { 'a.md': '[ok](b.md)\n', 'b.md': 'x\n' },
+    negative: { 'a.md': '[label]m1-c2-map-noisy-typescript-modules.md)\n', 'b.md': 'x\n' },
+  },
+];
+
 function runCheck(name, root) {
   try {
     execFileSync(process.execPath, ['scripts/check.mjs', name], {
@@ -106,6 +127,16 @@ function runCheck(name, root) {
   } catch {
     return false;
   }
+}
+
+function buildFrom(files) {
+  rmSync(TMP, { recursive: true, force: true });
+  for (const [rel, body] of Object.entries(files)) {
+    const dest = join(TMP, rel);
+    mkdirSync(dirname(dest), { recursive: true });
+    writeFileSync(dest, body);
+  }
+  return TMP;
 }
 
 function build(file, contents) {
@@ -146,11 +177,19 @@ for (const c of CASES) {
   else pass(`${c.check}: red when ${c.what}`);
 }
 
+for (const c of SYNTHETIC_CASES) {
+  if (runCheck(c.check, buildFrom(c.control))) pass(`${c.check}: green on a clean synthetic root`);
+  else fail(`${c.check}: RED on a clean synthetic root — the harness is broken, not the artifact`);
+
+  if (runCheck(c.check, buildFrom(c.negative))) fail(`${c.check}: STILL GREEN when ${c.what}`);
+  else pass(`${c.check}: red when ${c.what}`);
+}
+
 rmSync(TMP, { recursive: true, force: true });
 
 // A check with no case here is an unproven check. Fail rather than stay quiet.
 const listed = execFileSync(process.execPath, ['scripts/check.mjs', '--list']).toString().trim().split('\n');
-const proven = new Set(CASES.map((c) => c.check));
+const proven = new Set([...CASES, ...SYNTHETIC_CASES].map((c) => c.check));
 process.stdout.write('\n');
 for (const name of listed) {
   if (proven.has(name)) continue;
