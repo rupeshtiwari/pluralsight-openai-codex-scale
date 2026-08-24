@@ -7,6 +7,30 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 FMT="node ${ROOT}/scripts/fmt.mjs"
 cd "$ROOT"
 
+# --- Safety guard -----------------------------------------------------------
+# This script discards work. Between takes that is exactly what is wanted: the
+# dirty files are demo artifacts. During development it is not: unstaged edits
+# to scripts, runbooks or docs are real work, and a reset destroys them.
+#
+# So the guard is not "refuse when dirty", which would make the script useless
+# between takes. It refuses only when the dirt lies OUTSIDE the demo surface.
+DEMO_SURFACE_RE='^(supporthub-api/|plans/|automation/|module1/logs/|module2/logs/|docs/triage-rubric\.md)'
+FORCE=0
+[ "${1:-}" = "--force" ] && FORCE=1
+
+OUTSIDE="$(git status --porcelain | awk '{print $2}' | grep -Ev "$DEMO_SURFACE_RE" || true)"
+if [ -n "$OUTSIDE" ] && [ "$FORCE" -eq 0 ]; then
+  $FMT title "Reset refused" "Changes exist outside the demo surface"
+  $FMT section "WOULD BE DISCARDED"
+  while IFS= read -r f; do [ -n "$f" ] && $FMT item "$f"; done <<< "$OUTSIDE"
+  $FMT section "WHAT TO DO"
+  $FMT item "Commit or stash this work first, then re-run."
+  $FMT item "Or pass --force to discard it deliberately."
+  $FMT verdict fail "Nothing was changed."
+  exit 2
+fi
+# ---------------------------------------------------------------------------
+
 $FMT title "Module 2 reset" "Return fixtures and working tree to the demo starting state"
 
 # 1. Unstage anything a hunk-review demo left staged
