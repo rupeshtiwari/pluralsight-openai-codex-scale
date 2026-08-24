@@ -157,6 +157,10 @@ $ [ -f framework-skill/node-express-migration/SKILL.md ]
 
 RESULT PASS  [c6] framework skill present
 
+$ node "${ROOT}/scripts/check.mjs" skill-not-ambient
+
+RESULT PASS  [c6] skill is opt-in, not ambient
+
 $ grep -q "ESLint" framework-skill/node-express-migration/SKILL.md && grep -q "type-check" framework-skill/node-express-migration/SKILL.md && grep -q "build validation" framework-skill/node-express-migration/SKILL.md && grep -q "Vitest" framework-skill/node-express-migration/SKILL.md
 
 RESULT PASS  [c6] skill names all four validation gates
