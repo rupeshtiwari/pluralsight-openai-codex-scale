@@ -136,8 +136,9 @@ appeared often enough to be predictable rather than unlucky:
 | 4 | `milestone-batched` held | its slice spanned two milestone entries, so its two patterns could match in different ones — it passed on the correctly-split plan | false PASS | simulating the split instead of re-reading the code |
 | 5 | the attribution gate passed | it invoked a deleted `fmt.py` with verbs `fmt.mjs` never had; the gate ran but printed nothing | false PASS | a sweep for references to a renamed file |
 | 6 | the preflight reported READY | it had just dirtied the tree by rewriting its own transcript with this machine's paths and timings — breaking clip 2 step 4, whose proof is an empty Source Control view | false PASS | the clean-clone check, again |
+| 7 | `skill-not-ambient` was broken | `AGENTS.md` was correct. The check matched `always consult` inside the sentence *explaining* why an always-consult instruction would be wrong | false FAIL | running the new check on the known-good file before trusting it — this standard, catching one on its first outing |
 
-Five of the six are false passes, and that asymmetry is the point. **A false FAIL costs a take. A
+Five of the seven are false passes, and that asymmetry is the point. **A false FAIL costs a take. A
 false PASS costs a re-record**, because the demo proceeds on an assertion that was never true — and
 you keep trusting it right up to the moment the camera is on.
 
@@ -168,6 +169,13 @@ restructure that is correct in itself can still move the text a check anchors on
 
 Instance 6 is worth reading twice: the check that certifies readiness was itself creating the one
 change that would appear on camera. Verifying tooling is not exempt from the thing it verifies.
+
+Instance 7 names a trap specific to checks that read prose. **A document explaining a prohibition is
+not violating it.** `AGENTS.md` both states the opt-out and explains why an ambient directive would
+destroy the negative control, so the explanation contains the exact phrase the check hunts for. The
+attribution gate already guards against this — its message pattern is anchored so that a commit
+discussing attribution does not trip it — and the fix is the same: anchor a directive pattern to a
+sentence start, so an imperative matches and a description of one does not.
 
 ### The working tree is not evidence
 
