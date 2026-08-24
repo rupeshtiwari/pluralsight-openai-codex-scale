@@ -45,11 +45,14 @@ These are in place before the demo begins and are not part of it:
 Confirm the service is healthy and the tree is untouched:
 
 ```bash
+npm install          # only needed once, on a fresh checkout
 npm test
 git status --short
 ```
 
-Expect `Tests  25 passed (25)` and no output from `git status`. Those 25 contract tests are the
+Expect `Tests  25 passed (25)` and **no output at all** from `git status`. The clean tree is the
+baseline every later `git status` is compared against, so an untracked file left anywhere in the
+repository will break the closing proof in Step 4. Those 25 contract tests are the
 behavior contract this work must preserve, and the clean tree is the baseline every later `git
 status` is compared against.
 

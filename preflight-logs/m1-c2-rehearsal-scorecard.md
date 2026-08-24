@@ -16,13 +16,35 @@ recording.
 Verified in the container on `demo/m1-c2-start`, head `18f10a6`:
 
 ```bash
+cd ~/pluralsight-openai-codex-scale
+git fetch origin
 git checkout demo/m1-c2-start
+npm install                          # required on a fresh checkout - no node_modules yet
 ./module1/scripts/demo-reset.sh      # PASS - Module 1 is at its starting state
-git status --short                   # empty
+git status --short                   # MUST be completely empty
 npm test                             # Tests  25 passed (25)
 ```
 
-Run these on your Mac before opening Codex. If `npm test` reports anything other than 25, stop.
+Run these in your terminal before opening Codex, not inside Codex. Installing packages on camera is
+setup work, which belongs before the demo starts. If `npm test` reports anything other than 25, stop.
+
+**`git status --short` must return nothing at all.** Step 4's closing proof is that the planning pass
+produced zero edits, and it reads the whole repository. Any untracked file or directory anywhere in
+the tree will appear there and break that proof for a reason unrelated to the teaching. A stray
+nested clone is the usual culprit:
+
+```text
+?? openai-codex-scale/
+```
+
+`demo-reset.sh` will not remove it: it scopes `git clean` to `apps` and `plans` so it can never
+delete unrelated work. Inspect anything unexpected, then move it outside the repository:
+
+```bash
+ls -la <the-directory>
+mv <the-directory> ~/<somewhere-outside-the-repo>
+git status --short                   # confirm empty before continuing
+```
 
 **Do not run `preflight_check.sh` between the reset and the demo.** Its transcript is a tracked
 file, so running it leaves `preflight-logs/module1_preflight.txt` modified, and Step 4's proof that
