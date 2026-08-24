@@ -36,7 +36,19 @@ const CHECKS = {
 
   /** Clip 2 writes nothing, so its two checkpoints must be the same commit. */
   'c2-refs-identical': () => {
-    const rev = (r) => { try { return execSync(`git rev-parse --verify -q ${r}`).toString().trim(); } catch { return ''; } };
+    // A fresh clone has no local branches beyond the checked-out one, so resolve
+    // the local ref first and fall back to the remote-tracking ref. Checking only
+    // local refs passes in a repository where they happen to exist and fails for
+    // everyone who clones.
+    const rev = (r) => {
+      for (const ref of [r, `origin/${r}`]) {
+        try {
+          const out = execSync(`git rev-parse --verify -q ${ref}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+          if (out) return out;
+        } catch { /* try the next form */ }
+      }
+      return '';
+    };
     const a = rev('demo/m1-c2-start');
     const b = rev('demo/m1-c2-captured');
     return a !== '' && a === b;
