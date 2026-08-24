@@ -41,9 +41,19 @@ as work proceeds; move out-of-scope discoveries into **Deferred work** rather th
 
 ## Migration guidance
 
-Platform-specific migration guidance lives in
-`framework-skill/node-express-migration/`. It is repo-local by design so the workflow does not
-depend on an external marketplace skill. Consult it before migrating any route.
+Platform-specific migration guidance is available in
+`framework-skill/node-express-migration/`, repo-local by design so the workflow does not depend on
+an external marketplace skill. It covers the Express 4 to 5 move, the CommonJS to ESM boundary,
+checkpoint separation, and the validation gates.
+
+**Loading it is a deliberate act, not an ambient rule.** This file does not direct you to read it.
+Whoever is driving the work decides whether to load it, and that decision is visible in the prompt.
+Do not consult it unless the prompt asks you to.
+
+That constraint exists so a migration can be run twice — once with the guidance loaded and once
+without — and the difference between the two outputs attributed to the guidance rather than to
+chance. An instruction here to always consult it would make both runs identical and destroy that
+comparison.
 
 Migration direction is fixed:
 

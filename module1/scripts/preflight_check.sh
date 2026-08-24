@@ -136,6 +136,14 @@ check "c2" "route handler contains priority logic" \
   "git checkout -- supporthub-api/modern/src/routes/tickets.ts" \
   "Restore the inline priority branching in the POST /tickets handler."
 
+# This demo produces no diff by design, so its two checkpoints must be the same
+# commit. A difference means the planning pass edited files, which is a failure.
+check "c2" "start and captured checkpoints are the same commit" \
+  '[ "$(git rev-parse --verify -q demo/m1-c2-start 2>/dev/null)" = "$(git rev-parse --verify -q demo/m1-c2-captured 2>/dev/null)" ] && [ -n "$(git rev-parse --verify -q demo/m1-c2-start 2>/dev/null)" ]' \
+  "This demo writes nothing. If the two checkpoints differ, the planning pass edited files." \
+  "git branch -f demo/m1-c2-captured demo/m1-c2-start" \
+  "demo/m1-c2-start and demo/m1-c2-captured must reference the same commit. Show both."
+
 check "c2" "prompt file present" '[ -f plans/prompts/m1-c2-map-codebase.md ]' \
   "The runbook tells the author to paste this prompt." \
   "git checkout -- plans/prompts/" \

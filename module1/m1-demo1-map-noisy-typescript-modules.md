@@ -88,6 +88,18 @@ will show there and break the closing evidence for a reason unrelated to the tea
 | Unreachable branch | second status check inside `changeStatus()` |
 | Source Control changes at the end | 0 |
 
+**The two checkpoints are intentionally the same commit**
+
+`demo/m1-c2-start` and `demo/m1-c2-captured` point at the identical commit, on purpose.
+
+This demo's entire outcome is a plan and an untouched repository. It produces no diff, because
+producing one would mean the planning pass edited files — which is the failure this demo exists to
+rule out. Two identical refs is the honest encoding of that.
+
+**Do not "fix" this by manufacturing a change.** If the two refs ever differ, the demo edited files
+and the result is invalid. `module1/scripts/preflight_check.sh` asserts they match and fails if they
+diverge, so the intent is enforced rather than merely documented.
+
 **Recovery path**
 
 If Codex edits a file, the pass is void: reset and start again rather than continuing from a dirty
