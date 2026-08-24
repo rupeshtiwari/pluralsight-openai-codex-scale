@@ -97,8 +97,15 @@ $FMT item "contract tests FAIL"
 # against a half-populated tree and drop a real dependency.
 if printf '%s' "$BASELINE_OUT" | grep -qE "Cannot find module|@rollup/rollup-|@esbuild/"; then
   $FMT item "cause: node_modules does not match this lockfile or this platform"
-  $FMT item "fix:   rm -rf node_modules supporthub-api/*/node_modules && npm install"
-  $FMT item "or:    ./module1/scripts/demo_reset.sh --reinstall"
+  $FMT item "Reinstall cleanly, or re-run this script with --reinstall."
+  # Printed bare, with no '>' prefix. Every other line here is prefixed per the
+  # output standard, but these two are meant to be COPIED. A copyable command
+  # behind a '>' becomes a shell redirect when pasted, silently creating a file
+  # named after the first word -- which is exactly what happened once already.
+  echo
+  echo "    rm -rf node_modules supporthub-api/*/node_modules && npm install"
+  echo "    ./module1/scripts/demo_reset.sh --reinstall"
+  echo
   $FMT verdict fail "Baseline is red. Dependencies need a clean reinstall, not another npm install."
 else
   $FMT item "The failure is not a dependency problem. Read the output above."
