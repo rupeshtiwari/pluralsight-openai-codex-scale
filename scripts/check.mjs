@@ -50,6 +50,25 @@ const CHECKS = {
   },
 
   /**
+   * The legacy service's 8 tests must pass before clip 5 plans its migration.
+   *
+   * The reporter is pinned rather than left to the default. Node's test runner
+   * prints '# pass 8' under the tap reporter and 'i pass 8' under spec, and
+   * Node 23 made spec the default -- so a grep for '# pass 8' passed on Node 22
+   * and failed on the Node 24 this course targets, while the tests themselves
+   * were green either way. Asserting on a default that changes between runtimes
+   * is asserting on nothing.
+   */
+  'migration-tests-pass': () => {
+    const out = execSync('node --test --test-reporter=tap tests/*.test.js', {
+      cwd: join(ROOT, 'supporthub-api/migration'),
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    return /^# pass 8$/m.test(out) && /^# fail 0$/m.test(out);
+  },
+
+  /**
    * Every relative markdown link must resolve, and no link may be malformed.
    *
    * Both halves are here because both have already happened. Every runbook link

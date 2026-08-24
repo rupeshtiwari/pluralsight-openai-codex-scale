@@ -59,6 +59,13 @@ All three must print `true`. A lockfile generated in a Linux container without t
 Express 5 types route params as `string | string[]`. Declare the shape the handler expects:
 `(req: Request<{ id: string }>, res: Response)`.
 
+**The preflight says `migration tests pass (expect 8)` FAILED, but the tests pass.**
+Fixed. The check grepped for `# pass 8`, which only appears under Node's tap reporter. Node 23 made
+`spec` the default, which prints `i pass 8` instead, so the check failed on Node 24 while the tests
+were green. `scripts/check.mjs migration-tests-pass` now pins `--test-reporter=tap` itself. The
+on-camera `npm run test:migration` output is unchanged — it still uses whatever your Node defaults
+to.
+
 **`npm run test:legacy` cannot find a module named `tests`.**
 `node --test` given a bare directory path resolves it as a module on some Node versions. The
 script uses an explicit glob, `node --test tests/*.test.js`. If you changed it, change it back.
@@ -180,7 +187,9 @@ appeared often enough to be predictable rather than unlucky:
 | 6 | the preflight reported READY | it had just dirtied the tree by rewriting its own transcript with this machine's paths and timings — breaking clip 2 step 4, whose proof is an empty Source Control view | false PASS | the clean-clone check, again |
 | 7 | `skill-not-ambient` was broken | `AGENTS.md` was correct. The check matched `always consult` inside the sentence *explaining* why an always-consult instruction would be wrong | false FAIL | running the new check on the known-good file before trusting it — this standard, catching one on its first outing |
 
-Five of the seven are false passes, and that asymmetry is the point. **A false FAIL costs a take. A
+| 8 | `migration tests pass (expect 8)` failed | the 8 tests passed. The check grepped for `# pass 8`, which Node prints under the tap reporter; Node 23 made **spec** the default, and it prints `i pass 8` | false FAIL | running the preflight on macOS with Node 24 — the version the course targets. It passed on the Node 22 in the build container |
+
+Five of the eight are false passes, and that asymmetry is the point. **A false FAIL costs a take. A
 false PASS costs a re-record**, because the demo proceeds on an assertion that was never true — and
 you keep trusting it right up to the moment the camera is on.
 
@@ -211,6 +220,13 @@ restructure that is correct in itself can still move the text a check anchors on
 
 Instance 6 is worth reading twice: the check that certifies readiness was itself creating the one
 change that would appear on camera. Verifying tooling is not exempt from the thing it verifies.
+
+Instance 8 is the version-dependent variant of instance 1: green on the machine it was written on, red on the
+machine it was written *for*. **Never assert on a tool's default output format.** Defaults change
+between runtimes, and a check that greps one is testing the runtime, not the artifact. Pin the
+reporter, the formatter, the locale — whatever the tool lets you pin — so the assertion means the
+same thing everywhere. The clean-clone check cannot catch this one, because a clone on the same
+machine has the same runtime; only running it on the target version does.
 
 Instance 7 names a trap specific to checks that read prose. **A document explaining a prohibition is
 not violating it.** `AGENTS.md` both states the opt-out and explains why an ambient directive would

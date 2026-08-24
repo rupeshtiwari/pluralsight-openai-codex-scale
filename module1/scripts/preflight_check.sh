@@ -206,7 +206,7 @@ check "c5" "legacy is CommonJS, not ESM" \
   "supporthub-api/migration/package.json declares type module. It must remain CommonJS."
 
 check "c5" "migration tests pass (expect 8)" \
-  '[ "$(npm run test:migration 2>&1 | grep -cF "# pass 8")" -ge 1 ]' \
+  'node "${ROOT}/scripts/check.mjs" migration-tests-pass' \
   "Clip 5 shows the legacy service working before planning its migration." \
   "npm install then npm run test:migration" \
   "npm run test:migration does not report 8 passing tests. Show the failure."
