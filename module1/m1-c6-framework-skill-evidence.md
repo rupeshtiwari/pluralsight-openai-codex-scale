@@ -36,14 +36,46 @@ Read framework-skill/node-express-migration/SKILL.md and follow its guidance.
 
 **Run B — skill OFF.** That line is omitted. Everything after it is byte-identical.
 
-Before Run B, confirm nothing else pulls the skill in:
+The static half of that is now asserted, so it cannot regress unnoticed:
 
 ```bash
-grep -n -i 'consult\|read.*SKILL' AGENTS.md          # must not direct Codex to the skill
+node scripts/check.mjs skill-not-ambient
 grep -c 'framework-skill' plans/prompts/*.md          # prompts that reference it, by design
 ```
 
+`skill-not-ambient` fails if `AGENTS.md` loses the opt-out sentence or gains a directive
+contradicting it. It has been wrong once already — `AGENTS.md` used to say "Consult it before
+migrating any route" — and that failure is invisible until both runs come back the same. The
+Module 1 preflight runs it as **skill is opt-in, not ambient**.
+
 Both runs start from the same checkpoint, `demo/m1-c6-start`, with a clean working tree.
+
+## Toggle pre-check — do this first
+
+**Cheap, and it decides whether the two runs below are worth doing at all.** A passing static check
+proves nothing *directs* Codex to the skill; it cannot prove Codex does not reach for it anyway.
+Only behavior shows that.
+
+Before investing in two full runs, send a short migration prompt with **no** skill line and read
+what comes back:
+
+```text
+Migrate GET /tickets/:id in supporthub-api/migration to TypeScript on Express 5.
+Tell me which guidance you used.
+```
+
+| Question | Answer |
+|---|---|
+| Date | |
+| Did Codex read or cite `SKILL.md` without being asked? | |
+| If yes, what pulled it in? | |
+
+**If the skill loads unasked, stop.** Run B cannot be a skill-off run, the comparison is void, and
+the cause has to be found before anything below is filled in. Record that here rather than
+proceeding — a negative control built on a broken toggle is worse than no negative control, because
+it looks like evidence.
+
+If the skill does not load unasked, the toggle works and both runs below are worth the time.
 
 ## Reproducing
 

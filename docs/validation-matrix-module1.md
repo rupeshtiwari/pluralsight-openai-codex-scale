@@ -133,6 +133,23 @@ walk C5  ->  m1-c5-captured  ->  m1-c6-start  ->  walk C6  ->  m1-c6-captured
    path is solid and the captured branch is insurance. One of five means the seed needs
    strengthening: a demo that usually shows nothing to remove does not teach EO1c.
 
+   This decides a design question rather than a detail — whether the live path is primary with the
+   captured branch as insurance, or the reverse — so record each run as it happens:
+
+   | Run | Bundled an architectural change? | What it bundled |
+   |---|---|---|
+   | 1 | | |
+   | 2 | | |
+   | 3 | | |
+   | 4 | | |
+   | 5 | | |
+
+   | Rate | Reading |
+   |---|---|
+   | 4–5 of 5 | Live path is primary; `m1-c3-captured` is insurance |
+   | 2–3 of 5 | Live path is a coin flip; rehearse from the captured branch and keep the live attempt |
+   | 0–1 of 5 | Seed is too weak. Strengthen it before walking C3 — a demo that usually shows nothing to remove does not teach EO1c |
+
 2. **The skill-off run.** `module1/m1-c6-framework-skill-evidence.md` is scaffolded with the toggle
    named and the comparison reserved. Filling it from expectation would destroy the only thing it is
    for.

@@ -50,6 +50,32 @@ const CHECKS = {
   },
 
   /**
+   * The skill must not load unless a prompt asks for it. This is the precondition
+   * the whole negative control rests on: an ambient directive in AGENTS.md would
+   * load the skill in BOTH runs, make them identical, and quietly turn
+   * m1-c6-framework-skill-evidence.md into a comparison of nothing. It has been
+   * wrong once already -- AGENTS.md used to say "Consult it before migrating any
+   * route" -- and the damage is invisible until both runs come back the same.
+   */
+  'skill-not-ambient': () => {
+    const t = read('AGENTS.md');
+    if (!/Do not consult it unless the prompt asks you to\./.test(t)) return false;
+    // Affirmative directives that would contradict the opt-out. Every pattern is
+    // anchored to a sentence start, because AGENTS.md explains the rule as well as
+    // stating it: the opt-out's own "Do not consult it", and the sentence "An
+    // instruction here to always consult it would make both runs identical", must
+    // not trip a check whose whole subject they are. Prose about a prohibition is
+    // not the prohibition.
+    const DIRECTIVES = [
+      /(?:^|[.!?]\s|\n)\s*Consult\b/i,
+      /(?:^|[.!?]\s|\n)\s*Always consult\b/i,
+      /\bbefore migrating any route\b/i,
+      /(?:^|[.!?]\s|\n)\s*Read\s+framework-skill/i,
+    ];
+    return !DIRECTIVES.some((re) => re.test(t));
+  },
+
+  /**
    * Clip 2 writes nothing, so its two checkpoints must be the same commit.
    * Reads git, not files: ignores CHECK_ROOT. Proven by the clean-clone check,
    * where the local-refs-only version failed as it should have.
