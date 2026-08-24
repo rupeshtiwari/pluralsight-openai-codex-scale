@@ -38,10 +38,7 @@ LEARNING OBJECTIVES
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT FAIL  [all] working tree clean
-WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
-HOW TO FIX      ./module1/scripts/demo_reset.sh
-CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+RESULT PASS  [all] working tree clean
 
 $ [ -d node_modules ]
 
@@ -154,8 +151,28 @@ $ [ "$(grep -c "^### Milestone" plans/migration-plan.md)" -eq 1 ]
 
 RESULT PASS  [c5] migration plan opens on exactly one milestone
 
-$ grep -A4 "^### Milestone 1" plans/migration-plan.md | grep -q "express. 4.x to 5.x"
+$ node -e "
+    const fs=require(\"fs\");
+    const t=fs.readFileSync(\"plans/migration-plan.md\",\"utf8\");
+    const i=t.indexOf(\"### Milestone 1\");
+    const j=t.indexOf(\"## Rollback visibility\");
+    const m=t.slice(i, j<0?t.length:j);
+    const code=/routes\/tickets\.js.*routes\/tickets\.ts/.test(m);
+    const dep=/express.{0,4}4\.x to 5\.x/.test(m);
+    process.exit(code \&\& dep ? 0 : 1);
+  "
+[eval]:9
+    process.exit(code \&\& dep ? 0 : 1);
+                 ^^^^
+Expression expected
 
+SyntaxError: missing ) after argument list
+    at makeContextifyScript (node:internal/vm:185:14)
+    at compileScript (node:internal/process/execution:383:10)
+    at evalTypeScript (node:internal/process/execution:256:22)
+    at node:internal/main/eval_string:74:3
+
+Node.js v22.22.2
 RESULT FAIL  [c5] that milestone batches code with a dependency upgrade
 WHY IT MATTERS  If the milestone does not combine a route migration with a dependency upgrade, there is nothing objectionable to reject.
 HOW TO FIX      git checkout -- plans/migration-plan.md
@@ -189,12 +206,12 @@ $ npm run test:route
 
  RUN  v2.1.9 /home/user/pluralsight-openai-codex-scale/supporthub-api/modern
 
- ✓ tests/contracts/ticket-read-route.contract.test.ts (4 tests) 31ms
+ ✓ tests/contracts/ticket-read-route.contract.test.ts (4 tests) 32ms
 
  Test Files  1 passed (1)
       Tests  4 passed (4)
-   Start at  09:40:44
-   Duration  501ms (transform 85ms, setup 0ms, collect 198ms, tests 31ms, environment 0ms, prepare 58ms)
+   Start at  09:41:42
+   Duration  489ms (transform 90ms, setup 0ms, collect 181ms, tests 32ms, environment 0ms, prepare 58ms)
 RESULT PASS  [c6] focused route tests pass
 
 $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
@@ -216,13 +233,9 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 2-4  EO2c  validation after the milestone
 
 FAILED CHECKS
-  [all] working tree clean
-    why it matters : Every demo starts from a clean tree; leftover edits change what the diff shows.
-    how to fix     : ./module1/scripts/demo_reset.sh
-    codex prompt   : Show me every uncommitted change in this repository and what produced it.
   [c5] that milestone batches code with a dependency upgrade
     why it matters : If the milestone does not combine a route migration with a dependency upgrade, there is nothing objectionable to reject.
     how to fix     : git checkout -- plans/migration-plan.md
     codex prompt   : Milestone 1 must combine the route migration with the Express upgrade. Show its scope.
 
-VERDICT  NOT READY - 2 check(s) failed.
+VERDICT  NOT READY - 1 check(s) failed.
