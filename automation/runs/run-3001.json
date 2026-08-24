@@ -8,7 +8,7 @@
   "patch": "run-3001.patch",
   "hunks": [
     {
-      "file": "apps/api/src/utils/priority.ts",
+      "file": "supporthub-api/modern/src/utils/priority.ts",
       "verdict": "valid",
       "why": "incident-2002 reports unrecognized severity SEV2. Adding the pager-bridge severity mapping addresses the reported finding directly."
     },

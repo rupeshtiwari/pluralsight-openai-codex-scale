@@ -2,14 +2,14 @@
 
 ## Environment
 
-**`environment-setup/install-macos-requirements.sh` reports Node too old.**
+**`env-setup/setup.sh` reports Node too old.**
 The demos require Node 24. A Node 22 install is reported as `(too old)` rather than missing.
 Fix: `brew install node@24 && brew link --overwrite --force node@24`, then re-run the script.
 
 **The script says a dependency is missing that you know is installed.**
 It resolves tools through `PATH`. If a tool was installed into a shell profile that the current
 session has not loaded, open a new terminal and re-run. The full transcript is written to
-`environment-setup/install.log`.
+`env-setup/install.log`.
 
 ## Validation gates
 
@@ -32,7 +32,7 @@ The two CommonJS export shapes are not interchangeable. `module.exports = fn` be
 import; `module.exports = { a, b }` becomes named imports. Check which shape the module uses.
 
 **`__dirname is not defined`.**
-ESM has no `__dirname`. Use `moduleDir(import.meta.url)` from `apps/api/src/compat/dirname.ts`.
+ESM has no `__dirname`. Use `moduleDir(import.meta.url)` from `supporthub-api/modern/src/compat/dirname.ts`.
 
 **A relative import fails to resolve.**
 ESM requires the file extension. TypeScript sources still write `.js`, because the extension
@@ -49,7 +49,7 @@ git checkout demo/m1-c3-start
 Or reset the module in place:
 
 ```bash
-./module1/scripts/demo-reset.sh
+./module1/scripts/demo_reset.sh
 ```
 
 ## Commit attribution

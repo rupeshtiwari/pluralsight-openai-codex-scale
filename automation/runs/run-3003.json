@@ -13,7 +13,7 @@
   },
   "hunks": [
     {
-      "file": "apps/api/src/services/ticketService.ts",
+      "file": "supporthub-api/modern/src/services/ticketService.ts",
       "verdict": "valid",
       "why": "Validates the stored status before indexing ALLOWED_TRANSITIONS, which is the reported root cause."
     }

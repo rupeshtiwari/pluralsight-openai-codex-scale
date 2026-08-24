@@ -9,8 +9,8 @@ and none should be created. Two applications live here side by side on purpose:
 
 | Path | Stack | Role |
 |---|---|---|
-| `apps/api` | ESM TypeScript, Express 5, Vitest | modern service — refactoring target |
-| `apps/legacy-ticket-api` | CommonJS JavaScript, Express 4 | legacy service — migration source |
+| `supporthub-api/modern` | ESM TypeScript, Express 5, Vitest | modern service — refactoring target |
+| `supporthub-api/migration` | CommonJS JavaScript, Express 4 | legacy service — migration source |
 
 Both are intentionally retained. The legacy service is **not** dead code to be deleted; it is the
 source of an in-progress incremental migration.
@@ -20,7 +20,7 @@ source of an in-progress incremental migration.
 1. **Plan before editing.** Map modules, dependencies, and public behavior before proposing changes.
 2. **One bounded theme at a time.** Do not bundle unrelated work into a single diff.
 3. **Preserve public behavior.** Route paths, HTTP status codes, and response field names in
-   `apps/api/tests/contracts/` are contracts. Changing them is a breaking change, never a cleanup.
+   `supporthub-api/modern/tests/contracts/` are contracts. Changing them is a breaking change, never a cleanup.
 4. **Architecture migrations are separate tasks.** Introducing a repository layer, moving persistence
    boundaries, or reorganizing service architecture is out of scope for a cleanup. If such a change
    seems warranted, record it in the ExecPlan as deferred work instead of implementing it.
@@ -32,8 +32,8 @@ source of an in-progress incremental migration.
 
 Multi-step work is tracked in `plans/`:
 
-- `plans/refactor-execplan.md`
-- `plans/migration-execplan.md`
+- `plans/ExecPlan.md`
+- `plans/migration-plan.md`
 
 Each ExecPlan records objective, current state, intended changes, behavior contracts,
 validation checks, progress log, deferred work, and the review decision. Update the progress log
@@ -42,7 +42,7 @@ as work proceeds; move out-of-scope discoveries into **Deferred work** rather th
 ## Migration guidance
 
 Platform-specific migration guidance lives in
-`.codex/skills/express-typescript-migration/`. It is repo-local by design so the workflow does not
+`framework-skill/node-express-migration/`. It is repo-local by design so the workflow does not
 depend on an external marketplace skill. Consult it before migrating any route.
 
 Migration direction is fixed:
