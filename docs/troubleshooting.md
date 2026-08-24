@@ -38,6 +38,18 @@ ESM has no `__dirname`. Use `moduleDir(import.meta.url)` from `supporthub-api/mo
 ESM requires the file extension. TypeScript sources still write `.js`, because the extension
 refers to the emitted file rather than the source.
 
+## Preflight transcripts
+
+**Running the preflight leaves the tree dirty.**
+It should not. The transcripts in `module1/logs/` and `module2/logs/` are normalised so a rerun
+produces identical bytes: the repository root is written as `.`, timings as `<ms>` and `<s>`, and
+the vitest clock line as `<time>`. If a run dirties the tree, either the transcript content
+genuinely changed — commit it — or a new check emits a volatile field the `norm` function in the
+preflight does not yet scrub. Add it there rather than committing the churn.
+
+This matters because clip 2 step 4 proves its point with an empty Source Control view, and the
+preflight runs before recording.
+
 ## Recovering a demo state
 
 Return to a known checkpoint rather than unpicking changes by hand:
@@ -123,8 +135,9 @@ appeared often enough to be predictable rather than unlucky:
 | 3 | `c2-refs-identical` held | it resolved local refs only, so it held solely in a tree where those refs happened to exist | false PASS | the clean-clone check |
 | 4 | `milestone-batched` held | its slice spanned two milestone entries, so its two patterns could match in different ones — it passed on the correctly-split plan | false PASS | simulating the split instead of re-reading the code |
 | 5 | the attribution gate passed | it invoked a deleted `fmt.py` with verbs `fmt.mjs` never had; the gate ran but printed nothing | false PASS | a sweep for references to a renamed file |
+| 6 | the preflight reported READY | it had just dirtied the tree by rewriting its own transcript with this machine's paths and timings — breaking clip 2 step 4, whose proof is an empty Source Control view | false PASS | the clean-clone check, again |
 
-Four of the five are false passes, and that asymmetry is the point. **A false FAIL costs a take. A
+Five of the six are false passes, and that asymmetry is the point. **A false FAIL costs a take. A
 false PASS costs a re-record**, because the demo proceeds on an assertion that was never true — and
 you keep trusting it right up to the moment the camera is on.
 
@@ -152,6 +165,9 @@ mutation, and asserts the check goes red. Three rules make it worth running:
 Adding a check to `check.mjs` therefore means adding a case to `check-negatives.mjs` in the same
 change. Run it after touching either file, and after any edit to a file a check parses — a
 restructure that is correct in itself can still move the text a check anchors on.
+
+Instance 6 is worth reading twice: the check that certifies readiness was itself creating the one
+change that would appear on camera. Verifying tooling is not exempt from the thing it verifies.
 
 ### The wider class
 
