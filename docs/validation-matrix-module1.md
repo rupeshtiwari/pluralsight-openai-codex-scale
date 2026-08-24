@@ -8,12 +8,21 @@ it runs from.
 
 | Status | Meaning |
 |---|---|
-| **PASS** | Backed by an artifact and an automated assertion that runs green now |
+| **PASS** | An automated assertion runs green now on the outcome the bullet claims |
+| **SEEDED** | An automated assertion runs green now on the demo's *starting state* — it proves the setup the bullet needs, not the outcome the bullet claims |
 | **READY** | Artifact and assertion exist; the bullet's evidence is a live Codex response, so it is confirmed by walking the demo |
 | **BLOCKED** | Cannot be satisfied yet, with the blocker named |
 
 `READY` is not a weaker `PASS`. A bullet whose evidence is what Codex says cannot be asserted by a
 script without fabricating the response.
+
+`SEEDED` is not a weaker `PASS` either, and keeping it separate is the point. `PASS` has to mean
+one thing: the assertion ran green on the thing the bullet claims. Two bullets here are backed by
+assertions on the seed instead — that `createTicket` really is load-bearing, and that the plan
+really does open on one batched milestone. Those assertions are worth having, because a demo whose
+starting state has drifted teaches nothing. But they prove the trap is set, not that the learner
+watched it spring. Filed as `PASS`, that distinction disappears; filed as `SEEDED`, it survives.
+Every `SEEDED` bullet is confirmed the same way a `READY` one is — by walking the demo.
 
 ---
 
@@ -24,7 +33,7 @@ Objectives: **TO1, EO1a, EO1d** · Checkpoint: `demo/m1-c2-start`
 |---|---|---|---|---|---|
 | 1 | Open the TypeScript service in Codex and ask it to map modules, dependencies, public behavior, and dead-code candidates | `supporthub-api/modern/src/`, `plans/prompts/m1-c2-map-codebase.md` | Step 1 prompt | Map naming `ticketService.ts`, the two duplicate sites, three unreferenced exports | READY |
 | 2 | Constrain Codex to propose one cleanup theme before editing any files | `plans/prompts/m1-c2-map-codebase.md` Step 2 | Step 2 prompt | Exactly one theme, naming its files | READY |
-| 3 | Inspect repository evidence and reject unrelated architectural changes before implementation | `check.mjs load-bearing-function` | `node scripts/check.mjs load-bearing-function` | `createTicket` carries all four responsibilities, so architectural work is a plausible suggestion to reject | **PASS** |
+| 3 | Inspect repository evidence and reject unrelated architectural changes before implementation | `check.mjs load-bearing-function` | `node scripts/check.mjs load-bearing-function` | Seed: `createTicket` carries all four responsibilities, so architectural work is a plausible suggestion. The rejection itself is live | **SEEDED** |
 | 4 | Confirm Plan mode produces a bounded, reviewable first pass | `check.mjs c2-refs-identical`, preflight | VS Code Source Control view | **Changes** empty; start and captured refs identical | **PASS** |
 
 ## M1 C3 — Execute a Codex refactor with ExecPlan checkpoints
@@ -45,7 +54,7 @@ Objectives: **TO2, EO2a, EO2b** · Checkpoint: `demo/m1-c5-start`
 | 1 | Direct Codex to inventory the legacy service across routes, data models, auth, build tooling, tests, and external contracts | `supporthub-api/migration/`, `docs/migration-inventory-checklist.md` | Step 1 prompt | All six categories covered with file paths | READY |
 | 2 | Review the migration plan for the CommonJS-to-ESM compatibility layer, behavioral exceptions, and rollback visibility | `docs/commonjs-esm-compatibility.md`, `docs/behavioral-exceptions.md`, `compat/*.ts` | Step 2 prompt | Compat modules named as real files; the async-handler exception; rollback points | **PASS** |
 | 3 | Split the migration into incremental milestones that can be validated independently | `plans/migration-plan.md` | Step 3 prompt | Each milestone has one validation command and one rollback commit | READY |
-| 4 | Reject the milestone that batches route migration with dependency upgrades and have Codex split it into two checkpoints | `check.mjs milestone-batched` | `node scripts/check.mjs milestone-batched` | Plan opens on one milestone combining route + Express upgrade, unreviewed | **PASS** |
+| 4 | Reject the milestone that batches route migration with dependency upgrades and have Codex split it into two checkpoints | `check.mjs milestone-batched` | `node scripts/check.mjs milestone-batched` | Seed: the plan opens on one unreviewed milestone whose single entry combines route + Express upgrade. The split into two is live | **SEEDED** |
 
 ## M1 C6 — Migrate one Express route to TypeScript with framework guidance
 Objectives: **TO2, EO2c, EO2d** · Checkpoint: `demo/m1-c6-start` — **BLOCKED on `m1-c5-captured`**
@@ -63,9 +72,12 @@ Objectives: **TO2, EO2c, EO2d** · Checkpoint: `demo/m1-c6-start` — **BLOCKED 
 
 | Status | Count |
 |---|---|
-| **PASS** — automated assertion green now | **8 / 16** |
+| **PASS** — assertion green now on the claimed outcome | **6 / 16** |
+| **SEEDED** — assertion green now on the starting state | **2 / 16** |
 | **READY** — artifact and assertion exist; evidence is a live Codex response | **8 / 16** |
 | **BLOCKED** | **0 / 16** |
+
+Ten of the sixteen — `SEEDED` plus `READY` — are confirmed by walking the demo, not by a script.
 
 Every bullet has an artifact and a checkpoint. Nothing is unbacked.
 

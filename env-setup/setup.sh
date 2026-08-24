@@ -101,11 +101,6 @@ report "tmux" "any" \
        "$(command -v tmux >/dev/null 2>&1 && tmux -V | awk '{print $2}' || echo '')" \
        "brew install tmux"
 
-# --- Python (formatter) ---------------------------------------------------
-report "Python 3" "3.9 or newer" \
-       "$(command -v python3 >/dev/null 2>&1 && python3 --version | awk '{print $2}' || echo '')" \
-       "brew install python@3.12"
-
 # --- Project dependencies -------------------------------------------------
 $FMT section "project dependencies"
 if [ -d "${REPO_ROOT}/node_modules" ]; then

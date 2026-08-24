@@ -1,6 +1,0 @@
-# The SupportHub demos run on Node.js 24; application dependencies are declared
-# in package.json and the per-workspace package.json files.
-#
-# Python is used only by the terminal output formatter, scripts/fmt.py, which
-# depends on the standard library alone. This file is intentionally empty of
-# third-party packages so no Python install step is required.

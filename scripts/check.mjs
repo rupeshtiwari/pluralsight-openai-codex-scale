@@ -29,7 +29,13 @@ const CHECKS = {
   'milestone-batched': () => {
     const t = read('plans/migration-plan.md');
     const i = t.indexOf('### Milestone 1');
-    const j = t.indexOf('## Rollback visibility');
+    if (i < 0) return false;
+    // Bound the slice at the next heading of ANY level, so what is tested is one
+    // milestone entry rather than the whole milestone list. Stopping at the next
+    // '## ' spans a '### Milestone 2', which means the two patterns below could
+    // match in different entries and the check would still pass after exactly the
+    // split it exists to detect. '\n##' matches both '## ' and '### '.
+    const j = t.indexOf('\n##', i + 1);
     const m = t.slice(i, j < 0 ? t.length : j);
     return /routes\/tickets\.js.*routes\/tickets\.ts/.test(m) && /express.{0,4}4\.x to 5\.x/.test(m);
   },

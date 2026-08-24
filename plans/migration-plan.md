@@ -68,9 +68,14 @@ Deliberate differences accepted as part of the migration. Full detail in
 |---|---|---|---|
 | Rejected promise in an async handler | Not forwarded; the request hangs unless the handler catches it | Forwarded automatically to the error handler | Accept the Express 5 behavior, and keep the existing explicit error responses so status codes do not change |
 
-## Proposed milestones
+## Milestones
 
 Produced by the initial planning pass. **Not yet reviewed.**
+
+One list, one term. A milestone *is* a checkpoint: the unit that is validated independently and
+rolled back to. Splitting a milestone replaces its entry here with two entries — it does not create
+a second list somewhere else. Rollback visibility lives inside the entry, so every milestone carries
+its own rollback point and the plan never shows the same work twice under two names.
 
 ### Milestone 1 — Migrate `GET /tickets/:id` to TypeScript on Express 5
 
@@ -86,12 +91,6 @@ its final target rather than being rewritten twice.
 | Scope | `routes/tickets.js` to `routes/tickets.ts`; `express` 4.x to 5.x; `path-to-regexp` route-syntax adjustments |
 | Validation | `npm run lint && npm run typecheck && npm run build && npm run test:route && npm test` |
 | Rollback point | the commit before this milestone |
-
-## Rollback visibility
-
-| Milestone | Rollback commit |
-|---|---|
-| Milestone 1 | recorded before work starts |
 
 ## Validation checks
 

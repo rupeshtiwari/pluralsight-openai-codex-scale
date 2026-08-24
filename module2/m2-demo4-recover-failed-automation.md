@@ -62,16 +62,13 @@ the symptom.
 **Command.** Read what the run recorded about itself:
 
 ```bash
-python3 -c "
-import json
-r=json.load(open('automation/runs/run-3002.json'))
-print('  status      :', r['status'])
-print('  finding     :', r['sourceFindings'][0])
-print('  chose commit:', r['correlation']['chose'], '-', r['correlation']['chosenBecause'])
-print('  correct     :', r['correlation']['correct'])
-print('  fault type  :', r['correlation']['faultType'])
-print('  build       :', r['validation']['build'])
-"
+node scripts/json.mjs fields automation/runs/run-3002.json \
+  "status=status" \
+  "finding=sourceFindings.0" \
+  "chose commit=correlation.chose+correlation.chosenBecause" \
+  "correct=correlation.correct" \
+  "fault type=correlation.faultType" \
+  "build=validation.build"
 ```
 
 **Expected output.**
@@ -82,6 +79,7 @@ print('  build       :', r['validation']['build'])
   chose commit: d4e5f6a - committed 17 minutes before the first occurrence of evt-1042
   correct     : a1b2c3d
   fault type  : bad source assumption
+  build       : fail
 ```
 
 **Highlight.** `fault type: bad source assumption`. The generator did competent work on a premise
@@ -201,14 +199,11 @@ just a second guess.
 **Commands.**
 
 ```bash
-python3 -c "
-import json
-r=json.load(open('automation/runs/run-3003.json'))
-print('  status :', r['status'])
-print('  commit :', r['correlation']['chose'])
-print('  files  :', [h['file'] for h in r['hunks']])
-print('  gates  :', r['validation'])
-"
+node scripts/json.mjs fields automation/runs/run-3003.json \
+  "status=status" \
+  "commit=correlation.chose" \
+  "files=hunks.0.file" \
+  "gates=validation"
 npm run lint && npm run typecheck && npm run build && npm test
 git diff --stat
 git diff --cached --stat
@@ -217,10 +212,10 @@ git diff --cached --stat
 **Expected output.**
 
 ```text
-  status : completed
-  commit : a1b2c3d
-  files  : ['supporthub-api/modern/src/services/ticketService.ts']
-  gates  : {'lint': 'pass', 'typecheck': 'pass', 'build': 'pass', 'test': 'pass'}
+  status: completed
+  commit: a1b2c3d
+  files : supporthub-api/modern/src/services/ticketService.ts
+  gates : lint=pass typecheck=pass build=pass test=pass
 
 Tests  25 passed (25)
 ```
