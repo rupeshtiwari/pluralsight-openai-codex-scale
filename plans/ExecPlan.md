@@ -59,6 +59,14 @@ npm run build
 npm test
 ```
 
+## Risks
+
+| Risk | Likelihood | If it happens |
+|---|---|---|
+| A consolidated normalizer changes behavior for an unlisted spelling | Low | The priority contract tests fail; revert and add the missing case before retrying. |
+| The cleanup touches the load-bearing function and drags data access with it | **High** | The diff grows beyond the three intended files. Remove the extra work and record it under Deferred work. |
+| Removing the stale helper breaks an importer that was missed | Low | Type-check fails immediately; restore the helper and re-check importers. |
+
 ## Progress log
 
 | # | Change | Validation | State |
