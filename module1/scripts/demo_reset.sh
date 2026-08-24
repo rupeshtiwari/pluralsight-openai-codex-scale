@@ -16,7 +16,13 @@ cd "$ROOT"
 # between takes. It refuses only when the dirt lies OUTSIDE the demo surface.
 DEMO_SURFACE_RE='^(supporthub-api/|plans/|automation/|module1/logs/|module2/logs/|docs/triage-rubric\.md)'
 FORCE=0
-[ "${1:-}" = "--force" ] && FORCE=1
+REINSTALL=0
+for arg in "$@"; do
+  case "$arg" in
+    --force)     FORCE=1 ;;
+    --reinstall) REINSTALL=1 ;;
+  esac
+done
 
 OUTSIDE="$(git status --porcelain | awk '{print $2}' | grep -Ev "$DEMO_SURFACE_RE" || true)"
 if [ -n "$OUTSIDE" ] && [ "$FORCE" -eq 0 ]; then
@@ -61,7 +67,12 @@ done
 
 # 4. Dependencies present, without reinstalling what is already correct
 $FMT section "dependencies"
-if [ -d node_modules ]; then
+if [ "${REINSTALL:-0}" = "1" ]; then
+  $FMT item "clean reinstall requested"
+  rm -rf node_modules supporthub-api/*/node_modules
+  npm install >/dev/null 2>&1
+  $FMT item "dependencies reinstalled"
+elif [ -d node_modules ]; then
   $FMT item "node_modules present - not reinstalling"
 else
   $FMT item "installing dependencies"
@@ -70,12 +81,27 @@ fi
 
 # 5. Verify the baseline the demos start from
 $FMT section "baseline"
-if npm test >/dev/null 2>&1; then
+BASELINE_OUT="$(npm test 2>&1)"
+if [ $? -eq 0 ]; then
   $FMT item "contract tests pass"
   $FMT verdict pass "Module 1 is at its starting state."
   exit 0
 fi
 
 $FMT item "contract tests FAIL"
-$FMT verdict fail "Baseline is red. Run 'npm install' then re-run this script."
+
+# Name the repair that actually works. A stale node_modules -- left by switching
+# to a branch with a different lockfile, or carried across machines -- fails with
+# a missing native binary, and plain 'npm install' does NOT fix it (npm bug 4828).
+# The nested workspace node_modules must go too: leaving them makes npm resolve
+# against a half-populated tree and drop a real dependency.
+if printf '%s' "$BASELINE_OUT" | grep -qE "Cannot find module|@rollup/rollup-|@esbuild/"; then
+  $FMT item "cause: node_modules does not match this lockfile or this platform"
+  $FMT item "fix:   rm -rf node_modules supporthub-api/*/node_modules && npm install"
+  $FMT item "or:    ./module1/scripts/demo_reset.sh --reinstall"
+  $FMT verdict fail "Baseline is red. Dependencies need a clean reinstall, not another npm install."
+else
+  $FMT item "The failure is not a dependency problem. Read the output above."
+  $FMT verdict fail "Baseline is red. Contract tests fail against unmodified sources."
+fi
 exit 1
