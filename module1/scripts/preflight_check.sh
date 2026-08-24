@@ -17,13 +17,25 @@ FAILED=()
 
 log(){ echo "$@" >> "$LOG"; }
 
+# Command output is captured verbatim, which embeds this machine's absolute
+# paths and this run's millisecond timings. That makes the committed transcript
+# differ on every run and on every machine, so running the preflight leaves the
+# tree dirty -- and clip 2 step 4 proves its point with an empty Source Control
+# view. Normalise the volatile fields so a rerun produces identical bytes.
+norm(){
+  sed -e "s#${ROOT}#.#g" \
+      -e 's#[0-9][0-9]*ms#<ms>#g' \
+      -e 's#[0-9][0-9]*\.[0-9][0-9]*s#<s>#g' \
+      -e 's#Start at  [0-9][0-9]:[0-9][0-9]:[0-9][0-9]#Start at  <time>#'
+}
+
 # check <demo> <name> <command> <why-it-matters> <how-to-fix> <codex-prompt>
 check(){
   local demo="$1" name="$2" cmd="$3" why="$4" fix="$5" prompt="$6"
   local out rc
   log ""; log "\$ $cmd"
   out="$(eval "$cmd" 2>&1)"; rc=$?
-  log "$out"
+  log "$(printf '%s\n' "$out" | norm)"
   if [ $rc -eq 0 ]; then
     $FMT item "$name: PASS"
     log "RESULT PASS  [$demo] $name"
