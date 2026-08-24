@@ -1,13 +1,14 @@
-# ExecPlan — Legacy ticket service migration
+# Migration plan — SupportHub ticket service
 
-Incremental migration of the SupportHub legacy ticket service, one checkpoint at a time.
+Express 4 CommonJS JavaScript to Express 5 ESM TypeScript, migrated in place under
+`supporthub-api/migration/`.
 
 ---
 
 ## Objective
 
-Move the legacy ticket service from CommonJS JavaScript on Express 4 to ESM TypeScript on
-Express 5, in independently validated milestones, without changing the external API contract.
+Move the ticket service to Express 5 ESM TypeScript in independently validated milestones,
+without changing the external API contract.
 
 ## Source and target
 
@@ -16,11 +17,10 @@ Express 5, in independently validated milestones, without changing the external 
 | Module system | CommonJS | ESM |
 | Language | JavaScript | TypeScript |
 | Framework | Express 4 | Express 5 |
-| Location | `supporthub-api/migration/` | `supporthub-api/modern/` |
 | Package type | no `type` field | `"type": "module"` |
 
-Both remain in the repository during the migration. The legacy service is the source of an
-in-progress migration, not dead code.
+Both states coexist in this workspace during the migration. Mixed `.js` and `.ts` is the expected
+mid-migration condition, not a misconfiguration.
 
 ## Inventory
 
@@ -32,7 +32,7 @@ _Not yet inventoried._
 ### Data models
 _Not yet inventoried._
 
-### Auth
+### Authentication
 _Not yet inventoried._
 
 ### Build tooling
@@ -46,56 +46,63 @@ _Not yet inventoried._
 
 ## CommonJS-to-ESM compatibility layer
 
-Concrete boundary code, not description. These modules exist and can be inspected:
+Concrete boundary code, not description. Full detail in
+[docs/commonjs-esm-compatibility.md](../docs/commonjs-esm-compatibility.md).
 
-| Concern | Compatibility module | What it replaces |
+| Concern | Module | Replaces |
 |---|---|---|
-| `__dirname` is undefined in ESM | `supporthub-api/modern/src/compat/dirname.ts` | `path.join(__dirname, ...)` |
-| ESM cannot `require()` a CommonJS module | `supporthub-api/modern/src/compat/legacyRequire.ts` | direct `require()` calls |
+| `__dirname` is undefined in ESM | `supporthub-api/migration/compat/dirname.ts` | `path.join(__dirname, ...)` |
+| ESM cannot `require()` a CommonJS module | `supporthub-api/migration/compat/legacyRequire.ts` | direct `require()` |
 
-Additional compatibility concerns the plan must address:
-
-- `require()` becomes `import`, with an explicit `.js` extension on relative paths
-- `module.exports = fn` becomes `export default`; `module.exports = { a, b }` becomes named exports
-- the two export shapes are not interchangeable, and mixing them fails at runtime rather than at
-  compile time
-- the target package declares `"type": "module"`; the legacy package must not
+Also in scope: `require()` becomes `import` with an explicit `.js` extension on relative paths, and
+the two `module.exports` shapes convert differently — `module.exports = fn` to a default export,
+`module.exports = { a, b }` to named exports. They are not interchangeable, and mixing them fails at
+runtime rather than at compile time.
 
 ## Behavioral exceptions
 
-Deliberate differences accepted as part of the migration, to be recorded here as they are decided.
+Deliberate differences accepted as part of the migration. Full detail in
+[docs/behavioral-exceptions.md](../docs/behavioral-exceptions.md).
 
-| Behavior | Legacy | Target | Accepted because |
+| Behavior | Express 4 | Express 5 | Decision |
 |---|---|---|---|
-| _None recorded yet._ | | | |
+| Rejected promise in an async handler | Not forwarded; the request hangs unless the handler catches it | Forwarded automatically to the error handler | Accept the Express 5 behavior, and keep the existing explicit error responses so status codes do not change |
 
-## Milestones
+## Proposed milestones
 
-To be produced during planning. Each milestone must be independently validatable and
-independently revertible.
+Produced by the initial planning pass. **Not yet reviewed.**
 
-| # | Milestone | Validation | Rollback point |
-|---|---|---|---|
-| _Not yet defined._ | | | |
+### Milestone 1 — Migrate `GET /tickets/:id` to TypeScript on Express 5
+
+Move the route to ESM TypeScript and upgrade Express 4 to Express 5 in the same step.
+
+**Rationale.** The route has to be rewritten for TypeScript anyway. Express 5 replaces the route
+matcher with `path-to-regexp` v8, which changes how route patterns are parsed, so the route will
+need adjusting for Express 5 regardless. Doing both at once means the route is written once against
+its final target rather than being rewritten twice.
+
+| | |
+|---|---|
+| Scope | `routes/tickets.js` to `routes/tickets.ts`; `express` 4.x to 5.x; `path-to-regexp` route-syntax adjustments |
+| Validation | `npm run lint && npm run typecheck && npm run build && npm run test:route && npm test` |
+| Rollback point | the commit before this milestone |
+
+## Rollback visibility
+
+| Milestone | Rollback commit |
+|---|---|
+| Milestone 1 | recorded before work starts |
 
 ## Validation checks
 
 Every milestone runs all four gates before it is accepted:
 
 ```bash
-npm run lint         # ESLint
-npm run typecheck    # TypeScript type-check
-npm run build        # build validation
-npm run test:route   # focused route tests
+npm run lint:migration
+npm run typecheck:migration
+npm run build:migration
+npm run test:migration
 ```
-
-## Rollback visibility
-
-The commit to return to if a milestone fails validation.
-
-| Milestone | Rollback commit |
-|---|---|
-| _Not yet defined._ | |
 
 ## Progress log
 
