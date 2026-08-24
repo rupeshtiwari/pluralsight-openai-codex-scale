@@ -7,10 +7,10 @@ then review and recover automation changes that went wrong.
 
 | Clip | Demo | Runbook |
 |---|---|---|
-| 2 | Run a manual Codex triage sweep across Sentry and GitHub | [m2-demo2-run-a-manual-codex-triage-sweep-across-sentry-and-github.md]m2-demo1-manual-triage.md) |
-| 3 | Schedule Codex triage and route work to Slack and Linear | [m2-demo3-schedule-codex-triage-and-route-work-to-slack-and-linear.md]m2-demo2-schedule-triage.md) |
-| 5 | Inspect automation diffs in the Codex review pane | [m2-demo5-inspect-automation-diffs-in-the-codex-review-pane.md]m2-demo3-inspect-automation-diffs.md) |
-| 6 | Trace a failed Codex automation and recover safely | [m2-demo6-trace-a-failed-codex-automation-and-recover-safely.md]m2-demo4-recover-failed-automation.md) |
+| 2 | Run a manual Codex triage sweep across Sentry and GitHub | [m2-c2-manual-triage.md](m2-c2-manual-triage.md) |
+| 3 | Schedule Codex triage and route work to Slack and Linear | [m2-c3-schedule-triage.md](m2-c3-schedule-triage.md) |
+| 5 | Inspect automation diffs in the Codex review pane | [m2-c5-inspect-automation-diffs.md](m2-c5-inspect-automation-diffs.md) |
+| 6 | Trace a failed Codex automation and recover safely | [m2-c6-recover-failed-automation.md](m2-c6-recover-failed-automation.md) |
 
 ## Source
 

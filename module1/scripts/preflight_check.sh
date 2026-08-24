@@ -99,6 +99,12 @@ check "all" "working tree clean" \
   "./module1/scripts/demo_reset.sh" \
   "Show me every uncommitted change in this repository and what produced it."
 
+check "all" "runbook links resolve" \
+  'node "${ROOT}/scripts/check.mjs" doc-links-resolve' \
+  "The module READMEs are how a learner finds a runbook. Every runbook link in both of them was once written without its opening paren, so markdown rendered it as text pointing nowhere." \
+  "Run node scripts/check.mjs doc-links-resolve to see which link and which file." \
+  "Which markdown links in this repository point at files that do not exist?"
+
 check "all" "dependencies installed" \
   '[ -d node_modules ]' \
   "Without dependencies no validation gate can run." \
