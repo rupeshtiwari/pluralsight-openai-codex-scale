@@ -33,7 +33,8 @@ Before planning anything, you need to know what is actually in there.
 - **CommonJS** — the older Node module system, using `require()` and `module.exports`.
 - **ESM** — the standard module system, using `import` and `export`.
 - **Compatibility layer** — code that lets the two module systems work together during a migration.
-- **Milestone** — one unit of migration work that can be validated and undone on its own.
+- **Milestone** — one unit of migration work that can be validated and undone on its own. The
+  outline also calls this a **checkpoint**; they are the same thing and the plan keeps one list.
 - **Rollback point** — the commit you return to if a milestone fails.
 
 ## AUTHOR PREP — DO NOT NARRATE
@@ -298,7 +299,9 @@ Checkpoint 2: upgrade Express 4 to Express 5
 For each, give the exact files it touches, the exact command that validates it,
 the exact commit to roll back to, and the external contract it must not change.
 
-Record both in plans/migration-plan.md under Milestones. Change no other file.
+Record both in plans/migration-plan.md under Milestones, replacing the entry you
+flagged. Milestones and checkpoints are one list — do not add a second
+section. Change no other file.
 ```
 
 **Highlight.** Each checkpoint now answers "code or dependency" with one answer, not both.
@@ -309,9 +312,10 @@ Record both in plans/migration-plan.md under Milestones. Change no other file.
 git status --short
 ```
 
-PASS if the only modified file is `plans/migration-plan.md`, its Milestones table has two rows,
-and the batched milestone is gone.
-FAIL if any file under `apps/` was modified — this demo plans, it does not implement.
+PASS if the only modified file is `plans/migration-plan.md`, its Milestones section holds two
+entries, and the batched milestone is gone.
+FAIL if any file under `supporthub-api/` was modified — this demo plans, it does not implement — or
+if a separate checkpoint or rollback section appeared. Milestones and checkpoints are one list.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` restores any accidental edit.
 

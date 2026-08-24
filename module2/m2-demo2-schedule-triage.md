@@ -103,22 +103,18 @@ Comparing against a recorded baseline turns "looks right" into a specific pass o
 **Command.** Show the baseline beside it:
 
 ```bash
-python3 -c "
-import json
-b=json.load(open('automation/triage/baseline-manual-sweep.json'))
-for f in b['findings']:
-    print(f\"  {f['id']:<16} {f['priority']:<9} users={f['affectedUsers']:<4} route={f['route']}\")
-print('  rejected:', b['rejectedCorrelations'][0]['commit'])
-"
+BASE=automation/triage/baseline-manual-sweep.json
+node scripts/json.mjs table "$BASE" findings id:16 priority:9 users=affectedUsers:4 route=route
+node scripts/json.mjs fields "$BASE" "rejected=rejectedCorrelations.0.commit"
 ```
 
 **Expected output.**
 
 ```text
-  incident-2001    P0        users=500  route=True
-  incident-2002    P2        users=61   route=True
-  evt-1088         P3        users=3    route=False
-  evt-1099         deferred  users=2    route=False
+  incident-2001    P0        users=500  route=true
+  incident-2002    P2        users=61   route=true
+  evt-1088         P3        users=3    route=false
+  evt-1099         deferred  users=2    route=false
   rejected: d4e5f6a
 ```
 
@@ -205,26 +201,22 @@ Keep them as drafts. Do not send or create anything.
 **Command.** Compare against the recorded drafts:
 
 ```bash
-python3 -c "
-import json,glob
-for p in sorted(glob.glob('automation/*-drafts/*.json')):
-    d=json.load(open(p))
-    print(f\"  {p.split('/')[1]:<14} {d['sourceFinding']:<15} status={d['status']:<6} approvedBy={d['approvedBy']}\")
-"
+node scripts/json.mjs files 'automation/*-drafts/*.json' \
+  @dir:14 sourceFinding:15 status=status:6 approvedBy=approvedBy
 ```
 
 **Expected output.**
 
 ```text
-  linear-drafts  incident-2001   status=draft  approvedBy=None
-  linear-drafts  incident-2002   status=draft  approvedBy=None
-  slack-drafts   incident-2001   status=draft  approvedBy=None
+  linear-drafts  incident-2001   status=draft  approvedBy=none
+  linear-drafts  incident-2002   status=draft  approvedBy=none
+  slack-drafts   incident-2001   status=draft  approvedBy=none
 ```
 
 **Operator action.** Confirm each draft names its priority and its evidence, then confirm that
 nothing has been sent.
 
-**Highlight.** `status=draft` and `approvedBy=None` on every row, and the rejected-correlation
+**Highlight.** `status=draft` and `approvedBy=none` on every row, and the rejected-correlation
 sentence inside the `incident-2001` drafts. A reader learns not just what broke, but which
 tempting explanation was ruled out.
 

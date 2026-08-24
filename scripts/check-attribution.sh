@@ -13,7 +13,7 @@
 
 set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-FMT="python3 ${ROOT}/scripts/fmt.py"
+FMT="node ${ROOT}/scripts/fmt.mjs"
 cd "$ROOT"
 
 # Identity fields: any mention of these names is disqualifying.
@@ -27,8 +27,8 @@ if [ "${1:-}" = "--install" ]; then
   HOOK="${ROOT}/.git/hooks/pre-push"
   printf '#!/usr/bin/env bash\nexec "%s/scripts/check-attribution.sh"\n' "$ROOT" > "$HOOK"
   chmod +x "$HOOK"
-  $FMT box "Attribution gate installed" "Runs automatically before every push"
-  $FMT star "hook" ".git/hooks/pre-push"
+  $FMT title "Attribution gate installed" "Runs automatically before every push"
+  $FMT value "hook" ".git/hooks/pre-push"
   exit 0
 fi
 
@@ -42,15 +42,15 @@ elif UPSTREAM="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/n
   [ -z "$(git rev-list "$RANGE" 2>/dev/null)" ] && RANGE="--all"
 fi
 
-$FMT box "Attribution gate" "Reject commits attributed to anyone but the author"
+$FMT title "Attribution gate" "Reject commits attributed to anyone but the author"
 
 BAD_IDENT="$(git log $RANGE --format='%H|%an <%ae>|%cn <%ce>' 2>/dev/null \
              | grep -iE "$IDENT_PATTERN" || true)"
 BAD_MSG="$(git log $RANGE --format='%H%n%B%n---' 2>/dev/null \
            | grep -iE "$MSG_PATTERN" || true)"
 
-$FMT star "range inspected" "$RANGE"
-$FMT star "commits inspected" "$(git rev-list $RANGE 2>/dev/null | wc -l | tr -d ' ')"
+$FMT value "range inspected" "$RANGE"
+$FMT value "commits inspected" "$(git rev-list $RANGE 2>/dev/null | wc -l | tr -d ' ')"
 
 if [ -z "$BAD_IDENT" ] && [ -z "$BAD_MSG" ]; then
   $FMT verdict pass "No unwanted attribution found."

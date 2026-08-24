@@ -19,7 +19,7 @@ Locked against the approved Pluralsight outline (Opportunity ID `b266834d-afaf-4
 |---|---|
 | Master prompt | Received |
 | Approved course outline | **Received — all clip titles, durations, LOs locked** |
-| Pluralsight standards PDF (terminal colors) | **MISSING** — blocks color tokens in `scripts/fmt.py` only (§T) |
+| Pluralsight standards PDF (terminal colors) | **MISSING** — blocks color tokens in `scripts/fmt.mjs` only (§T) |
 
 Duration arithmetic verified: 3+6+6+3+6+6 = 30 per module, 60 total. 8 demo clips @ 6 min, 4 presentation clips @ 3 min.
 
@@ -177,49 +177,62 @@ Decision: **What failed, and what should be rerun?**
 
 ```text
 pluralsight-openai-codex-scale/
-  README.md  AGENTS.md  .env.example  package.json  requirements.txt
+  README.md  AGENTS.md  .env.example  package.json  package-lock.json
   setup-macos.sh                      # wrapper -> env-setup/
 
-  apps/
-    api/                              # modern TS · ESM · Express 5 — refactor target
-      src/routes/tickets.ts           # mixed route/business logic (intentional)
-      src/services/ticketService.ts   # oversized, 7 responsibilities (intentional)
-      src/utils/priority.ts           # duplicate normalization site
+  supporthub-api/
+    modern/                           # TypeScript · ESM · Express 5 — refactor target
+      src/routes/tickets.ts           # thin; params typed Request<{ id: string }>
+      src/services/ticketService.ts   # load-bearing createTicket (intentional)
+      src/utils/priority.ts           # the duplicate normalization site
       src/utils/legacy.ts             # normalizeLegacySeverity — dead code
+      src/middleware/requestId.ts  src/models/ticket.ts
       src/compat/{dirname,legacyRequire}.ts
-      tests/contracts/                # public behavior lock
-    legacy-ticket-api/                # CommonJS JS · Express 4 — migration source
-      app.js routes/ services/ models/ auth/ config/ tests/
+      src/app.ts  src/server.ts
+      tests/contracts/                # public behavior lock — 25 tests
+    migration/                        # CommonJS · JavaScript · Express 4 — migration source
+      app.js  server.js  routes/  services/  models/  auth/  config/  tests/
+      compat/{dirname,legacyRequire}.ts   # shims only — no route has migrated
       package.json                    # no "type": "module"
+      eslint.config.js                # CommonJS: the package is CJS
+      tsconfig.json                   # allowJs true, checkJs false
+      vitest.config.ts                # passWithNoTests true
 
   automation/
-    sentry-fixtures/ github-seed/ triage/
-    slack-drafts/ linear-drafts/ runs/
+    sentry-fixtures/  github-seed/  triage/
+    slack-drafts/  linear-drafts/  runs/
 
-  plans/     execplan-template.md ExecPlan.md migration-plan.md
-  prompts/   one copy-paste Codex prompt per demo
-  framework-skill/node-express-migration/
+  plans/    ExecPlan.md  execplan-template.md  migration-plan.md
+    prompts/                          # one copy-paste Codex prompt per demo
+  framework-skill/node-express-migration/SKILL.md
 
-  module1/  README.md  m1-demo{2,3,5,6}-<clip-title>.md  scripts/
-  module2/  README.md  m2-demo{2,3,5,6}-<clip-title>.md  scripts/
+  module1/  README.md  m1-demo{1,2,3,4}-<clip-title>.md
+            m1-c6-framework-skill-evidence.md
+            scripts/  logs/
+  module2/  README.md  m2-demo{1,2,3,4}-<clip-title>.md
+            scripts/  logs/
 
-  scripts/              fmt.py  demo_module{1,2}.py
-                        module{1,2}-demo_reset.sh  validate_module{1,2}.sh
-  module1/logs/       committed preflight and validation transcripts
-  docs/                 triage-rubric.md  migration-inventory-checklist.md
-                        troubleshooting.md  tech-stack-matrix.md
+  scripts/  fmt.mjs  json.mjs  check.mjs  check-attribution.sh
+  docs/     triage-rubric.md  migration-inventory-checklist.md
+            troubleshooting.md
+            commonjs-esm-compatibility.md  behavioral-exceptions.md
+            demo-reset-guide.md  integration-readiness.md
+            validation-matrix-module1.md  course-architecture-plan.md
   data/payloads/
-  env-setup/    install-macos-requirements.sh
+  env-setup/  setup.sh
 ```
 
-Runbook filenames use **clip numbers**, not sequential demo numbers, so a filename maps
-directly onto the outline. Demos sit at clips 2, 3, 5, and 6 in both modules.
+Runbook filenames use **sequential demo numbers within a module**, so `m1-demo1` is the module's
+first demo. The clip it occupies is written inside the runbook, because demos sit at clips 2, 3, 5,
+and 6 — a filename carrying the clip number would read as though six demos were missing.
 
-Structure follows the conventions already established across the author's Pluralsight course
-repositories: `env-setup/` for the single macOS installer, `module1/logs/` committed at
-root, `scripts/` holding per-module reset and validation entry points, and one folder per module.
-`apps/` is plural here because this course carries two codebases at once — the migration source
-and its target — which is the one deliberate divergence from the single-`app/` layout.
+`supporthub-api/` holds two workspaces rather than one because the course carries two codebases at
+once: `modern/` is what Module 1 refactors, and `migration/` is what it migrates *from*. They are
+siblings under a single product name so the demos never suggest two unrelated products. Every
+per-module script lives under its own module — `module1/scripts/`, `module2/scripts/` — so a reset
+or preflight cannot be run against the wrong module by accident. Repository-wide helpers stay in
+the root `scripts/`. There is no Python: `fmt.mjs` and `json.mjs` are Node, so Node 24 is the only
+runtime a learner installs.
 
 ---
 
@@ -335,5 +348,5 @@ Values live only in `.env.example` and are never printed.
 
 1. **Repository rename** — Author Notes declare `pluralsight-openai-codex-scale`; remote is still
    `openai-codex-scale`. The outline is the published source of truth, so the rename is required.
-2. **Pluralsight standards PDF** — needed for approved terminal colors in `scripts/fmt.py`.
+2. **Pluralsight standards PDF** — needed for approved terminal colors in `scripts/fmt.mjs`.
    Structural formatter proceeds without it (§T).

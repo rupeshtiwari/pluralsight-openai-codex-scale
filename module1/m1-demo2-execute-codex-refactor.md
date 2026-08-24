@@ -139,7 +139,7 @@ cleanup theme:
 - Progress log: leave empty, ready to fill in as work proceeds
 - Deferred work: leave empty, ready for anything found and set aside
 
-Edit only plans/ExecPlan.md. Do not touch any file under apps/.
+Edit only plans/ExecPlan.md. Do not touch any file under supporthub-api/.
 ```
 
 **Expected result.** The Behavior contracts section names the four contract test files and the
@@ -159,7 +159,7 @@ git status --short
 
 PASS if the only modified file is `plans/ExecPlan.md`, its Intended changes list holds
 four numbered items, and the Progress log is still empty.
-FAIL if anything under `apps/` was modified — this step writes the plan, not the code.
+FAIL if anything under `supporthub-api/` was modified — this step writes the plan, not the code.
 
 **Recovery.** `./module1/scripts/demo_reset.sh`.
 

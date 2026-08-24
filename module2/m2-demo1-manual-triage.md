@@ -219,13 +219,9 @@ For each finding state whether it should be routed. Route nothing yet.
 **Verification.** Compare against the recorded baseline:
 
 ```bash
-python3 -c "
-import json
-b=json.load(open('automation/triage/baseline-manual-sweep.json'))
-for f in b['findings']:
-    print(f\"  {f['id']:<16} {f['priority']:<9} users={f['affectedUsers']:<4} route={f['route']}\")
-print('  rejected:', b['rejectedCorrelations'][0]['commit'])
-"
+BASE=automation/triage/baseline-manual-sweep.json
+node scripts/json.mjs table "$BASE" findings id:16 priority:9 users=affectedUsers:4 route=route
+node scripts/json.mjs fields "$BASE" "rejected=rejectedCorrelations.0.commit"
 ```
 
 PASS if the corrected report matches those four priorities and the rejected commit. FAIL if any

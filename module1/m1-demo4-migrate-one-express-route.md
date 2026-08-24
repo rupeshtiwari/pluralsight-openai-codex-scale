@@ -300,10 +300,9 @@ rather than /tickets/:id, because the modern service already serves /tickets/:id
 State that the status codes, response fields, and auth behavior are unchanged.
 
 Under Milestones: mark checkpoint 1 complete, with the validation commands that
-passed.
-
-Under Rollback visibility: record the current commit as the rollback point for
-checkpoint 2.
+passed, and record the current commit as the rollback point inside checkpoint 2's
+own entry. Milestones and checkpoints are one list under one heading. Do not add
+a separate rollback section.
 
 Do not start checkpoint 2.
 ```
@@ -317,13 +316,15 @@ and it is now written down.
 
 ```bash
 grep -A4 "## Behavioral exceptions" plans/migration-plan.md
+grep -c "^## " plans/migration-plan.md   # unchanged: the split adds entries, not sections
 git rev-parse --short HEAD
 npm run lint && npm run typecheck && npm run build && npm run test:route
 ```
 
-PASS if the exception is recorded with a reason, a rollback commit is named, and all four gates
-still pass. FAIL if the exception table is still empty, or if dependencies were changed — that
-belongs to checkpoint 2.
+PASS if the exception is recorded with a reason, a rollback commit is named inside checkpoint 2's
+entry, the top-level section count is unchanged, and all four gates still pass. FAIL if the
+exception table is still empty, if a separate rollback section appeared, or if dependencies were
+changed — that belongs to checkpoint 2.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` returns to the starting state.
 
