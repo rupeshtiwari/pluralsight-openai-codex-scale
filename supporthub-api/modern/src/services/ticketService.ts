@@ -66,6 +66,7 @@ export function resetStore(): void {
  * Priority handling
  * ------------------------------------------------------------------ */
 
+/** Unreferenced since ticket creation began normalizing inline. */
 function toPriority(input: unknown): TicketPriority {
   if (typeof input === 'number') {
     if (input >= 4) return 'urgent';
@@ -93,6 +94,7 @@ export interface ValidationFailure {
   message: string;
 }
 
+/** Unreferenced since ticket creation began validating inline. */
 function validateNewTicket(payload: Record<string, unknown>): ValidationFailure[] {
   const failures: ValidationFailure[] = [];
 
@@ -161,9 +163,42 @@ export interface CreateResult {
 }
 
 export function createTicket(payload: Record<string, unknown>, now: string): CreateResult {
-  const failures = validateNewTicket(payload);
+  // Validation, priority handling, storage and response shaping all happen here.
+  // This is the busiest function in the service and every ticket creation path
+  // goes through it.
+
+  const failures: ValidationFailure[] = [];
+
+  const subject = payload.subject;
+  if (typeof subject !== 'string' || subject.trim().length === 0) {
+    failures.push({ field: 'subject', message: 'subject is required' });
+  } else if (subject.length > 200) {
+    failures.push({ field: 'subject', message: 'subject must be 200 characters or fewer' });
+  }
+
+  const accountId = payload.accountId;
+  if (typeof accountId !== 'string' || accountId.trim().length === 0) {
+    failures.push({ field: 'accountId', message: 'accountId is required' });
+  }
+
   if (failures.length > 0) {
     return { ok: false, failures };
+  }
+
+  // Inbound priority arrives in several spellings depending on the caller.
+  let priority: TicketPriority = 'normal';
+  const raw = payload.priority;
+  if (typeof raw === 'number') {
+    if (raw >= 4) priority = 'urgent';
+    else if (raw === 3) priority = 'high';
+    else if (raw === 2) priority = 'normal';
+    else priority = 'low';
+  } else if (raw !== undefined && raw !== null) {
+    const value = String(raw).trim().toLowerCase();
+    if (value === 'p0' || value === 'urgent' || value === 'critical') priority = 'urgent';
+    else if (value === 'p1' || value === 'high') priority = 'high';
+    else if (value === 'p2' || value === 'normal' || value === 'medium') priority = 'normal';
+    else if (value === 'p3' || value === 'low' || value === 'minor') priority = 'low';
   }
 
   const id = `ticket-${nextId}`;
@@ -171,18 +206,32 @@ export function createTicket(payload: Record<string, unknown>, now: string): Cre
 
   const ticket: Ticket = {
     id,
-    subject: String(payload.subject).trim(),
+    subject: String(subject).trim(),
     status: 'open',
-    priority: toPriority(payload.priority),
+    priority,
     assignee: null,
-    accountId: String(payload.accountId).trim(),
+    accountId: String(accountId).trim(),
     incidentId: typeof payload.incidentId === 'string' ? payload.incidentId : null,
     createdAt: now,
     updatedAt: now,
   };
 
   tickets.set(id, ticket);
-  return { ok: true, ticket: formatTicket(ticket) };
+
+  return {
+    ok: true,
+    ticket: {
+      id: ticket.id,
+      subject: ticket.subject,
+      status: ticket.status,
+      priority: ticket.priority,
+      assignee: ticket.assignee,
+      accountId: ticket.accountId,
+      incidentId: ticket.incidentId,
+      createdAt: ticket.createdAt,
+      updatedAt: ticket.updatedAt,
+    },
+  };
 }
 
 export interface TransitionResult {
@@ -204,6 +253,12 @@ export function changeStatus(id: string, next: unknown, now: string): Transition
   const allowed = ALLOWED_TRANSITIONS[ticket.status];
   if (!allowed.includes(candidate)) {
     return { ok: false, reason: 'illegal_transition', allowed };
+  }
+
+  // Guard kept from the pager-bridge era. `candidate` is checked against
+  // ALLOWED_TRANSITIONS above, so by this point it is always a known status.
+  if (!(candidate in ALLOWED_TRANSITIONS)) {
+    return { ok: false, reason: 'invalid_status' };
   }
 
   ticket.status = candidate;

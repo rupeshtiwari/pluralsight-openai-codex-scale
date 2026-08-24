@@ -59,8 +59,9 @@ Do not implement it.
 ## Expected shape of a good response
 
 - names `ticketService.ts` as oversized, with its distinct responsibilities listed
-- finds priority normalization in all three of `utils/priority.ts`, `services/ticketService.ts`,
-  and `routes/tickets.ts`
+- finds priority normalization duplicated between `utils/priority.ts` and the inline copy inside
+  `createTicket()` in `services/ticketService.ts`
 - finds `normalizeLegacySeverity` in `utils/legacy.ts` with no importers
-- identifies the inline priority branching in the `POST /tickets` handler as misplaced
+- identifies `createTicket()` as carrying validation, normalization, storage access and response
+  shaping in one body, so the duplicate cannot be removed without touching the storage access too
 - proposes consolidating priority normalization, and nothing more
