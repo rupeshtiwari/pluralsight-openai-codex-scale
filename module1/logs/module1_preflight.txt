@@ -133,7 +133,7 @@ $ ! grep -q "\"type\": \"module\"" supporthub-api/migration/package.json
 
 RESULT PASS  [c5] legacy is CommonJS, not ESM
 
-$ [ "$(npm run test:migration 2>&1 | grep -cF "# pass 8")" -ge 1 ]
+$ node "${ROOT}/scripts/check.mjs" migration-tests-pass
 
 RESULT PASS  [c5] migration tests pass (expect 8)
 
