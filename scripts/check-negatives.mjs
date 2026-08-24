@@ -70,6 +70,30 @@ const CASES = [
     what: 'the milestone lost its route migration and is only a dependency bump',
     mutate: (s) => s.replace('`routes/tickets.js` to `routes/tickets.ts`; ', ''),
   },
+  {
+    check: "skill-not-ambient",
+    file: "AGENTS.md",
+    what: "the old ambient directive is back — AGENTS.md tells Codex to consult the skill",
+    mutate: (s) => s.replace(
+      "Do not consult it unless the prompt asks you to.",
+      "Consult it before migrating any route.",
+    ),
+  },
+  {
+    check: "skill-not-ambient",
+    file: "AGENTS.md",
+    what: "the opt-out sentence was dropped, so nothing states the skill is opt-in",
+    mutate: (s) => s.replace("Do not consult it unless the prompt asks you to.", ""),
+  },
+  {
+    check: "skill-not-ambient",
+    file: "AGENTS.md",
+    what: "an always-consult instruction was added alongside the opt-out",
+    mutate: (s) => s.replace(
+      "Do not consult it unless the prompt asks you to.",
+      "Do not consult it unless the prompt asks you to. Always consult it for migrations.",
+    ),
+  },
 ];
 
 function runCheck(name, root) {

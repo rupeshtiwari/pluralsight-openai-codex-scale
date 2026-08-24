@@ -243,6 +243,12 @@ check "c6" "framework skill present" \
   "git checkout -- .codex/" \
   "The express-typescript-migration skill is missing. Restore it."
 
+check "c6" "skill is opt-in, not ambient" \
+  'node "${ROOT}/scripts/check.mjs" skill-not-ambient' \
+  "The negative control needs the skill to load only when a prompt asks for it. An ambient directive in AGENTS.md would load it in both runs, make them identical, and turn the evidence artifact into a comparison of nothing." \
+  "Restore the opt-out wording in AGENTS.md: Do not consult it unless the prompt asks you to." \
+  "Does anything in AGENTS.md direct you to read framework-skill/node-express-migration/SKILL.md without being asked?"
+
 check "c6" "skill names all four validation gates" \
   'grep -q "ESLint" framework-skill/node-express-migration/SKILL.md && grep -q "type-check" framework-skill/node-express-migration/SKILL.md && grep -q "build validation" framework-skill/node-express-migration/SKILL.md && grep -q "Vitest" framework-skill/node-express-migration/SKILL.md' \
   "Clip 6 relies on the skill prescribing the four gates by name." \
