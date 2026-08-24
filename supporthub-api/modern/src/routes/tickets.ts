@@ -1,5 +1,4 @@
 import { Router, type Request, type Response } from 'express';
-import type { TicketPriority } from '../models/ticket.js';
 import {
   assignTicket,
   changeStatus,
@@ -31,23 +30,7 @@ ticketsRouter.get('/tickets/:id', (req: Request<{ id: string }>, res: Response) 
 ticketsRouter.post('/tickets', (req: Request, res: Response) => {
   const body = (req.body ?? {}) as Record<string, unknown>;
 
-  // Inbound priority arrives in several spellings depending on the caller.
-  let priority: TicketPriority = 'normal';
-  const raw = body.priority;
-  if (typeof raw === 'number') {
-    if (raw >= 4) priority = 'urgent';
-    else if (raw === 3) priority = 'high';
-    else if (raw === 2) priority = 'normal';
-    else priority = 'low';
-  } else if (raw !== undefined && raw !== null) {
-    const value = String(raw).trim().toLowerCase();
-    if (value === 'p0' || value === 'urgent' || value === 'critical') priority = 'urgent';
-    else if (value === 'p1' || value === 'high') priority = 'high';
-    else if (value === 'p2' || value === 'normal' || value === 'medium') priority = 'normal';
-    else if (value === 'p3' || value === 'low' || value === 'minor') priority = 'low';
-  }
-
-  const result = createTicket({ ...body, priority }, now());
+  const result = createTicket(body, now());
 
   if (!result.ok) {
     res.status(400).json({ error: 'validation_failed', failures: result.failures });
