@@ -79,10 +79,10 @@ log "       platform-specific migration guidance"
 
 # ---------------------------------------------------------------- environment
 $FMT section "environment"
-# module1/logs is excluded: this script writes its own transcript there,
-# so including it would make the check fail because the check ran.
+# Both log directories are excluded: each preflight writes its own transcript,
+# and running one module's preflight must not fail the other's clean-tree check.
 check "all" "working tree clean" \
-  '[ -z "$(git status --porcelain -- ":!module1/logs")" ]' \
+  '[ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]' \
   "Every demo starts from a clean tree; leftover edits change what the diff shows." \
   "./module1/scripts/demo_reset.sh" \
   "Show me every uncommitted change in this repository and what produced it."

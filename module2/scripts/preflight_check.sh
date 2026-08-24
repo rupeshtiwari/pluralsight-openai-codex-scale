@@ -64,9 +64,9 @@ log "  EO4a Use the Codex review pane to inspect uncommitted diffs from an"
 log "       automation run, including per-hunk staging and revert controls"
 
 $FMT section "environment"
-# module2/logs is excluded: this script writes its own transcript there,
-# so including it would make the check fail because the check ran.
-check "all" "working tree clean" '[ -z "$(git status --porcelain -- ":!module2/logs")" ]' \
+# Both log directories are excluded: each preflight writes its own transcript,
+# and running one module's preflight must not fail the other's clean-tree check.
+check "all" "working tree clean" '[ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]' \
   "The review demos seed changes with a patch; leftover edits make the diff unreadable." \
   "./module2/scripts/demo_reset.sh" \
   "Show me every uncommitted change in this repository and what produced it."

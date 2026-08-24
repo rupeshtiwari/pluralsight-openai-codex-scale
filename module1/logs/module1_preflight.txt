@@ -38,10 +38,7 @@ LEARNING OBJECTIVES
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs")" ]
 
-RESULT FAIL  [all] working tree clean
-WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
-HOW TO FIX      ./module1/scripts/demo_reset.sh
-CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+RESULT PASS  [all] working tree clean
 
 $ [ -d node_modules ]
 
@@ -157,12 +154,12 @@ $ npm run test:route
 
  RUN  v2.1.9 /home/user/pluralsight-openai-codex-scale/supporthub-api/modern
 
- ✓ tests/contracts/ticket-read-route.contract.test.ts (4 tests) 43ms
+ ✓ tests/contracts/ticket-read-route.contract.test.ts (4 tests) 73ms
 
  Test Files  1 passed (1)
       Tests  4 passed (4)
-   Start at  09:16:41
-   Duration  577ms (transform 96ms, setup 0ms, collect 211ms, tests 43ms, environment 0ms, prepare 57ms)
+   Start at  09:17:14
+   Duration  582ms (transform 94ms, setup 0ms, collect 197ms, tests 73ms, environment 0ms, prepare 59ms)
 RESULT PASS  [c6] focused route tests pass
 
 $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
@@ -183,10 +180,4 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 1    EO2d  framework skill guidance
   Clip 6 step 2-4  EO2c  validation after the milestone
 
-FAILED CHECKS
-  [all] working tree clean
-    why it matters : Every demo starts from a clean tree; leftover edits change what the diff shows.
-    how to fix     : ./module1/scripts/demo_reset.sh
-    codex prompt   : Show me every uncommitted change in this repository and what produced it.
-
-VERDICT  NOT READY - 1 check(s) failed.
+VERDICT  READY - all Module 1 demos can be run.

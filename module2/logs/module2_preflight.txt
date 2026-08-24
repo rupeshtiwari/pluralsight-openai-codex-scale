@@ -36,10 +36,7 @@ CODEX PROMPT    Show me every uncommitted change in this repository and what pro
 
 $ [ -z "$(git diff --cached --name-only)" ]
 
-RESULT FAIL  [all] nothing left staged
-WHY IT MATTERS  A previous hunk-review run leaves changes staged, which breaks the next run's starting state.
-HOW TO FIX      git reset
-CODEX PROMPT    git diff --cached shows staged changes. Show me what they are.
+RESULT PASS  [all] nothing left staged
 
 $ node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json
 
@@ -126,9 +123,5 @@ FAILED CHECKS
     why it matters : The review demos seed changes with a patch; leftover edits make the diff unreadable.
     how to fix     : ./module2/scripts/demo_reset.sh
     codex prompt   : Show me every uncommitted change in this repository and what produced it.
-  [all] nothing left staged
-    why it matters : A previous hunk-review run leaves changes staged, which breaks the next run's starting state.
-    how to fix     : git reset
-    codex prompt   : git diff --cached shows staged changes. Show me what they are.
 
-VERDICT  NOT READY - 2 check(s) failed.
+VERDICT  NOT READY - 1 check(s) failed.
