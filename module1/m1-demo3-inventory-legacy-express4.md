@@ -36,20 +36,70 @@ Before planning anything, you need to know what is actually in there.
 - **Milestone** — one unit of migration work that can be validated and undone on its own.
 - **Rollback point** — the commit you return to if a milestone fails.
 
-## Before you start
+## AUTHOR PREP — DO NOT NARRATE
 
-- Codex Desktop is open on the repository
-- the working tree is clean on `demo/m1-c5-start`
-- `supporthub-api/migration/` exists and its tests pass
+**Surface: Stage A — VS Code with Codex panel**
+
+| | |
+|---|---|
+| Starting checkpoint | `demo/m1-c5-start` |
+| Working directory | repository root |
+| Application | VS Code, opened on the repository root |
+| Panes visible | editor and Codex panel. The integrated terminal stays hidden — this demo writes no code and runs no gates |
+| Secondary surface | none |
+| Exact file to have open | `plans/migration-plan.md` |
+| Expected Git state | clean working tree, nothing staged |
+| External integrations | none |
+
+**Reset command**
 
 ```bash
-git status --short
-npm run test:legacy
+./module1/scripts/demo_reset.sh
 ```
 
-Expect no output from the first, and `# pass 8` from the second.
+The reset refuses if changes exist outside the demo surface and lists what it would have discarded.
+That guard exists because a plain reset destroyed unstaged work three times while this repository
+was being built. Between takes the dirty files are demo artifacts and it proceeds normally.
+
+**Prepare before recording**
+
+```bash
+git checkout demo/m1-c5-start
+npm install                     # only on a fresh checkout
+./module1/scripts/demo_reset.sh
+npm test                        # Tests  25 passed (25)
+git status --short              # must print nothing at all
+```
+
+Run these outside the recording, not in the integrated terminal.
+
+**Expected values**
+
+| Evidence | Value |
+|---|---|
+| Inventory categories to cover | 6 |
+| Migration plan at start | one milestone, marked *Not yet reviewed* |
+| That milestone | combines a route migration with an Express upgrade |
+| Migrated routes present | 0 — `ls supporthub-api/migration/routes/*.ts` returns nothing |
+| Milestones after the split | exactly 2 |
+| Application files modified | 0 |
+
+**Recovery path**
+
+The plan must open on the combined milestone. If it already shows two checkpoints, the previous run
+was not reset and the rejection has nothing to act on: run the reset before starting.
+
+**Troubleshooting**
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `npm test` reports `Missing script: "test"` | wrong branch | `git checkout demo/m1-c5-start` |
+| Tests fail on a fresh checkout | dependencies not installed | `npm install` |
+| Source Control shows changes before Step 1 | previous run not reset | `./module1/scripts/demo_reset.sh` |
 
 ---
+
+# ON-CAMERA
 
 ## Step 1 — Inventory the legacy service across routes, data models, auth, build tooling, tests, and external contracts
 
@@ -59,10 +109,10 @@ what stops the inventory from being just a file listing.
 
 **Starting state.** Branch `demo/m1-c5-start`, clean tree.
 
-**Navigation.** Codex Desktop. Nothing in this demo edits code, so select the planning workflow
-rather than one that applies changes.
+**Navigation.** VS Code, Codex panel. Nothing in this demo edits code, so select the planning
+workflow rather than one that applies changes.
 
-> Confirm the exact control in your installed Codex Desktop build before running this demo,
+> Confirm the exact control in your installed Codex panel before running this demo,
 > and use the label you actually see. The prompt below carries the hard boundary regardless
 > of which control you use.
 
@@ -109,7 +159,7 @@ forwards. This step forces three things into the plan that make it survivable.
 
 **Starting state.** Step 1 complete.
 
-**Navigation.** Same Codex conversation.
+**Navigation.** Same Codex panel conversation.
 
 **Prompt.**
 
@@ -153,7 +203,7 @@ recoverable rather than a commitment.
 
 **Starting state.** Step 2 produced a plan with a compatibility layer and rollback points.
 
-**Navigation.** Same Codex conversation.
+**Navigation.** Same Codex panel conversation.
 
 **Prompt.**
 
@@ -193,7 +243,7 @@ planning stage must end with the code untouched.
 
 **Starting state.** Step 3 produced the milestone list.
 
-**Navigation.** Same Codex conversation, then the terminal.
+**Navigation.** Same Codex panel conversation, then the integrated terminal in the same window.
 
 **Prompt.**
 

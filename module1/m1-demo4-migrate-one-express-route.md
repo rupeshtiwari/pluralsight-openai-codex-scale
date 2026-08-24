@@ -35,21 +35,71 @@ changes something a caller depends on — a status code, a field name, an auth r
 - **Behavioral exception** — a difference between old and new that is accepted on purpose and
   written down.
 
-## Before you start
+## AUTHOR PREP — DO NOT NARRATE
 
-- Codex Desktop is open on the repository
-- the working tree is clean on `demo/m1-c6-start`
-- `plans/migration-plan.md` records two checkpoints
-- `framework-skill/node-express-migration/SKILL.md` exists
+**Surface: Stage A — VS Code with Codex panel**
+
+| | |
+|---|---|
+| Starting checkpoint | `demo/m1-c6-start` |
+| Working directory | repository root |
+| Application | VS Code, opened on the repository root |
+| Panes visible | editor, Codex panel, and the integrated terminal in the same window |
+| Secondary surface | integrated terminal in the same VS Code window |
+| Exact file to have open | `supporthub-api/migration/routes/tickets.js` |
+| Expected Git state | clean working tree, nothing staged |
+| External integrations | none |
+
+**Reset command**
 
 ```bash
-git status --short
-npm run test:route
+./module1/scripts/demo_reset.sh
 ```
 
-Expect no output from the first, and `Tests  4 passed` from the second.
+The reset refuses if changes exist outside the demo surface and lists what it would have discarded.
+That guard exists because a plain reset destroyed unstaged work three times while this repository
+was being built. Between takes the dirty files are demo artifacts and it proceeds normally.
+
+**Prepare before recording**
+
+```bash
+git checkout demo/m1-c6-start
+npm install                     # only on a fresh checkout
+./module1/scripts/demo_reset.sh
+npm test                        # Tests  25 passed (25)
+git status --short              # must print nothing at all
+```
+
+Run these outside the recording, not in the integrated terminal.
+
+**Expected values**
+
+| Evidence | Value |
+|---|---|
+| Framework skill | `express-typescript-migration`, in `framework-skill/node-express-migration/` |
+| Migrated routes before | 0 |
+| Migrated routes after | 1 |
+| Validation gates | lint, typecheck, build, focused route tests |
+| Status codes preserved | 200, 401, 403, 404 |
+| Dependency changes | 0 — the upgrade is a separate checkpoint |
+
+**Recovery path**
+
+If a gate fails, reset and rerun the migration rather than patching by hand: the point is that one
+bounded milestone either passes its gates or is rolled back. If Codex changes a dependency, the
+checkpoint boundary was breached — reset and restate the constraint.
+
+**Troubleshooting**
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `npm test` reports `Missing script: "test"` | wrong branch | `git checkout demo/m1-c6-start` |
+| Tests fail on a fresh checkout | dependencies not installed | `npm install` |
+| Source Control shows changes before Step 1 | previous run not reset | `./module1/scripts/demo_reset.sh` |
 
 ---
+
+# ON-CAMERA
 
 ## Step 1 — Apply the framework skill to migrate one Express route slice
 
@@ -59,10 +109,10 @@ diff you can read in full, which is what makes accepting or rejecting it a real 
 
 **Starting state.** Branch `demo/m1-c6-start`, clean tree.
 
-**Navigation.** Codex Desktop. This step applies edits, so select the workflow that implements
-changes.
+**Navigation.** VS Code, Codex panel. This step applies edits, so select the workflow that
+implements changes.
 
-> Confirm the exact control in your installed Codex Desktop build before running this demo,
+> Confirm the exact control in your installed Codex panel before running this demo,
 > and use the label you actually see.
 
 **Prompt.**
@@ -126,7 +176,7 @@ batching cleanup to the end.
 
 **Starting state.** Step 1 complete.
 
-**Navigation.** Terminal.
+**Navigation.** Integrated terminal in the same VS Code window.
 
 **Commands.** Run in this order and read each result before the next.
 
@@ -161,7 +211,7 @@ service behaved. This step compares the two directly, before anything is accepte
 
 **Starting state.** Step 2 complete, all four gates green.
 
-**Navigation.** Terminal, then Codex Desktop.
+**Navigation.** Integrated terminal, then back to the Codex panel.
 
 **Commands.**
 
@@ -210,7 +260,7 @@ the accepted state, the one deliberate difference, and the commit to roll back t
 
 **Starting state.** Step 3 complete, contract verified.
 
-**Navigation.** Codex Desktop.
+**Navigation.** VS Code, Codex panel.
 
 **Prompt.**
 

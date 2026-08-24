@@ -34,19 +34,71 @@ You need a record of what was intended so you can tell, hunk by hunk, what belon
 - **Diff** — the set of changes not yet committed.
 - **Deferred work** — a change worth making, recorded rather than made now.
 
-## Before you start
+## AUTHOR PREP — DO NOT NARRATE
 
-- Codex Desktop is open on the repository
-- the working tree is clean on `demo/m1-c3-start`
-- `plans/ExecPlan.md` exists and records the approved theme
+**Surface: Stage A — VS Code with Codex panel**
+
+| | |
+|---|---|
+| Starting checkpoint | `demo/m1-c3-start` |
+| Working directory | repository root |
+| Application | VS Code, opened on the repository root |
+| Panes visible | editor, Codex panel, and the integrated terminal in the same window |
+| Secondary surface | integrated terminal in the same VS Code window |
+| Exact file to have open | `supporthub-api/modern/src/services/ticketService.ts` and `plans/ExecPlan.md` |
+| Expected Git state | clean working tree, nothing staged |
+| External integrations | none |
+
+**Reset command**
 
 ```bash
-git status --short
+./module1/scripts/demo_reset.sh
 ```
 
-Expect no output.
+The reset refuses if changes exist outside the demo surface and lists what it would have discarded.
+That guard exists because a plain reset destroyed unstaged work three times while this repository
+was being built. Between takes the dirty files are demo artifacts and it proceeds normally.
+
+**Prepare before recording**
+
+```bash
+git checkout demo/m1-c3-start
+npm install                     # only on a fresh checkout
+./module1/scripts/demo_reset.sh
+npm test                        # Tests  25 passed (25)
+git status --short              # must print nothing at all
+```
+
+Run these outside the recording, not in the integrated terminal.
+
+**Expected values**
+
+| Evidence | Value |
+|---|---|
+| Baseline tests | 25 passed |
+| ExecPlan intended changes | 4 numbered items |
+| Progress log at start | empty |
+| Deferred work at start | empty |
+| Files the plan intends to change | 3 |
+| Changed files after Codex runs | more than 3 — the extra one is the teaching moment |
+
+**Recovery path**
+
+If the generated diff contains only the intended changes, the fallback prompt in Step 3 asks Codex
+for an architectural improvement so the removal decision still has something to act on. If the
+validation gates fail, reset and rerun the pass rather than repairing it by hand on camera.
+
+**Troubleshooting**
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `npm test` reports `Missing script: "test"` | wrong branch | `git checkout demo/m1-c3-start` |
+| Tests fail on a fresh checkout | dependencies not installed | `npm install` |
+| Source Control shows changes before Step 1 | previous run not reset | `./module1/scripts/demo_reset.sh` |
 
 ---
+
+# ON-CAMERA
 
 ## Step 1 — Create an ExecPlan that records intended changes, contracts, and validation checks
 
@@ -57,7 +109,7 @@ statement of what was intended.
 **Starting state.** Branch `demo/m1-c3-start`, clean tree. `plans/ExecPlan.md` holds the
 approved theme and the empty tables this step fills in.
 
-**Navigation.** Codex Desktop, with `plans/ExecPlan.md` open.
+**Navigation.** VS Code, with `plans/ExecPlan.md` open in the editor beside the Codex panel.
 
 **Prompt.**
 
@@ -107,10 +159,10 @@ tells you whether behavior held, while the change is still small enough to reaso
 
 **Starting state.** Step 1 complete.
 
-**Navigation.** Codex Desktop. This step applies edits, so select the workflow that implements
-changes rather than the planning one used to inspect without editing.
+**Navigation.** VS Code, Codex panel. This step applies edits, so select the workflow that
+implements changes rather than the planning one used to inspect without editing.
 
-> Confirm the exact control in your installed Codex Desktop build before running this demo,
+> Confirm the exact control in your installed Codex panel before running this demo,
 > and use the label you actually see. The prompt below carries the hard boundary regardless
 > of which control you use.
 
@@ -160,7 +212,7 @@ reading the diff finds it.
 
 **Starting state.** Step 2 complete, working tree modified.
 
-**Navigation.** Terminal, then the Codex review pane.
+**Navigation.** Integrated terminal, then the Codex panel.
 
 **Command.**
 
@@ -201,7 +253,7 @@ discarding — the idea survives in a place someone will read.
 
 **Starting state.** Step 3 complete.
 
-**Navigation.** Codex Desktop.
+**Navigation.** VS Code, Codex panel.
 
 **Prompt.**
 
