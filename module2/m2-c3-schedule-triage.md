@@ -24,7 +24,6 @@ a human between the finding and the send.
 | TO3 | Apply Codex automations to run recurring bug triage across multiple data sources at team scale. |
 | EO3c | Convert a tested manual triage sweep into a scheduled automation using the same thread context |
 | EO3d | Apply a routing workflow to draft Slack updates, Linear issues, or GitHub comments after triage approval |
-  approval
 
 ## Terms used here
 
@@ -44,6 +43,16 @@ git status --short
 ```
 
 Expect no output.
+
+**Run the module preflight once per recording session, not per clip.** It validates the
+preconditions for all four Module 2 demos in a single pass.
+
+```bash
+module2/scripts/preflight_check.sh
+```
+
+It must end `PASS: Module 2 is ready.` If a check fails it names the check, why it matters, and the
+command that fixes it. Do not record against a failing preflight.
 
 ---
 

@@ -84,6 +84,17 @@ npm test                        # Tests  25 passed (25)
 git status --short              # must print nothing at all
 ```
 
+**Run the module preflight once per recording session, not per clip.** It validates the
+preconditions for all four Module 1 demos in a single pass, so it does not need repeating
+between clips.
+
+```bash
+module1/scripts/preflight_check.sh
+```
+
+It must end `PASS: Module 1 is ready.` If any check fails it names the check, why it matters,
+and the command that fixes it. Do not record against a failing preflight.
+
 Run these in a terminal outside the recording, not in the integrated terminal. Installing packages
 is setup work and does not belong on camera.
 
