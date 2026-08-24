@@ -11,6 +11,48 @@ It resolves tools through `PATH`. If a tool was installed into a shell profile t
 session has not loaded, open a new terminal and re-run. The full transcript is written to
 `env-setup/install.log`.
 
+## Dependencies
+
+**`Cannot find module @rollup/rollup-darwin-arm64` (or `@esbuild/...`, or `router`).**
+`node_modules` does not match the lockfile or the platform. It happens after switching to a branch
+with a different lockfile, or when a tree is carried between machines. **Plain `npm install` does
+not fix it** — that is [npm bug 4828](https://github.com/npm/cli/issues/4828). Reinstall cleanly:
+
+```bash
+rm -rf node_modules supporthub-api/*/node_modules
+npm install
+```
+
+Or let the reset script do it:
+
+```bash
+./module1/scripts/demo_reset.sh --reinstall
+```
+
+**Remove the nested workspace `node_modules` too, not just the root.** Leaving them makes npm
+resolve against a half-populated tree and silently drop a real dependency — regenerating the
+lockfile that way once produced a file with no `router` entry, which Express 5 requires, and all 25
+contract tests failed with `Cannot find module 'router'`.
+
+**Never delete `package-lock.json` to fix this.** It is tracked, and a modified or missing lockfile
+puts a change outside the demo surface, which makes `demo_reset.sh` refuse and breaks clip 2 step 4,
+whose proof is an empty Source Control view.
+
+**Regenerating the lockfile deliberately.** It must be platform-complete, so that a learner on macOS
+or Windows installs from it without npm rewriting it. Generate from a fully clean tree, then confirm
+the binaries for all three platforms are present:
+
+```bash
+rm -rf node_modules supporthub-api/*/node_modules package-lock.json
+npm install
+node -e 'const k=Object.keys(require("./package-lock.json").packages);
+  for (const t of ["darwin-arm64","win32-x64-msvc","linux-x64-gnu"])
+    console.log(t, k.some(p=>p.includes("rollup-"+t)))'
+```
+
+All three must print `true`. A lockfile generated in a Linux container without this step pins only
+`rollup-linux-x64-gnu`, and every macOS learner hits the error above on first run.
+
 ## Validation gates
 
 **`npm run typecheck` fails on `req.params`.**
