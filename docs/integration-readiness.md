@@ -75,6 +75,28 @@ redesign around it and do not file it as a `BLOCKING PRODUCT GAP` either — bot
 and raise it, because it may be a Curriculum conversation about the word *tested* rather than a
 product defect. A clean fail on point 1 is the `BLOCKING PRODUCT GAP` §23 describes.
 
+### Gate 1 results
+
+Fill this in during the validation run, not afterwards. Point 2 has three possible answers and they
+lead to different decisions, so record which one actually happened rather than pass or fail.
+
+| # | Question | Outcome | Notes |
+|---|---|---|---|
+| 1 | Scheduled task created from inside an existing thread? | _not yet run_ | |
+| 2 | Scheduled run inherits the manual sweep's corrections? | _not yet run_ | one of: re-derives cleanly · inherits partially · inherits fully |
+| 3 | Plugins work in the scheduled run (Sentry, GitHub, Slack, Linear)? | _not yet run_ | |
+
+What each point-2 answer means:
+
+| Answer | Consequence |
+|---|---|
+| **Inherits fully** | Clean pass. EO3c is met as written and C3 bullet 2 compares one result carried forward. |
+| **Inherits partially** | Depends on *what* survived. Record specifically which corrections carried and which did not. |
+| **Re-derives cleanly** | Partial pass. C3 bullet 2 would compare two independent results rather than one carried forward, changing the teaching point. Stop and raise — this may be a Curriculum conversation about the word *tested*, not a product defect. |
+
+A clean fail on point 1 is the `BLOCKING PRODUCT GAP` section 23 describes. Everything else is a
+conversation before a decision.
+
 Record the outcome of all three points here before building any Module 2 fixture, whichever way they
 go.
 

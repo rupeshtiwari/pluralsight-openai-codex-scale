@@ -169,6 +169,30 @@ restructure that is correct in itself can still move the text a check anchors on
 Instance 6 is worth reading twice: the check that certifies readiness was itself creating the one
 change that would appear on camera. Verifying tooling is not exempt from the thing it verifies.
 
+### The working tree is not evidence
+
+Instances 3 and 6 were both caught by the clean-clone check, and neither was visible any other way.
+Both were green in the tree they were written in and broken for everyone else — one because local
+refs happened to exist, the other because the transcript happened to already contain this machine's
+paths.
+
+**A check passing in the tree you wrote it in is not evidence that it passes.** The tree carries
+state nobody else has: untracked files, local branches, refs, node_modules, absolute paths, an
+editor's autosave. All of it is invisible to `git status` and all of it can hold a check up.
+
+The only evidence is a fresh clone:
+
+```bash
+git clone --branch <branch> <url> /tmp/verify && cd /tmp/verify
+npm install
+npm run check:negatives
+./module1/scripts/preflight_check.sh && ./module2/scripts/preflight_check.sh
+git status --porcelain     # must be empty afterwards
+```
+
+Run it before freezing any checkpoint branch. It has now caught two defects that no amount of
+re-reading would have found, and both would have surfaced first on camera.
+
 ### The wider class
 
 The same blindness applies to any tooling that reports on other tooling. Prefer checks that fail

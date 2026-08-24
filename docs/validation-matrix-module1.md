@@ -106,6 +106,14 @@ promotable only if walking C2 produces something durable that records the reject
 If it does not, C2 bullet 3 stays `SEEDED` permanently, and that is the honest classification
 rather than a gap. Decide this while walking C2, not afterwards from memory.
 
+There is one option to weigh before walking, so the choice is deliberate rather than a gap
+discovered afterwards: **the Codex thread transcript is itself a durable artifact.** If the
+rejection and its reason are legible there, that exchange can be captured into `plans/prompts/`
+alongside the C2 prompts and become the evidence the row cites — which would make the bullet
+assertable and promote it to `PASS`. The test is whether the transcript shows the *reason* the
+architectural suggestion was rejected, not merely that the conversation moved on. Judge that during
+the walk, while the thread is in front of you.
+
 Every bullet has an artifact and a checkpoint. Nothing is unbacked.
 
 ## Open items, stated plainly
