@@ -131,13 +131,7 @@ check "c2" "dead helper has no importers" \
   "Find every importer of supporthub-api/modern/src/utils/legacy.ts and remove them."
 
 check "c2" "one load-bearing function carries all four responsibilities" \
-  'node -e "
-    const fs=require(\"fs\");
-    const s=fs.readFileSync(\"supporthub-api/modern/src/services/ticketService.ts\",\"utf8\");
-    const fn=s.slice(s.indexOf(\"export function createTicket(\"), s.indexOf(\"export interface TransitionResult\"));
-    const ok = /failures\.push/.test(fn) && /value === .p0./.test(fn) && /tickets\.set\(/.test(fn) && /createdAt: ticket\.createdAt/.test(fn);
-    process.exit(ok ? 0 : 1);
-  "' \
+  'node "${ROOT}/scripts/check.mjs" load-bearing-function' \
   "The plan-time rejection and the diff-time removal must act on the same code. If validation, normalization, storage access and response shaping are not all inside createTicket, the two clips teach the same thing twice." \
   "git checkout -- supporthub-api/modern/src/services/ticketService.ts" \
   "createTicket must carry validation, priority normalization, storage access and response shaping in one body. Show which are missing."
@@ -218,16 +212,7 @@ check "c5" "migration plan opens on exactly one milestone" \
   "plans/migration-plan.md must contain exactly one proposed milestone. Show how many it contains."
 
 check "c5" "that milestone batches code with a dependency upgrade" \
-  'node -e "
-    const fs=require(\"fs\");
-    const t=fs.readFileSync(\"plans/migration-plan.md\",\"utf8\");
-    const i=t.indexOf(\"### Milestone 1\");
-    const j=t.indexOf(\"## Rollback visibility\");
-    const m=t.slice(i, j<0?t.length:j);
-    const code=/routes\/tickets\.js.*routes\/tickets\.ts/.test(m);
-    const dep=/express.{0,4}4\.x to 5\.x/.test(m);
-    process.exit(code \&\& dep ? 0 : 1);
-  "' \
+  'node "${ROOT}/scripts/check.mjs" milestone-batched' \
   "If the milestone does not combine a route migration with a dependency upgrade, there is nothing objectionable to reject." \
   "git checkout -- plans/migration-plan.md" \
   "Milestone 1 must combine the route migration with the Express upgrade. Show its scope."
