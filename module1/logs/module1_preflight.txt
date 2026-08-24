@@ -93,13 +93,7 @@ $ [ "$(grep -rn "from '.*utils/legacy" supporthub-api/modern/src supporthub-api/
 
 RESULT PASS  [c2] dead helper has no importers
 
-$ node -e "
-    const fs=require(\"fs\");
-    const s=fs.readFileSync(\"supporthub-api/modern/src/services/ticketService.ts\",\"utf8\");
-    const fn=s.slice(s.indexOf(\"export function createTicket(\"), s.indexOf(\"export interface TransitionResult\"));
-    const ok = /failures\.push/.test(fn) && /value === .p0./.test(fn) && /tickets\.set\(/.test(fn) && /createdAt: ticket\.createdAt/.test(fn);
-    process.exit(ok ? 0 : 1);
-  "
+$ node "${ROOT}/scripts/check.mjs" load-bearing-function
 
 RESULT PASS  [c2] one load-bearing function carries all four responsibilities
 
@@ -151,32 +145,9 @@ $ [ "$(grep -c "^### Milestone" plans/migration-plan.md)" -eq 1 ]
 
 RESULT PASS  [c5] migration plan opens on exactly one milestone
 
-$ node -e "
-    const fs=require(\"fs\");
-    const t=fs.readFileSync(\"plans/migration-plan.md\",\"utf8\");
-    const i=t.indexOf(\"### Milestone 1\");
-    const j=t.indexOf(\"## Rollback visibility\");
-    const m=t.slice(i, j<0?t.length:j);
-    const code=/routes\/tickets\.js.*routes\/tickets\.ts/.test(m);
-    const dep=/express.{0,4}4\.x to 5\.x/.test(m);
-    process.exit(code \&\& dep ? 0 : 1);
-  "
-[eval]:9
-    process.exit(code \&\& dep ? 0 : 1);
-                 ^^^^
-Expression expected
+$ node "${ROOT}/scripts/check.mjs" milestone-batched
 
-SyntaxError: missing ) after argument list
-    at makeContextifyScript (node:internal/vm:185:14)
-    at compileScript (node:internal/process/execution:383:10)
-    at evalTypeScript (node:internal/process/execution:256:22)
-    at node:internal/main/eval_string:74:3
-
-Node.js v22.22.2
-RESULT FAIL  [c5] that milestone batches code with a dependency upgrade
-WHY IT MATTERS  If the milestone does not combine a route migration with a dependency upgrade, there is nothing objectionable to reject.
-HOW TO FIX      git checkout -- plans/migration-plan.md
-CODEX PROMPT    Milestone 1 must combine the route migration with the Express upgrade. Show its scope.
+RESULT PASS  [c5] that milestone batches code with a dependency upgrade
 
 $ grep -q "Not yet reviewed" plans/migration-plan.md
 
@@ -206,12 +177,12 @@ $ npm run test:route
 
  RUN  v2.1.9 /home/user/pluralsight-openai-codex-scale/supporthub-api/modern
 
- ✓ tests/contracts/ticket-read-route.contract.test.ts (4 tests) 35ms
+ ✓ tests/contracts/ticket-read-route.contract.test.ts (4 tests) 34ms
 
  Test Files  1 passed (1)
       Tests  4 passed (4)
-   Start at  09:43:35
-   Duration  483ms (transform 85ms, setup 0ms, collect 180ms, tests 35ms, environment 0ms, prepare 64ms)
+   Start at  09:44:26
+   Duration  505ms (transform 87ms, setup 0ms, collect 184ms, tests 34ms, environment 0ms, prepare 59ms)
 RESULT PASS  [c6] focused route tests pass
 
 $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
@@ -232,10 +203,4 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 1    EO2d  framework skill guidance
   Clip 6 step 2-4  EO2c  validation after the milestone
 
-FAILED CHECKS
-  [c5] that milestone batches code with a dependency upgrade
-    why it matters : If the milestone does not combine a route migration with a dependency upgrade, there is nothing objectionable to reject.
-    how to fix     : git checkout -- plans/migration-plan.md
-    codex prompt   : Milestone 1 must combine the route migration with the Express upgrade. Show its scope.
-
-VERDICT  NOT READY - 1 check(s) failed.
+VERDICT  READY - all Module 1 demos can be run.

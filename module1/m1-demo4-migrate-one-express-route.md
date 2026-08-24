@@ -41,7 +41,7 @@ changes something a caller depends on — a status code, a field name, an auth r
 
 | | |
 |---|---|
-| Starting checkpoint | `demo/m1-c6-start` |
+| Starting checkpoint | `demo/m1-c6-start`, **branched from `demo/m1-c5-captured`** |
 | Working directory | repository root |
 | Application | VS Code, opened on the repository root |
 | Panes visible | editor, Codex panel, and the integrated terminal in the same window |
@@ -49,6 +49,19 @@ changes something a caller depends on — a status code, a field name, an auth r
 | Exact file to have open | `supporthub-api/migration/routes/tickets.js` |
 | Expected Git state | clean working tree, nothing staged |
 | External integrations | none |
+| Narration budget | 774 words — see below |
+
+**Narration budget**
+
+This is a six-minute demo, so the planning target is **774 words**. Presentation clips are 405.
+
+Clip duration is the hard ceiling and the word count never overrides it. Render the narration and
+measure it against six minutes before recording; if it runs long, cut narration rather than
+extending the clip or speeding up delivery.
+
+A larger word budget buys deeper explanation of mechanism, evidence, operator decision and
+production consequence. It does not buy more technical actions: the demo stays at four major steps.
+Editing out agent waits frees screen time, not narration time — do not add words to fill it.
 
 **Reset command**
 
@@ -71,6 +84,21 @@ git status --short              # must print nothing at all
 ```
 
 Run these outside the recording, not in the integrated terminal.
+
+**Where this checkpoint comes from**
+
+`demo/m1-c6-start` is branched from `demo/m1-c5-captured`, not from the build branch. Its defining
+content — the two-checkpoint split in the migration plan — is produced by walking the inventory
+demo. Cut from the build branch instead, it would carry the *combined* milestone, which is the
+inverse of what this demo starts from.
+
+Verify before recording:
+
+```bash
+git log --oneline -1 demo/m1-c5-captured
+git merge-base --is-ancestor demo/m1-c5-captured demo/m1-c6-start && echo "correctly branched"
+grep -c '^### Checkpoint' plans/migration-plan.md    # must be 2
+```
 
 **Expected values**
 

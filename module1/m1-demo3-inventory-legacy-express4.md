@@ -50,6 +50,19 @@ Before planning anything, you need to know what is actually in there.
 | Exact file to have open | `plans/migration-plan.md` |
 | Expected Git state | clean working tree, nothing staged |
 | External integrations | none |
+| Narration budget | 774 words — see below |
+
+**Narration budget**
+
+This is a six-minute demo, so the planning target is **774 words**. Presentation clips are 405.
+
+Clip duration is the hard ceiling and the word count never overrides it. Render the narration and
+measure it against six minutes before recording; if it runs long, cut narration rather than
+extending the clip or speeding up delivery.
+
+A larger word budget buys deeper explanation of mechanism, evidence, operator decision and
+production consequence. It does not buy more technical actions: the demo stays at four major steps.
+Editing out agent waits frees screen time, not narration time — do not add words to fill it.
 
 **Reset command**
 
@@ -72,6 +85,21 @@ git status --short              # must print nothing at all
 ```
 
 Run these outside the recording, not in the integrated terminal.
+
+**This demo produces a checkpoint another demo depends on**
+
+Walking this demo produces `demo/m1-c5-captured`, whose defining content is the two-checkpoint
+split. The route-migration demo starts from that split, so its start checkpoint is branched from
+this one:
+
+```text
+walk C5  ->  demo/m1-c5-captured  ->  demo/m1-c6-start  ->  walk C6  ->  demo/m1-c6-captured
+```
+
+**`demo/m1-c6-start` must be branched from `demo/m1-c5-captured`, never from the build branch.**
+Cutting it from the build branch gives it the *combined* milestone, which is the inverse of its own
+definition — and it would look plausible until the route-migration demo recorded against the wrong
+plan.
 
 **Expected values**
 
