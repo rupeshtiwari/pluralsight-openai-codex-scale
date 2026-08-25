@@ -130,6 +130,30 @@ const CHECKS = {
   },
 
   /**
+   * The saved Run A prompt must match the runbook's, byte for byte, and open on
+   * the skill line.
+   *
+   * The negative control is only valid if Run A and Run B differ by exactly one
+   * line. Keeping the prompt in two places invites a second difference: edit the
+   * runbook, forget the file, and the comparison silently stops measuring the
+   * skill. Line 1 is asserted separately because Run B is defined as this file
+   * without it.
+   */
+  'c6-prompt-saved': () => {
+    const block = (file) => {
+      const s = read(file);
+      const i = s.indexOf('Read framework-skill/node-express-migration/SKILL.md');
+      if (i < 0) return null;
+      const j = s.indexOf('\n```', i);
+      return j < 0 ? null : s.slice(i, j);
+    };
+    const a = block('module1/m1-c6-migrate-one-express-route.md');
+    const b = block('plans/prompts/m1-c6-migrate-route.md');
+    if (a === null || b === null || a !== b) return false;
+    return b.split('\n')[0] === 'Read framework-skill/node-express-migration/SKILL.md and follow its guidance.';
+  },
+
+  /**
    * The skill must not load unless a prompt asks for it. This is the precondition
    * the whole negative control rests on: an ambient directive in AGENTS.md would
    * load the skill in BOTH runs, make them identical, and quietly turn

@@ -28,20 +28,31 @@ one thing this artifact cannot survive.
 
 The two runs therefore differ by exactly one line of prompt text.
 
-**Run A — skill ON.** The prompt opens with:
+Both runs come from one saved file, `plans/prompts/m1-c6-migrate-route.md`, so the only possible
+difference is the one being measured. `c6-prompt-saved` asserts that file still matches the
+runbook byte for byte and still opens on the skill line; if the runbook is edited and the file is
+not, the check fails rather than the comparison silently drifting.
+
+**Run A — skill ON.** Send the saved file as-is. It opens with:
 
 ```text
 Read framework-skill/node-express-migration/SKILL.md and follow its guidance.
 ```
 
-**Run B — skill OFF.** That line is omitted. Everything after it is byte-identical.
+**Run B — skill OFF.** Send the same file with the first line and the blank line after it removed.
+Everything else is byte-identical. Do not retype it.
 
 The static half of that is now asserted, so it cannot regress unnoticed:
 
 ```bash
 node scripts/check.mjs skill-not-ambient
-grep -c 'framework-skill' plans/prompts/*.md          # prompts that reference it, by design
+node scripts/check.mjs c6-prompt-saved
 ```
+
+The second grep that used to sit here counted `framework-skill` in `plans/prompts/*.md` and was
+labelled "prompts that reference it, by design". It always printed zero: the only saved prompts were
+C2's and C3's, neither of which has any reason to mention the skill, and the C6 prompt was not saved
+at all. A check whose answer never changes is not a check.
 
 `skill-not-ambient` fails if `AGENTS.md` loses the opt-out sentence or gains a directive
 contradicting it. It has been wrong once already — `AGENTS.md` used to say "Consult it before

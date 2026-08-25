@@ -105,6 +105,30 @@ const CASES = [
  */
 const SYNTHETIC_CASES = [
   {
+    check: 'c6-prompt-saved',
+    what: 'the runbook prompt was edited and the saved file was not — the drift this exists to catch',
+    control: {
+      'module1/m1-c6-migrate-one-express-route.md': '**Prompt.**\n\n```text\nRead framework-skill/node-express-migration/SKILL.md and follow its guidance.\n\nMigrate ONLY the route.\n```\n',
+      'plans/prompts/m1-c6-migrate-route.md': '```text\nRead framework-skill/node-express-migration/SKILL.md and follow its guidance.\n\nMigrate ONLY the route.\n```\n',
+    },
+    negative: {
+      'module1/m1-c6-migrate-one-express-route.md': '**Prompt.**\n\n```text\nRead framework-skill/node-express-migration/SKILL.md and follow its guidance.\n\nMigrate ONLY the route, and also add tests.\n```\n',
+      'plans/prompts/m1-c6-migrate-route.md': '```text\nRead framework-skill/node-express-migration/SKILL.md and follow its guidance.\n\nMigrate ONLY the route.\n```\n',
+    },
+  },
+  {
+    check: 'c6-prompt-saved',
+    what: 'the saved prompt no longer opens on the skill line, so Run B is not one line away',
+    control: {
+      'module1/m1-c6-migrate-one-express-route.md': '```text\nRead framework-skill/node-express-migration/SKILL.md and follow its guidance.\n\nMigrate.\n```\n',
+      'plans/prompts/m1-c6-migrate-route.md': '```text\nRead framework-skill/node-express-migration/SKILL.md and follow its guidance.\n\nMigrate.\n```\n',
+    },
+    negative: {
+      'module1/m1-c6-migrate-one-express-route.md': '```text\nRead framework-skill/node-express-migration/SKILL.md first.\n\nMigrate.\n```\n',
+      'plans/prompts/m1-c6-migrate-route.md': '```text\nRead framework-skill/node-express-migration/SKILL.md first.\n\nMigrate.\n```\n',
+    },
+  },
+  {
     check: 'doc-links-resolve',
     what: 'a backtick path points at a renamed file — invisible to a link checker',
     control: { 'a.md': 'see `plans/ExecPlan.md` for detail\n', 'plans/ExecPlan.md': 'x\n' },

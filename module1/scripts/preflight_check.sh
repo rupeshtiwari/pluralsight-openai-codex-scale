@@ -249,6 +249,12 @@ check "c6" "framework skill present" \
   "git checkout -- .codex/" \
   "The express-typescript-migration skill is missing. Restore it."
 
+check "c6" "Run A prompt saved and matching the runbook" \
+  'node "${ROOT}/scripts/check.mjs" c6-prompt-saved' \
+  "The negative control is only valid if Run A and Run B differ by exactly one line. If the runbook prompt and the saved file drift apart, the comparison stops measuring the skill and nothing says so." \
+  "Re-sync plans/prompts/m1-c6-migrate-route.md with the Prompt block in module1/m1-c6-migrate-one-express-route.md." \
+  "Do the saved C6 prompt and the runbook Prompt block match exactly, and does the saved one open on the skill line?"
+
 check "c6" "skill is opt-in, not ambient" \
   'node "${ROOT}/scripts/check.mjs" skill-not-ambient' \
   "The negative control needs the skill to load only when a prompt asks for it. An ambient directive in AGENTS.md would load it in both runs, make them identical, and turn the evidence artifact into a comparison of nothing." \
