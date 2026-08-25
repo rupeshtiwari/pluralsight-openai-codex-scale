@@ -123,7 +123,7 @@ C5 produces, so it must be branched from `demo/m1-c5-captured`. The C6 rows are 
 but cannot be walked until that checkpoint exists.
 
 ```text
-walk C5  ->  m1-c5-captured  ->  m1-c6-start  ->  walk C6  ->  m1-c6-captured
+walk C5  →  m1-c5-captured  →  m1-c6-start  →  walk C6  →  m1-c6-captured
 ```
 
 **Two measurements need Codex and are not scriptable.**

@@ -102,7 +102,7 @@ split. The route-migration demo starts from that split, so its start checkpoint 
 this one:
 
 ```text
-walk C5  ->  demo/m1-c5-captured  ->  demo/m1-c6-start  ->  walk C6  ->  demo/m1-c6-captured
+walk C5  →  demo/m1-c5-captured  →  demo/m1-c6-start  →  walk C6  →  demo/m1-c6-captured
 ```
 
 **`demo/m1-c6-start` must be branched from `demo/m1-c5-captured`, never from the build branch.**
