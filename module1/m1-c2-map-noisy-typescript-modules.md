@@ -104,13 +104,41 @@ will show there and break the closing evidence for a reason unrelated to the tea
 
 **Expected values**
 
+Measured against the code, and confirmed by a live walk. Where the runbook and Codex once
+disagreed, Codex was right.
+
 | Evidence | Value |
 |---|---|
 | Baseline tests | 25 passed |
-| Duplicate normalization sites | 2 — `utils/priority.ts` and inline inside `createTicket()` |
-| Unreferenced exports | `normalizeLegacySeverity`, `toPriority`, `validateNewTicket` |
+| Duplicate priority-normalization sites | **3** — `utils/priority.ts:10` (`normalizePriority`), `ticketService.ts:70` (`toPriority`), and inline inside `createTicket()` at `ticketService.ts:188` |
+| Unreferenced exports | **5** — `normalizeLegacySeverity`, `normalizePriority`, `ticketsForIncident`, `moduleDir`, `requireFromEsm` |
+| Dead private helpers | **2** — `toPriority` and `validateNewTicket`. Never exported, never called |
 | Unreachable branch | second status check inside `changeStatus()` |
 | Source Control changes at the end | 0 |
+
+**Three sites, two files.** `ticketService.ts` carries two of the three. A count of files is not a
+count of sites, and the two numbers are easy to conflate on camera.
+
+**Codex will find more than this table lists, and that is correct.** The seeded repository contains
+duplications beyond priority normalization, and a good analysis reports them:
+
+| Also commonly reported | Where |
+|---|---|
+| New-ticket validation, twice | `validateNewTicket()` at `ticketService.ts:98` and inline in `createTicket()` at `:174` — identical failure messages |
+| Response field shaping, twice | `formatTicket()` at `ticketService.ts:132` and inline at `:231` |
+| Status validity checked twice | `changeStatus()` at `ticketService.ts:249` and again at `:259` — the second is the unreachable branch |
+| `ticket_not_found` response shaping, four times | `routes/tickets.ts` lines 24, 49, 69, 90 — byte-identical |
+
+None of these are errors in the run. Narrate the priority duplication because it is the one Step 2's
+theme acts on; the rest are evidence that the analysis was thorough.
+
+**`toPriority` and `validateNewTicket` are private, not exported.** An earlier version of this table
+listed them as unreferenced *exports*, which is a different finding and a category error — asked for
+unreferenced exports, Codex correctly does not name them. They are dead code, and Step 1's prompt
+asks for dead-code candidates, so they may still appear under that heading.
+
+`scripts/check.mjs c2-seed-shape` asserts all three counts against the code, so this table cannot
+drift from the repository again.
 
 **The two checkpoints are intentionally the same commit**
 
@@ -161,7 +189,7 @@ is visible beside the panel.
 **Prompt.** Paste exactly this. It is also saved at `plans/prompts/m1-c2-map-codebase.md`.
 
 ```text
-Analyze the TypeScript service in supporthub-api/modern. Do not edit any files.
+Analyze the TypeScript service in supporthub-api/modern. Do not edit any files and do not run any commands.
 
 Produce:
 1. A map of the modules under supporthub-api/modern/src, and which module depends on which.
@@ -186,8 +214,11 @@ came from the repository, not from a guess.
 
 **Decision produced.** You know what is wrong, in named files, having changed nothing.
 
-**Verification.** PASS if all three duplicate sites are named and the dead helper is found, and
-`git status --short` is empty. FAIL if any file was modified.
+**Verification.** PASS if the three priority-normalization sites are named, the dead code is found,
+and `git status --short` is empty. **Findings beyond those are a pass, not a failure** — the seeded
+repository holds several other duplications and a thorough analysis reports them; see Expected
+values. FAIL only if a priority site is missed, no dead code is identified, or any file was
+modified.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` restores the starting state.
 
@@ -213,14 +244,25 @@ From those findings, propose exactly ONE bounded cleanup theme that:
 State the theme in one sentence, then list the exact files it would change.
 
 Propose one theme only. Do not propose architectural restructuring, new
-abstractions, layers, or directories. Do not edit files.
+abstractions, layers, or directories.
+Do not edit files and do not run any commands.
 ```
 
-**Expected result.** One theme — *centralize duplicate ticket-priority normalization while
-preserving external behavior* — naming three files.
+**Expected result.** Exactly one bounded theme, stated in a sentence, with the files it would change
+named. Both scopes seen in live walks are correct:
 
-**Highlight.** One sentence, three files. Compare that against the five categories of finding from
-Step 1: most of what was found is deliberately not being acted on yet.
+| Theme Codex proposes | Files | Why it qualifies |
+|---|---|---|
+| Centralize duplicate ticket-priority normalization | 3 — `utils/priority.ts`, `ticketService.ts`, and the caller | Removes the duplication across module boundaries |
+| Consolidate priority normalization inside `ticketService.ts` | 1 | Removes the duplication the service owns, without touching other modules |
+
+The objective is **one theme**, not a particular file count. A single-file theme is the more
+bounded answer, so do not treat it as a weaker one — and do not narrow the prompt to force the
+three-file shape. Constraining the model until the answer is predictable is how clip 5 lost its
+decision.
+
+**Highlight.** One sentence, a named file list. Compare that against everything Step 1 found: most
+of it is deliberately not being acted on yet. That ratio is the point, not the file count.
 
 **Decision produced.** A single candidate theme exists, scoped to named files.
 
@@ -250,7 +292,8 @@ remove duplication: new layers, new abstractions, moved persistence boundaries,
 or reorganized directories.
 
 For each one, state how many files it would touch and why it is not part of a
-duplication cleanup. Do not implement any of them.
+duplication cleanup.
+Do not implement any of them, do not edit files, and do not run any commands.
 ```
 
 **Expected result.** A short list, typically including a repository or data-access layer, and
@@ -289,7 +332,7 @@ Summarize this pass as a reviewable plan:
 - the commands that will prove those contracts still hold
 - what you identified but deliberately deferred
 
-Do not implement it.
+Do not implement it, do not edit files, and do not run any commands.
 ```
 
 **Expected result.** One theme, three files, the route and priority contracts, the commands
