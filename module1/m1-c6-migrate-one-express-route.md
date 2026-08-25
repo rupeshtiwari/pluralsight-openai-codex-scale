@@ -72,13 +72,20 @@ was being built. Between takes the dirty files are demo artifacts and it proceed
 
 **Prepare before recording**
 
-```bash
-git checkout demo/m1-c6-start
-npm install                     # only on a fresh checkout
-./module1/scripts/demo_reset.sh
-npm test                        # Tests  25 passed (25)
-git status --short              # must print nothing at all
-```
+**`demo/m1-c6-start` does not exist yet.** Its defining content is the two-checkpoint split that
+walking C5 produces, so it must be branched from `demo/m1-c5-captured`:
+
+    walk C5  ->  m1-c5-captured  ->  m1-c6-start  ->  walk C6  ->  m1-c6-captured
+
+Cutting it from anywhere else gives it the combined milestone, which is the inverse of the state
+this clip starts from. The commands below are shown rather than given as a runnable block, because
+the first of them fails today:
+
+    git checkout demo/m1-c6-start
+    npm install                     # only on a fresh checkout
+    ./module1/scripts/demo_reset.sh
+    npm test                        # Tests  25 passed (25)
+    git status --short              # must print nothing at all
 
 **Run the module preflight once per recording session, not per clip.** It validates the
 preconditions for all four Module 1 demos in a single pass, so it does not need repeating
