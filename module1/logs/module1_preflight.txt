@@ -38,7 +38,10 @@ LEARNING OBJECTIVES
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT PASS  [all] working tree clean
+RESULT FAIL  [all] working tree clean
+WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
+HOW TO FIX      ./module1/scripts/demo_reset.sh
+CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
 
 $ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
 
@@ -97,9 +100,9 @@ $ [ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]
 
 RESULT PASS  [all] contract tests (expect 25)
 
-$ [ "$(grep -rl "value === 'p0'" supporthub-api/modern/src | wc -l | tr -d " ")" -eq 2 ]
+$ node "${ROOT}/scripts/check.mjs" c2-seed-shape
 
-RESULT PASS  [c2] two duplicate normalization sites
+RESULT PASS  [c2] clip 2 seed matches the runbook's expected values
 
 $ [ "$(grep -rn "from '.*utils/legacy" supporthub-api/modern/src supporthub-api/modern/tests | wc -l | tr -d " ")" -eq 0 ]
 
@@ -230,4 +233,10 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 1    EO2d  framework skill guidance
   Clip 6 step 2-4  EO2c  validation after the milestone
 
-VERDICT  READY - all Module 1 demos can be run.
+FAILED CHECKS
+  [all] working tree clean
+    why it matters : Every demo starts from a clean tree; leftover edits change what the diff shows.
+    how to fix     : ./module1/scripts/demo_reset.sh
+    codex prompt   : Show me every uncommitted change in this repository and what produced it.
+
+VERDICT  NOT READY - 1 check(s) failed.

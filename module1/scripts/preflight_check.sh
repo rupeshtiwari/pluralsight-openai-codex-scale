@@ -148,11 +148,11 @@ check "all" "contract tests (expect 25)" \
 
 # ------------------------------------------------------------------- clip 2
 $FMT section "clip 2 - map noisy modules"
-check "c2" "two duplicate normalization sites" \
-  '[ "$(grep -rl "value === '"'"'p0'"'"'" supporthub-api/modern/src | wc -l | tr -d " ")" -eq 2 ]' \
-  "The duplication must exist in exactly two places: the util and the inline copy inside createTicket." \
-  "git checkout -- supporthub-api/modern/src" \
-  "Priority normalization should appear in exactly three files under supporthub-api/modern/src. List where it appears now."
+check "c2" "clip 2 seed matches the runbook's expected values" \
+  'node "${ROOT}/scripts/check.mjs" c2-seed-shape' \
+  "The author reads three quantities off the Expected values table on camera: three priority-normalization sites, five unreferenced exports, and two dead private helpers. Every one of them was wrong until a live walk measured it -- this check counted files while claiming to count sites." \
+  "Restore supporthub-api/modern/src, or correct the Expected values table in m1-c2-map-noisy-typescript-modules.md to match the code." \
+  "How many priority-normalization sites, unreferenced exports, and uncalled private functions are in supporthub-api/modern/src?"
 
 check "c2" "dead helper has no importers" \
   '[ "$(grep -rn "from '"'"'.*utils/legacy" supporthub-api/modern/src supporthub-api/modern/tests | wc -l | tr -d " ")" -eq 0 ]' \

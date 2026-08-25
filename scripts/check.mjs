@@ -170,6 +170,57 @@ const CHECKS = {
   },
 
   /**
+   * The clip 2 seed must match what the runbook tells the author to expect.
+   *
+   * Every number here was wrong until a live walk measured it. The preflight
+   * asserted "two duplicate normalization sites" while counting FILES, its own
+   * recovery prompt said three files, and the runbook said two sites. There are
+   * three sites in two files. The runbook also listed three "unreferenced
+   * exports" naming toPriority and validateNewTicket, which are not exported at
+   * all -- they are dead private helpers, a different finding. Codex reported
+   * five real unreferenced exports and was right.
+   *
+   * Counted here rather than grepped from shell so the three quantities the
+   * author reads on camera cannot drift from the code again.
+   */
+  'c2-seed-shape': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const files = globSync('supporthub-api/modern/**/*.ts', { cwd: ROOT })
+      .filter((f) => !f.includes('node_modules') && !f.includes('/dist/'));
+    const src = Object.fromEntries(files.map((f) => [f, read(f)]));
+    let ok = true;
+
+    // 1. Three priority-normalization sites, not two, and not two files.
+    const sites = files.reduce((n, f) => n + (src[f].match(/value === 'p0'/g) || []).length, 0);
+    if (sites !== 3) ok = reject(`expected 3 priority-normalization sites, found ${sites}`) && ok;
+
+    // 2. Exactly these five exports have no reference outside their own file.
+    const defs = [];
+    for (const f of files) for (const m of src[f].matchAll(/^export (?:function|const) (\w+)/gm)) defs.push([m[1], f]);
+    const unref = defs
+      .filter(([n, home]) => !files.some((f) => f !== home && new RegExp(`\\b${n}\\b`).test(src[f])))
+      .map(([n]) => n).sort();
+    const want = ['moduleDir', 'normalizeLegacySeverity', 'normalizePriority', 'requireFromEsm', 'ticketsForIncident'];
+    if (unref.join(',') !== want.join(',')) {
+      ok = reject(`unreferenced exports are [${unref.join(', ')}], expected [${want.join(', ')}]`) && ok;
+    }
+
+    // 3. Two dead PRIVATE helpers -- not exports, and never called.
+    const svc = src['supporthub-api/modern/src/services/ticketService.ts'];
+    for (const name of ['toPriority', 'validateNewTicket']) {
+      if (new RegExp(`^export (?:function|const) ${name}\\b`, 'm').test(svc)) {
+        ok = reject(`${name} is exported — the runbook lists it as a dead private helper`) && ok;
+      }
+      if (!new RegExp(`^function ${name}\\(`, 'm').test(svc)) {
+        ok = reject(`${name} is missing from ticketService.ts`) && ok;
+      } else if ((svc.match(new RegExp(`\\b${name}\\s*\\(`, 'g')) || []).length !== 1) {
+        ok = reject(`${name} is called somewhere — it must stay dead for the finding to hold`) && ok;
+      }
+    }
+    return ok;
+  },
+
+  /**
    * No prompt in clip 5 may reference the framework skill.
    *
    * Clip 5's objectives are TO2, EO2a and EO2b. The framework skill is EO2d,
