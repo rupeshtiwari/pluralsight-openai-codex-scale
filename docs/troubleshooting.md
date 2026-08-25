@@ -99,6 +99,43 @@ preflight does not yet scrub. Add it there rather than committing the churn.
 This matters because clip 2 step 4 proves its point with an empty Source Control view, and the
 preflight runs before recording.
 
+## Deleting untracked files
+
+**`git clean -fd` is irreversible.** It deletes untracked files, which are by definition the ones
+git holds no copy of. There is no reflog, no stash, and nothing in the Trash — it unlinks directly.
+`demo_reset.sh` carries a guard because `git checkout -- .` destroyed unstaged work three times
+while this repository was being built; `git clean -fd` is the worse of the two, because unstaged
+work at least exists in the index sometimes.
+
+**Always dry-run first, and read the list:**
+
+```bash
+git clean -nd
+```
+
+Only then delete:
+
+```bash
+git clean -fd
+```
+
+**Never add `-x`.** That also removes ignored files, which here means `node_modules` and any local
+`.env`.
+
+**Where junk files come from.** Almost every untracked file that has appeared in this repository came
+from pasting documentation into a shell. A line beginning with `>` is a redirect; `->` in a diagram
+is a redirect; a markdown table row starting with `|` is a syntax error. One pasted dependency
+chain created four empty files named after its own steps. If `git clean -nd` lists names that look
+like fragments of a document you were reading, that is what happened, and the files are empty — check
+with `wc -c` before deleting anything you are unsure of:
+
+```bash
+git clean -nd | awk '{print $3}' | xargs -I{} wc -c {}
+```
+
+A zero-byte file named after a heading, a branch, or a step in a diagram is a paste artifact, not
+work.
+
 ## Recovering a demo state
 
 Return to a known checkpoint rather than unpicking changes by hand:
