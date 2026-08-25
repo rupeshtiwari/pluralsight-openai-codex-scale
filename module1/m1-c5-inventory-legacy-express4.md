@@ -72,6 +72,34 @@ The reset refuses if changes exist outside the demo surface and lists what it wo
 That guard exists because a plain reset destroyed unstaged work three times while this repository
 was being built. Between takes the dirty files are demo artifacts and it proceeds normally.
 
+
+**The framework skill must not appear anywhere in this demo.**
+
+C5's objectives are TO2, EO2a and EO2b. The framework skill is EO2d, which belongs to clip 6.
+
+This is not a style rule. Step 2's prompt once ended with "Reference
+framework-skill/node-express-migration for platform guidance", and the skill's first rule is never
+to combine a route migration with a dependency upgrade. Codex read it, obeyed it from Step 2 onward,
+and by Step 4 there was no batched milestone left to reject. A live walk produced ten milestones with
+the route conversion at 2 and the Express upgrade at 9, and Codex stated plainly that none were
+"both".
+
+**A demo cannot ask Codex to read a rule and then catch it breaking that rule.** Step 4 is the
+decision this clip exists for, and the seeded plan only stays batched while Codex is planning
+unaided.
+
+So every prompt here plans from the inventory and the repository alone, and says so explicitly
+rather than merely omitting the reference — omission is not a constraint when the model can reach
+the file by its own retrieval. The skill is introduced for the first time in clip 6, where it is the
+objective rather than a contaminant.
+
+`scripts/check.mjs c5-prompts-skill-free` asserts both halves: that no prompt in this runbook
+mentions the skill, and that the prohibition is still stated.
+
+**No prompt in this demo runs commands.** The terminal stays hidden until Step 4's verification, and
+an unprompted `npm test` adds a wait on camera with nothing to show. A live walk hit this in Step 1:
+the prompt forbade editing files but said nothing about running them.
+
 **Prepare before recording**
 
 ```bash
@@ -157,7 +185,8 @@ workflow rather than one that applies changes.
 **Prompt.**
 
 ```text
-Inventory the legacy service in supporthub-api/migration. Do not edit any files.
+Inventory the legacy service in supporthub-api/migration.
+Do not edit any files and do not run any commands - read and report only.
 
 Cover all six categories separately, with file paths:
 1. Express routes - every path, method, status codes, and middleware each one runs
@@ -211,8 +240,11 @@ The plan must state explicitly:
    acceptable
 3. The rollback point for each step, as a commit you could return to
 
-Reference framework-skill/node-express-migration for platform guidance.
-Do not implement anything.
+Base the compatibility layer on code that already exists in this repository.
+Do not read or apply any framework skill, migration playbook, or external
+guidance - plan from the inventory and the code alone.
+
+Do not implement anything and do not run any commands.
 ```
 
 **Expected result.** A plan naming `supporthub-api/modern/src/compat/dirname.ts` and
@@ -253,7 +285,9 @@ Each milestone must:
 - be undoable on its own, to a named commit
 
 List them in order. For each, give the files it touches, the command that
-validates it, and the commit it rolls back to. Do not implement anything.
+validates it, and the commit it rolls back to.
+
+Do not implement anything and do not run any commands.
 ```
 
 **Expected result.** A short ordered list, typically three to five milestones, covering the route
@@ -287,6 +321,8 @@ planning stage must end with the code untouched.
 ```text
 For each milestone, state whether it changes application code, upgrades a
 dependency, or both. Flag any that answers "both".
+
+Do not run any commands.
 ```
 
 **Expected result.** At least one milestone combines migrating a route with upgrading Express 4 to
@@ -309,7 +345,7 @@ the exact commit to roll back to, and the external contract it must not change.
 
 Record both in plans/migration-plan.md under Milestones, replacing the entry you
 flagged. Milestones and checkpoints are one list — do not add a second
-section. Change no other file.
+section. Change no other file, and do not run any commands.
 ```
 
 **Highlight.** Each checkpoint now answers "code or dependency" with one answer, not both.

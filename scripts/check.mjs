@@ -170,6 +170,45 @@ const CHECKS = {
   },
 
   /**
+   * No prompt in clip 5 may reference the framework skill.
+   *
+   * Clip 5's objectives are TO2, EO2a and EO2b. The framework skill is EO2d,
+   * which belongs to clip 6, and pulling it forward does more than leak scope: the
+   * skill's first rule is never to combine a route migration with a dependency
+   * upgrade, so Codex obeys it while planning and Step 4 has no batched milestone
+   * left to reject. A live walk produced ten milestones with the route conversion
+   * at 2 and the Express upgrade at 9. The demo cannot ask Codex to read a rule
+   * and then catch it breaking that rule.
+   *
+   * Two halves, because omission is not a constraint. The absence of a reference
+   * does not stop Codex reaching the file by its own retrieval, so a prompt has to
+   * forbid it out loud, and that prohibition has to survive editing.
+   */
+  'c5-prompts-skill-free': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const t = read('module1/m1-c5-inventory-legacy-express4.md');
+    // Prompt blocks only. The AUTHOR PREP section explains this constraint in
+    // prose and necessarily names the skill to do so.
+    const prompts = [...t.matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
+    if (prompts.length === 0) return reject('m1-c5: no prompt blocks found — the runbook shape changed');
+
+    // The prohibition itself names the skill, so strip it before scanning. A
+    // sentence forbidding a thing is not a use of it -- the same trap that made a
+    // naive skill-not-ambient flag AGENTS.md for explaining its own rule.
+    const BAN = /Do not read or apply any framework skill[^\n]*(\n[^\n]*guidance[^\n]*)?/i;
+    let ok = true;
+    prompts.forEach((body, i) => {
+      const m = body.replace(BAN, "").match(/framework[- ]skill|SKILL\.md|node-express-migration/i);
+      if (m) ok = reject(`m1-c5 prompt ${i + 1} references the framework skill ("${m[0]}") — clip 5 must plan unaided`) && ok;
+    });
+
+    if (!prompts.some((b) => /Do not read or apply any framework skill/i.test(b))) {
+      ok = reject('m1-c5: no prompt forbids the framework skill out loud — omission alone does not stop retrieval') && ok;
+    }
+    return ok;
+  },
+
+  /**
    * Every demo runbook must match the approved outline.
    *
    * docs/outline-clip-map.json is transcribed verbatim from the outline's Course

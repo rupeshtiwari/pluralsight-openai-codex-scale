@@ -235,6 +235,12 @@ check "c5" "__dirname used in legacy service" \
   "git checkout -- supporthub-api/migration/services/ticketService.js" \
   "Restore the __dirname-based config load in the legacy ticket service."
 
+check "c5" "no clip 5 prompt references the framework skill" \
+  'node "${ROOT}/scripts/check.mjs" c5-prompts-skill-free' \
+  "The skill forbids combining a route migration with a dependency upgrade. If a clip 5 prompt points Codex at it, Codex plans by that rule and Step 4 has no batched milestone left to reject. The clip loses the decision it exists for." \
+  "Remove the reference from the prompt, and keep the explicit prohibition - omission alone does not stop retrieval." \
+  "Which clip 5 prompts mention the framework skill?"
+
 check "c5" "migration plan opens on exactly one milestone" \
   '[ "$(grep -c "^### Milestone" plans/migration-plan.md)" -eq 1 ]' \
   "The rejection step needs a single batched milestone to act on. Two already-split checkpoints mean a previous run was not reset." \
