@@ -147,7 +147,7 @@ If the skill does not load unasked, the toggle works and both runs below are wor
 content is the two-checkpoint split that walking C5 produces, so it has to be branched from
 `demo/m1-c5-captured`:
 
-    walk C5  ->  m1-c5-captured  ->  m1-c6-start  ->  walk C6  ->  m1-c6-captured
+    walk C5  →  m1-c5-captured  →  m1-c6-start  →  walk C6  →  m1-c6-captured
 
 Cutting it from anywhere else gives it the *combined* milestone, which is the inverse of the state
 C6 starts from.

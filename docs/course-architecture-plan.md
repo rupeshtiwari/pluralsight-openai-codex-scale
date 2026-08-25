@@ -339,6 +339,12 @@ beginning with `>` or `|` pasted into a shell is a redirect or a syntax error, n
 That is not hypothetical: three junk files were created in one session that way, from output that
 was only ever meant to be read.
 
+**No diagram uses an ASCII arrow.** `->` contains `>`, so pasting a line like
+`walk C5 -> m1-c5-captured -> m1-c6-start` into a shell performs three redirects and silently creates
+three empty files named after the steps. Write `→` instead: it renders the same and is inert if it
+reaches a prompt. This one cost a cleanup mid-session, from a chain that only ever described a
+dependency order.
+
 The same rule applies to anything printed by a script. `demo_reset.sh` prints its remediation
 commands bare, without the `>` value prefix every other line carries, for exactly this reason.
 

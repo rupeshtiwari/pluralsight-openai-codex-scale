@@ -75,7 +75,7 @@ was being built. Between takes the dirty files are demo artifacts and it proceed
 **`demo/m1-c6-start` does not exist yet.** Its defining content is the two-checkpoint split that
 walking C5 produces, so it must be branched from `demo/m1-c5-captured`:
 
-    walk C5  ->  m1-c5-captured  ->  m1-c6-start  ->  walk C6  ->  m1-c6-captured
+    walk C5  →  m1-c5-captured  →  m1-c6-start  →  walk C6  →  m1-c6-captured
 
 Cutting it from anywhere else gives it the combined milestone, which is the inverse of the state
 this clip starts from. The commands below are shown rather than given as a runnable block, because

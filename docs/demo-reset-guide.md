@@ -52,7 +52,7 @@ Two checkpoints are not independent, and cutting them from the wrong place produ
 looks plausible and is wrong.
 
 ```text
-walk C5  ->  demo/m1-c5-captured  ->  demo/m1-c6-start  ->  walk C6  ->  demo/m1-c6-captured
+walk C5  →  demo/m1-c5-captured  →  demo/m1-c6-start  →  walk C6  →  demo/m1-c6-captured
 ```
 
 `demo/m1-c6-start` must be branched from `demo/m1-c5-captured`. Its defining content is the
