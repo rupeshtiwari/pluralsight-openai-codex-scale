@@ -183,14 +183,13 @@ $ npm run test:route
 > vitest run tests/contracts/*route*.contract.test.ts
 
 
- RUN  v2.1.9 ./supporthub-api/modern
+ RUN  v4.1.11 ./supporthub-api/modern
 
- ✓ tests/contracts/ticket-read-route.contract.test.ts (4 tests) <ms>
 
  Test Files  1 passed (1)
       Tests  4 passed (4)
    Start at  <time>
-   Duration  <ms> (transform <ms>, setup <ms>, collect <ms>, tests <ms>, environment <ms>, prepare <ms>)
+   Duration  <ms> (transform <ms>, setup <ms>, import <ms>, tests <ms>, environment <ms>)
 RESULT PASS  [c6] focused route tests pass
 
 $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
