@@ -105,6 +105,21 @@ const CASES = [
  */
 const SYNTHETIC_CASES = [
   {
+    check: 'skill-tells-unique',
+    what: 'a tell was copied into another document, so it silently stops being evidence',
+    control: { 'framework-skill/node-express-migration/SKILL.md': 'gate 3 catches emit failures that --noEmit does not surface, and a later gate cannot substitute for an earlier one. Never combine a route migration with a dependency upgrade in one milestone.\n' },
+    negative: {
+      'framework-skill/node-express-migration/SKILL.md': 'gate 3 catches emit failures that --noEmit does not surface, and a later gate cannot substitute for an earlier one. Never combine a route migration with a dependency upgrade in one milestone.\n',
+      'docs/troubleshooting.md': 'remember that a later gate cannot substitute for an earlier one.\n',
+    },
+  },
+  {
+    check: 'skill-tells-unique',
+    what: 'a tell was removed from the skill, so the pre-check looks for wording that is not there',
+    control: { 'framework-skill/node-express-migration/SKILL.md': 'gate 3 catches emit failures that --noEmit does not surface, and a later gate cannot substitute for an earlier one. Never combine a route migration with a dependency upgrade in one milestone.\n' },
+    negative: { 'framework-skill/node-express-migration/SKILL.md': 'gate 3 runs the build.\n' },
+  },
+  {
     check: 'c6-prompt-saved',
     what: 'the runbook prompt was edited and the saved file was not — the drift this exists to catch',
     control: {

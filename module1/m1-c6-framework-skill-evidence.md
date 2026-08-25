@@ -59,7 +59,14 @@ contradicting it. It has been wrong once already — `AGENTS.md` used to say "Co
 migrating any route" — and that failure is invisible until both runs come back the same. The
 Module 1 preflight runs it as **skill is opt-in, not ambient**.
 
-Both runs start from the same checkpoint, `demo/m1-c6-start`, with a clean working tree.
+Both runs start from the same checkpoint, `demo/m1-c6-start`, with a clean working tree, and
+**each run starts in a fresh Codex thread.**
+
+That second precondition is as load-bearing as the clean tree. If Run B follows Run A in the same
+thread, Run B is not skill-off — it is skill-remembered, and it will reproduce guidance it was never
+given because the thread still carries it. The comparison would then measure thread memory rather
+than the skill, and it would flatter Run B. This is EO3c's thread-context dependency in reverse:
+there the demo relies on context carrying forward, here the evidence relies on it not doing so.
 
 ## Toggle pre-check — do this first
 
@@ -67,19 +74,61 @@ Both runs start from the same checkpoint, `demo/m1-c6-start`, with a clean worki
 proves nothing *directs* Codex to the skill; it cannot prove Codex does not reach for it anyway.
 Only behavior shows that.
 
-Before investing in two full runs, send a short migration prompt with **no** skill line and read
-what comes back:
+Before investing in two full runs, start a **fresh Codex thread** and send a short migration prompt
+with **no** skill line:
 
 ```text
 Migrate GET /tickets/:id in supporthub-api/migration to TypeScript on Express 5.
 Tell me which guidance you used.
 ```
 
+### Do not trust the self-report
+
+"Tell me which guidance you used" asks the model to account for its own retrieval, and that account
+is not reliable in either direction: it can cite the skill without having read it, or read it and
+not mention it. Judge on an objective signal instead.
+
+**Primary signal — content only the skill contains.** These phrasings appear nowhere else in the
+repository, so their appearance in a reply is evidence of a read regardless of what Codex says:
+
+| Tell | Why it is a tell |
+|---|---|
+| `npm run build` justified as catching emit failures that `--noEmit` does not surface | An unusual reason to run `tsc` after `tsc --noEmit`. A model would not independently explain the pair this way |
+| The four gates named in the order lint, type-check, build, focused route tests, with a later gate said not to substitute for an earlier one | The ordering rationale is the skill's, not a general convention |
+| "Never combine a route migration with a dependency upgrade in one milestone," justified by a red test being unattributable | The specific reason, not the general advice |
+
+**What does NOT count.** `moduleDir` and `requireFromEsm` are named in `supporthub-api/*/compat/`
+and in `docs/commonjs-esm-compatibility.md`. Codex can reach both without the skill, so their
+appearance proves nothing. Do not read them as a load.
+
+**Secondary signal.** If the Codex panel surfaces which files it opened, check whether the skill
+path is among them. Use it to confirm the primary signal, not to replace it — file-access display
+is a UI affordance that may change.
+
 | Question | Answer |
 |---|---|
 | Date | |
-| Did Codex read or cite `SKILL.md` without being asked? | |
-| If yes, what pulled it in? | |
+| Fresh thread confirmed? | |
+| Did any tell above appear in the reply? | |
+| Did Codex claim to use the skill? (record separately — it may disagree with the tells) | |
+| If it loaded: what pulled it in? | |
+
+### If it loaded: three eliminations
+
+"It loaded" is not actionable on its own. Two of the three causes are fixable in this repository and
+one is not, so establish which before deciding anything. Each re-run starts a fresh thread.
+
+1. **Empty `AGENTS.md` temporarily and re-run.** Still loads? Not `AGENTS.md`. Restore it
+   afterwards — `skill-not-ambient` fails if the opt-out wording is missing.
+2. **Re-run with `plans/prompts/` moved aside.** Still loads? Not a saved prompt file.
+3. **Still loads with both removed** → Codex's own retrieval surfaced it.
+
+The third case is the §18 evidence problem, not a coverage problem. C6 bullet 1 still happens — the
+skill still applies platform-specific guidance — but the proof that the *operator invoked it* dies,
+because "use" is not a distinguishable action on this surface. That is a disclosure and a matrix
+re-classification, not a redesign. **Do not respond by hiding or renaming `SKILL.md` to force a
+skill-off run:** that measures the file's absence, not the skill's, and a control that requires
+disguising its input is not measuring the objective.
 
 **If the skill loads unasked, stop.** Run B cannot be a skill-off run, the comparison is void, and
 the cause has to be found before anything below is filled in. Record that here rather than
@@ -164,3 +213,7 @@ model does not already supply.
 
 - [ ] **Demonstrated** — Run A contains decisions absent from Run B, traceable to the skill
 - [ ] **Not demonstrated** — the runs are materially equivalent; strengthen the skill and rerun
+- [ ] **Toggle broken** — the skill loaded unasked, so no skill-off run was possible and the
+      comparison was never valid. Neither box above applies. Record which of the three eliminations
+      identified the cause, and treat an unfixable cause as a disclosure against EO2d's evidence,
+      not against its coverage.

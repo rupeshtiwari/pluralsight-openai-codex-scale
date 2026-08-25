@@ -249,6 +249,12 @@ check "c6" "framework skill present" \
   "git checkout -- .codex/" \
   "The express-typescript-migration skill is missing. Restore it."
 
+check "c6" "skill-off tells still unique to the skill" \
+  'node "${ROOT}/scripts/check.mjs" skill-tells-unique' \
+  "The toggle pre-check decides whether Codex read the skill by looking for wording that exists nowhere else. If a tell is copied into another document it stops being evidence, and the pre-check would keep reporting a load that never happened." \
+  "Remove the duplicated phrasing named above, or pick a new tell and update the evidence artifact." \
+  "Which files besides SKILL.md contain the skill-off tell phrases?"
+
 check "c6" "Run A prompt saved and matching the runbook" \
   'node "${ROOT}/scripts/check.mjs" c6-prompt-saved' \
   "The negative control is only valid if Run A and Run B differ by exactly one line. If the runbook prompt and the saved file drift apart, the comparison stops measuring the skill and nothing says so." \

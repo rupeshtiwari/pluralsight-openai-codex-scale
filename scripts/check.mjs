@@ -130,6 +130,43 @@ const CHECKS = {
   },
 
   /**
+   * The skill-off tells must stay unique to the skill.
+   *
+   * The toggle pre-check judges whether Codex read SKILL.md by looking for
+   * phrasings that exist nowhere else, because a model's own account of its
+   * retrieval is not reliable. If one of those phrasings is copied into another
+   * document, it stops being evidence and nothing says so -- the pre-check would
+   * keep reporting a load that never happened. Only SKILL.md and the evidence
+   * artifact that quotes them as tells may contain them.
+   */
+  'skill-tells-unique': () => {
+    const TELLS = [
+      'emit failures that',
+      'a later gate cannot substitute for an earlier one',
+      'Never combine a route migration with a dependency upgrade',
+    ];
+    const ALLOWED = new Set([
+      'framework-skill/node-express-migration/SKILL.md',
+      'module1/m1-c6-framework-skill-evidence.md',
+    ]);
+    const files = globSync('**/*.md', { cwd: ROOT })
+      .filter((f) => !f.includes('node_modules') && !f.includes('/dist/') && !f.includes('/logs/'));
+    let ok = true;
+    for (const tell of TELLS) {
+      const hits = files.filter((f) => readFileSync(join(ROOT, f), 'utf8').includes(tell));
+      if (!hits.includes('framework-skill/node-express-migration/SKILL.md')) {
+        process.stderr.write(`  tell missing from the skill: "${tell}"\n`);
+        ok = false;
+      }
+      for (const h of hits.filter((f) => !ALLOWED.has(f))) {
+        process.stderr.write(`  tell leaked into ${h}: "${tell}"\n`);
+        ok = false;
+      }
+    }
+    return ok;
+  },
+
+  /**
    * The saved Run A prompt must match the runbook's, byte for byte, and open on
    * the skill line.
    *
