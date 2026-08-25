@@ -1,0 +1,142 @@
+{
+  "_comment": "Transcribed verbatim from the approved course outline (Course Organization section). This is the contract the runbooks are checked against by scripts/check.mjs clip-outline-alignment. Do not edit to match a runbook -- edit the runbook.",
+  "objectives": {
+    "TO1": "Apply Codex to plan and execute a codebase refactoring operation using reviewable passes",
+    "EO1a": "Construct a refactoring prompt that instructs Codex to map noisy modules, identify dead code, and propose one cleanup theme at a time before editing",
+    "EO1b": "Apply the ExecPlan pattern to maintain a running log of intended changes, behavior contracts, and validation checks across a multi-session refactor",
+    "EO1c": "Evaluate a Codex-generated refactoring diff to confirm that public behavior is preserved and that architecture migrations are separated into discrete tasks",
+    "EO1d": "Explain when to use Plan mode before committing Codex to implementation",
+    "TO2": "Demonstrate how to orchestrate a legacy-to-modern stack migration with Codex using incremental checkpoints.",
+    "EO2a": "Direct Codex to inventory a legacy system's routing, data models, auth, build tooling, tests, and external contracts before proposing a migration plan",
+    "EO2b": "Evaluate a Codex-generated migration plan for compatibility layers, explicit behavioral exceptions, and rollback visibility",
+    "EO2c": "Apply validation checks (lint, type-check, focused tests) after each migration milestone rather than batching cleanup",
+    "EO2d": "Use the ASP.NET Core skill or equivalent framework skill to apply platform-specific migration guidance",
+    "TO3": "Apply Codex automations to run recurring bug triage across multiple data sources at team scale.",
+    "EO3a": "Configure a bug triage automation using the Sentry, Slack, Linear, and GitHub plugins to sweep a defined time window",
+    "EO3b": "Evaluate a Codex-generated triage report for correct P0–P3 prioritization, deduplicated bug entries, and evidence-backed recommendations",
+    "EO3c": "Convert a tested manual triage sweep into a scheduled automation using the same thread context",
+    "EO3d": "Apply a routing workflow to draft Slack updates, Linear issues, or GitHub comments after triage approval",
+    "TO4": "Demonstrate how to debug and trace Codex automations",
+    "EO4a": "Use the Codex review pane to inspect uncommitted diffs from an automation run, including per-hunk staging and revert controls"
+  },
+  "clips": {
+    "m1-c2": {
+      "runbook": "module1/m1-c2-map-noisy-typescript-modules.md",
+      "title": "Demo: Map noisy TypeScript modules with Codex before editing (6 minutes)",
+      "objectives": [
+        "TO1",
+        "EO1a",
+        "EO1d"
+      ],
+      "bullets": [
+        "Open the TypeScript service in Codex and ask it to map modules, dependencies, public behavior, and dead-code candidates",
+        "Constrain Codex to propose one cleanup theme before editing any files",
+        "Inspect repository evidence and reject unrelated architectural changes before implementation",
+        "Confirm Plan mode produces a bounded, reviewable first pass"
+      ]
+    },
+    "m1-c3": {
+      "runbook": "module1/m1-c3-execute-codex-refactor.md",
+      "title": "Demo: Execute a Codex refactor with ExecPlan checkpoints (6 minutes)",
+      "objectives": [
+        "TO1",
+        "EO1b",
+        "EO1c"
+      ],
+      "bullets": [
+        "Create an ExecPlan that records intended changes, behavior contracts, validation checks, and progress across the refactor",
+        "Let Codex implement one bounded cleanup pass and run Vitest plus TypeScript validation",
+        "Inspect the generated diff and confirm public behavior is preserved",
+        "Remove the architecture migration Codex bundled into the cleanup diff and log it as a separate ExecPlan task"
+      ]
+    },
+    "m1-c5": {
+      "runbook": "module1/m1-c5-inventory-legacy-express4.md",
+      "title": "Demo: Inventory a legacy Express 4 service with Codex (6 minutes)",
+      "objectives": [
+        "TO2",
+        "EO2a",
+        "EO2b"
+      ],
+      "bullets": [
+        "Direct Codex to inventory the legacy CommonJS JavaScript Express 4 service across Express routes, data models, auth, build tooling, tests, and external contracts",
+        "Review the generated migration plan for the CommonJS-to-ESM compatibility layer, explicit behavioral exceptions, and rollback visibility",
+        "Split the ESM TypeScript Express 5 migration into incremental milestones that can be validated independently",
+        "Reject the milestone that batches route migration with dependency upgrades and have Codex split it into two checkpoints"
+      ]
+    },
+    "m1-c6": {
+      "runbook": "module1/m1-c6-migrate-one-express-route.md",
+      "title": "Demo: Migrate one Express route to TypeScript with framework guidance (6 minutes)",
+      "objectives": [
+        "TO2",
+        "EO2c",
+        "EO2d"
+      ],
+      "bullets": [
+        "Apply an equivalent Node.js and TypeScript framework skill to migrate one Express route slice from JavaScript to TypeScript",
+        "Run ESLint, TypeScript type-checking, build validation, and focused Vitest tests immediately after the route migration",
+        "Inspect the diff and verify the CommonJS-to-ESM compatibility contract before accepting the route change",
+        "Record the checkpoint so the Express 5 migration can continue or roll back from a known state"
+      ]
+    },
+    "m2-c2": {
+      "runbook": "module2/m2-c2-manual-triage.md",
+      "title": "Demo: Run a manual Codex triage sweep across Sentry and GitHub (6 minutes)",
+      "objectives": [
+        "TO3",
+        "EO3a",
+        "EO3b"
+      ],
+      "bullets": [
+        "Configure Sentry and GitHub evidence sources, connect Slack and Linear routing destinations, and define the triage time window",
+        "Run the sweep manually so the same thread context captures source evidence before scheduling",
+        "Inspect the report for P0–P3 priority, deduplicated bugs, and evidence-backed recommendations",
+        "Correct weak prioritization or duplicate entries before automation is promoted"
+      ]
+    },
+    "m2-c3": {
+      "runbook": "module2/m2-c3-schedule-triage.md",
+      "title": "Demo: Schedule Codex triage and route work to Slack and Linear (6 minutes)",
+      "objectives": [
+        "TO3",
+        "EO3c",
+        "EO3d"
+      ],
+      "bullets": [
+        "Convert the tested manual sweep into a scheduled Codex automation using the same thread context",
+        "Run the scheduled workflow and compare its report with the validated manual pattern",
+        "Approve selected findings before drafting Slack updates or Linear issues",
+        "Verify Slack and Linear drafts preserve the evidence and priority from the triage decision"
+      ]
+    },
+    "m2-c5": {
+      "runbook": "module2/m2-c5-inspect-automation-diffs.md",
+      "title": "Demo: Inspect automation diffs in the Codex review pane (6 minutes)",
+      "objectives": [
+        "TO4",
+        "EO4a"
+      ],
+      "bullets": [
+        "Open an automation run that produced uncommitted changes and inspect the diff in the Codex review pane",
+        "Review changed files and hunks against the triage evidence that caused the automation to act",
+        "Use source control to stage valid hunks individually and revert an unrelated or incorrect hunk",
+        "Confirm only approved changes remain before the repository is committed"
+      ]
+    },
+    "m2-c6": {
+      "runbook": "module2/m2-c6-recover-failed-automation.md",
+      "title": "Demo: Trace a failed Codex automation and recover safely (6 minutes)",
+      "objectives": [
+        "TO4",
+        "EO4a"
+      ],
+      "bullets": [
+        "Start from a failed automation result and trace the source evidence, generated change, and validation outcome",
+        "Use the review pane to isolate the incorrect hunk instead of discarding the entire run",
+        "Revert the bad change, preserve valid work, and rerun with corrected context",
+        "Verify the recovered run produces a clean reviewable diff before acceptance"
+      ]
+    }
+  }
+}

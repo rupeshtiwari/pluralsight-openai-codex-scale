@@ -144,7 +144,7 @@ checkpoint boundary was breached — reset and restate the constraint.
 
 # ON-CAMERA
 
-## Step 1 — Apply the framework skill to migrate one Express route slice
+## Step 1 — Apply an equivalent Node.js and TypeScript framework skill to migrate one Express route slice from JavaScript to TypeScript
 
 **Purpose.** Generic migration advice produces generic mistakes. The skill in this repository names
 the conversions this stack actually needs. Bounded work is reviewable work: one route produces a
@@ -211,7 +211,7 @@ appears — that would mean the checkpoint scope was breached.
 
 ---
 
-## Step 2 — Run ESLint, type-checking, build validation, and focused tests immediately
+## Step 2 — Run ESLint, TypeScript type-checking, build validation, and focused Vitest tests immediately after the route migration
 
 **Purpose.** Each gate catches a different class of failure and a later one cannot substitute for
 an earlier one. Running them straight after one small change is what makes a red result diagnostic
@@ -248,7 +248,7 @@ A type error on `req.params` means the params shape was not declared. The fix is
 
 ---
 
-## Step 3 — Inspect the diff and verify the CommonJS-to-ESM compatibility contract
+## Step 3 — Inspect the diff and verify the CommonJS-to-ESM compatibility contract before accepting the route change
 
 **Purpose.** Passing gates prove the code works. They do not prove it behaves the way the old
 service behaved. This step compares the two directly, before anything is accepted.
@@ -297,7 +297,7 @@ construct remains. FAIL if any status code or field name changed.
 
 ---
 
-## Step 4 — Record the checkpoint so the migration can continue or roll back
+## Step 4 — Record the checkpoint so the Express 5 migration can continue or roll back from a known state
 
 **Purpose.** A milestone nobody wrote down is a milestone you cannot return to. This step leaves
 the accepted state, the one deliberate difference, and the commit to roll back to.

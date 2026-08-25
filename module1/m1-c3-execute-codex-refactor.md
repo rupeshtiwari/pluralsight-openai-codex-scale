@@ -121,7 +121,7 @@ validation gates fail, reset and rerun the pass rather than repairing it by hand
 
 # ON-CAMERA
 
-## Step 1 — Create an ExecPlan that records intended changes, contracts, and validation checks
+## Step 1 — Create an ExecPlan that records intended changes, behavior contracts, validation checks, and progress across the refactor
 
 **Purpose.** The ExecPlan is the contract for this pass. Writing it before any code exists is what
 makes the later review possible: you cannot judge whether a change belongs without a written
@@ -267,7 +267,7 @@ That produces the out-of-scope change this step depends on.
 
 ---
 
-## Step 4 — Remove the architecture migration Codex bundled in and log it as a separate ExecPlan task
+## Step 4 — Remove the architecture migration Codex bundled into the cleanup diff and log it as a separate ExecPlan task
 
 **Purpose.** Separate the two kinds of work and leave a record of the decision. Deferring is not
 discarding — the idea survives in a place someone will read.

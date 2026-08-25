@@ -170,6 +170,54 @@ const CHECKS = {
   },
 
   /**
+   * Every demo runbook must match the approved outline.
+   *
+   * docs/outline-clip-map.json is transcribed verbatim from the outline's Course
+   * Organization section and is the contract: which objectives each clip carries,
+   * the objective wording, and the four bullets in order. The runbooks are
+   * derived from it, so when they disagree the runbook is wrong.
+   *
+   * Checked because the drift is silent and one-directional: a step heading
+   * shortened for readability reads fine on its own while quietly dropping scope
+   * the outline promised. Two did. One lost "and have Codex split it into two
+   * checkpoints"; the other lost "equivalent Node.js and TypeScript", which is
+   * the clause carrying EO2d's ASP.NET substitution.
+   */
+  'clip-outline-alignment': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const map = JSON.parse(read('docs/outline-clip-map.json'));
+    let ok = true;
+    for (const [clip, c] of Object.entries(map.clips)) {
+      const t = read(c.runbook);
+      const i = t.indexOf('## Learning Objectives');
+      const j = t.indexOf('\n## ', i + 1);
+      const sec = i < 0 ? '' : t.slice(i, j < 0 ? t.length : j);
+
+      const ids = [...sec.matchAll(/^\|\s*(TO\d|EO\d[a-d])\s*\|/gm)].map((m) => m[1]);
+      if (ids.join(',') !== c.objectives.join(',')) {
+        ok = reject(`${clip}: objectives are ${ids.join(',') || 'none'}, outline says ${c.objectives.join(',')}`) && ok;
+      }
+      for (const m of sec.matchAll(/^\|\s*(TO\d|EO\d[a-d])\s*\|\s*(.+?)\s*\|\s*$/gm)) {
+        const want = (map.objectives[m[1]] || '').replace(/\.$/, '').trim();
+        const got = m[2].replace(/\.$/, '').trim();
+        if (want !== got) ok = reject(`${clip}: ${m[1]} wording differs from the outline`) && ok;
+      }
+
+      const steps = [...t.matchAll(/^## Step (\d+) — (.+)$/gm)].map((m) => m[2].trim());
+      if (steps.length !== c.bullets.length) {
+        ok = reject(`${clip}: ${steps.length} steps, outline has ${c.bullets.length} bullets`) && ok;
+        continue;
+      }
+      steps.forEach((s, k) => {
+        if (s !== c.bullets[k].trim()) {
+          ok = reject(`${clip} step ${k + 1} does not match its outline bullet\n      outline: ${c.bullets[k]}\n      runbook: ${s}`) && ok;
+        }
+      });
+    }
+    return ok;
+  },
+
+  /**
    * demo/m1-c5-captured must open on the two-checkpoint split.
    *
    * Same assertion as c6-start-opens-on-split, run from a different checkout.
