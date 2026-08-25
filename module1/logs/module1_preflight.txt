@@ -40,6 +40,10 @@ $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
 RESULT PASS  [all] working tree clean
 
+$ node "${ROOT}/scripts/check.mjs" demo-checkout-refs-exist
+
+RESULT PASS  [all] no runnable block checks out a missing branch
+
 $ node "${ROOT}/scripts/check.mjs" doc-links-resolve
 
 RESULT PASS  [all] runbook links resolve
