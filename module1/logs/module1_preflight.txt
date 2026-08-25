@@ -153,6 +153,10 @@ $ grep -q "__dirname" supporthub-api/migration/services/ticketService.js
 
 RESULT PASS  [c5] __dirname used in legacy service
 
+$ node "${ROOT}/scripts/check.mjs" c5-prompts-skill-free
+
+RESULT PASS  [c5] no clip 5 prompt references the framework skill
+
 $ [ "$(grep -c "^### Milestone" plans/migration-plan.md)" -eq 1 ]
 
 RESULT PASS  [c5] migration plan opens on exactly one milestone
