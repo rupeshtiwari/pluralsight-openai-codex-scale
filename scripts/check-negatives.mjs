@@ -179,6 +179,10 @@ for (const [what, negative] of [["a step heading was shortened, quietly dropping
   SPLIT_CASES.push({ check: "clip-outline-alignment", what, control: {"docs/outline-clip-map.json":"{\"objectives\":{\"TO1\":\"Do the terminal thing\",\"EO1a\":\"Do the enabling thing\"},\"clips\":{\"m1-c2\":{\"runbook\":\"rb.md\",\"title\":\"T\",\"objectives\":[\"TO1\",\"EO1a\"],\"bullets\":[\"First bullet\",\"Second bullet\"]}}}","rb.md":"## Learning Objectives\n\n| LO | Description |\n|---|---|\n| TO1 | Do the terminal thing |\n| EO1a | Do the enabling thing |\n\n## Terms\n\n## Step 1 — First bullet\n\n## Step 2 — Second bullet\n"}, negative });
 }
 
+for (const [what, negative] of [["a prompt references the framework skill again, so Codex plans by its rule and Step 4 has nothing left to reject",{"module1/m1-c5-inventory-legacy-express4.md":"```text\nInventory the legacy service.\n```\n\n```text\nPropose a plan.\nReference framework-skill/node-express-migration for platform guidance.\nDo not read or apply any framework skill, migration playbook, or external\nguidance - plan from the inventory and the code alone.\n```\n"}],["the explicit prohibition was tidied away, leaving omission — which does not stop retrieval",{"module1/m1-c5-inventory-legacy-express4.md":"```text\nInventory the legacy service.\n```\n\n```text\nPropose a plan.\n```\n"}],["a prompt names SKILL.md directly",{"module1/m1-c5-inventory-legacy-express4.md":"```text\nRead SKILL.md first.\n```\n\n```text\nPropose a plan.\nDo not read or apply any framework skill, migration playbook, or external\nguidance - plan from the inventory and the code alone.\n```\n"}]]) {
+  SPLIT_CASES.push({ check: "c5-prompts-skill-free", what, control: {"module1/m1-c5-inventory-legacy-express4.md":"```text\nInventory the legacy service.\n```\n\n```text\nPropose a plan.\nDo not read or apply any framework skill, migration playbook, or external\nguidance - plan from the inventory and the code alone.\n```\n"}, negative });
+}
+
 const SYNTHETIC_CASES = [
   {
     check: 'skill-tells-unique',
