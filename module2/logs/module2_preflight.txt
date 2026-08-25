@@ -31,6 +31,10 @@ $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
 RESULT PASS  [all] working tree clean
 
+$ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
+
+RESULT PASS  [all] runbooks match the approved outline
+
 $ [ -z "$(git diff --cached --name-only)" ]
 
 RESULT PASS  [all] nothing left staged
