@@ -259,6 +259,23 @@ git status --porcelain     # must be empty afterwards
 Run it before freezing any checkpoint branch. It has now caught two defects that no amount of
 re-reading would have found, and both would have surfaced first on camera.
 
+### A reading that fits the narrative deserves more scrutiny, not less
+
+`npm install` printed "5 vulnerabilities (3 moderate, 1 high, 1 critical)" on every run. The
+obvious explanation was the deliberately-pinned Express 4 tree, and it was a *good* explanation: a
+legacy service carrying real CVEs is a concrete reason the migration matters, and it would have gone
+into the README as a teaching note.
+
+It was wrong. Every one of the five was in the vitest/vite/esbuild devDependency chain — the
+critical was Vitest's UI server, the high a Vite dev-server path traversal, and this course runs
+neither. Reading `npm audit` took a minute and changed the action completely: not a teaching asset
+to explain on camera, just incidental tooling to upgrade.
+
+**The fit is the warning sign.** An explanation that flatters the story you are already telling gets
+believed on less evidence than one that complicates it, so it needs more. Before writing down a
+cause that fits too well, check it against the thing itself. This is instance 7's shape — the
+plausible reading and the true one diverging — arriving through a different door.
+
 ### The wider class
 
 The same blindness applies to any tooling that reports on other tooling. Prefer checks that fail
