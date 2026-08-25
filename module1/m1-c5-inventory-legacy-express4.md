@@ -138,7 +138,7 @@ was not reset and the rejection has nothing to act on: run the reset before star
 
 # ON-CAMERA
 
-## Step 1 — Inventory the legacy service across routes, data models, auth, build tooling, tests, and external contracts
+## Step 1 — Direct Codex to inventory the legacy CommonJS JavaScript Express 4 service across Express routes, data models, auth, build tooling, tests, and external contracts
 
 **Purpose.** A migration plan built on a partial inventory hides work that surfaces halfway
 through, when returning to a clean state costs the most. Naming the six categories explicitly is
@@ -189,7 +189,7 @@ missing or answered only in general terms.
 
 ---
 
-## Step 2 — Review the migration plan for the CommonJS-to-ESM compatibility layer, behavioral exceptions, and rollback visibility
+## Step 2 — Review the generated migration plan for the CommonJS-to-ESM compatibility layer, explicit behavioral exceptions, and rollback visibility
 
 **Purpose.** A plan that lists steps but not how to undo them is a plan you can only follow
 forwards. This step forces three things into the plan that make it survivable.
@@ -232,7 +232,7 @@ listed, and each step has a rollback point. FAIL if compatibility is described o
 
 ---
 
-## Step 3 — Split the migration into incremental milestones that can be validated independently
+## Step 3 — Split the ESM TypeScript Express 5 migration into incremental milestones that can be validated independently
 
 **Purpose.** A migration planned as one move can only be judged after it is finished. Broken into
 milestones, each one can be proved or undone on its own — which is what makes the whole thing
@@ -271,7 +271,7 @@ milestone has no validation command.
 
 ---
 
-## Step 4 — Reject the milestone that batches route migration with dependency upgrades
+## Step 4 — Reject the milestone that batches route migration with dependency upgrades and have Codex split it into two checkpoints
 
 **Purpose.** This is the decision the whole demo exists for. A milestone that migrates a route
 *and* upgrades Express fails for two different reasons, and a red test cannot tell you which half

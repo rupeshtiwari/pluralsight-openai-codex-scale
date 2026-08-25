@@ -58,7 +58,7 @@ command that fixes it. Do not record against a failing preflight.
 
 ---
 
-## Step 1 — Trace the source evidence, generated change, and validation outcome of the failed run
+## Step 1 — Start from a failed automation result and trace the source evidence, generated change, and validation outcome
 
 **Purpose.** A failed run has three layers: what it was told, what it produced, and what the
 validation said. Reading them in that order finds the cause. Reading only the error message finds
@@ -103,7 +103,7 @@ FAIL if the run's own summary is taken at face value without checking the correl
 
 ---
 
-## Step 2 — Isolate the incorrect hunk instead of discarding the entire run
+## Step 2 — Use the review pane to isolate the incorrect hunk instead of discarding the entire run
 
 **Purpose.** A failed run is not uniformly wrong. Judging each hunk against the finding shows that
 one change follows from the evidence and the other follows from the bad assumption — which is what

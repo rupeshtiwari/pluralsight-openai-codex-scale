@@ -99,6 +99,12 @@ check "all" "working tree clean" \
   "./module1/scripts/demo_reset.sh" \
   "Show me every uncommitted change in this repository and what produced it."
 
+check "all" "runbooks match the approved outline" \
+  'node "${ROOT}/scripts/check.mjs" clip-outline-alignment' \
+  "The outline is the contract Curriculum approved. A step heading shortened for readability reads fine on its own while dropping scope the outline promised -- two did, and one of those carried EO2d's framework-skill substitution." \
+  "Restore the runbook to match docs/outline-clip-map.json. Edit the runbook, never the map." \
+  "Which runbook steps differ from their outline bullets?"
+
 check "all" "no runnable block checks out a missing branch" \
   'node "${ROOT}/scripts/check.mjs" demo-checkout-refs-exist' \
   "Four demo checkpoints do not exist yet and depend on walkthroughs. A runbook that hands out a checkout of one fails on its first line, in front of the camera." \

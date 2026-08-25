@@ -56,7 +56,7 @@ command that fixes it. Do not record against a failing preflight.
 
 ---
 
-## Step 1 — Convert the tested manual sweep into a scheduled automation using the same thread context
+## Step 1 — Convert the tested manual sweep into a scheduled Codex automation using the same thread context
 
 **Purpose.** Scheduling from the validated conversation, rather than writing a fresh prompt, is
 what carries the corrections forward. A new prompt would start from the same naive reasoning that

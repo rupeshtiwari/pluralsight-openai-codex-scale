@@ -60,7 +60,7 @@ command that fixes it. Do not record against a failing preflight.
 
 ---
 
-## Step 1 — Configure Sentry and GitHub evidence sources, connect Slack and Linear destinations, and define the time window
+## Step 1 — Configure Sentry and GitHub evidence sources, connect Slack and Linear routing destinations, and define the triage time window
 
 **Purpose.** A sweep with no boundary is not repeatable. Fixing the window and naming each source's
 role up front is what lets you compare two runs later and know the difference came from the
@@ -105,7 +105,7 @@ these.
 
 ---
 
-## Step 2 — Run the sweep manually so the same thread context captures source evidence
+## Step 2 — Run the sweep manually so the same thread context captures source evidence before scheduling
 
 **Purpose.** Produce the triage in the same conversation that will later become the automation.
 Doing it manually first is the whole point: you validate the reasoning while a human is watching,
@@ -148,7 +148,7 @@ missing.
 
 ---
 
-## Step 3 — Inspect the report for P0-P3 priority, deduplicated bugs, and evidence-backed recommendations
+## Step 3 — Inspect the report for P0–P3 priority, deduplicated bugs, and evidence-backed recommendations
 
 **Purpose.** Reading a report for plausibility is not review. Checking each claim against a written
 standard is. This step is where the rubric earns its place.
@@ -189,7 +189,7 @@ evt-1042?`
 
 ---
 
-## Step 4 — Correct weak prioritization and duplicate entries before automation is promoted
+## Step 4 — Correct weak prioritization or duplicate entries before automation is promoted
 
 **Purpose.** End with a report you would act on, and a reasoning pattern worth repeating. The
 corrections are what will make the scheduled version trustworthy.

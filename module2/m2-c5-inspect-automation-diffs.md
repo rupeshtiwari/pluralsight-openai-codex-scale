@@ -56,7 +56,7 @@ command that fixes it. Do not record against a failing preflight.
 
 ---
 
-## Step 1 — Inspect the run's changes in the Codex review pane
+## Step 1 — Open an automation run that produced uncommitted changes and inspect the diff in the Codex review pane
 
 **Purpose.** Start from what the automation actually did, not from what it reported doing. The
 review pane shows the diff as changes to real files, which is the only description that cannot be
@@ -98,7 +98,7 @@ PASS if exactly two files are listed. FAIL if the patch did not apply — run
 
 ---
 
-## Step 2 — Test each hunk against the finding that justified it
+## Step 2 — Review changed files and hunks against the triage evidence that caused the automation to act
 
 **Purpose.** A change is in scope only if a finding asked for it. This is the test that separates
 the two hunks, and it is a question about provenance rather than about code quality.
@@ -137,7 +137,7 @@ the original?`
 
 ---
 
-## Step 3 — Stage the valid hunk and revert the invalid one
+## Step 3 — Use source control to stage valid hunks individually and revert an unrelated or incorrect hunk
 
 **Purpose.** Keep one change and discard the other, without touching the one you are keeping. This
 needs controls that operate on individual hunks, which is where the tool changes.
@@ -185,7 +185,7 @@ FAIL if the rubric file appears in either, or if `git diff` still shows unstaged
 
 ---
 
-## Step 4 — Prove only approved changes remain
+## Step 4 — Confirm only approved changes remain before the repository is committed
 
 **Purpose.** Close the review with evidence rather than belief. The rubric is the standard every
 future run is measured against, so proving it is untouched matters more than the fix that was kept.

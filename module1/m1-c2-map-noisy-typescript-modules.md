@@ -142,7 +142,7 @@ surfaces no architectural work, the fallback prompt in Step 3 recovers it.
 
 # ON-CAMERA
 
-## Step 1 — Map modules, dependencies, public behavior, and dead-code candidates
+## Step 1 — Open the TypeScript service in Codex and ask it to map modules, dependencies, public behavior, and dead-code candidates
 
 **Purpose.** Get evidence before making changes. An agent that edits before it understands
 produces a diff you cannot review. This step gathers what is actually in the codebase, in specific
@@ -232,7 +232,7 @@ preserves all public behavior.`
 
 ---
 
-## Step 3 — Inspect repository evidence and reject unrelated architectural changes
+## Step 3 — Inspect repository evidence and reject unrelated architectural changes before implementation
 
 **Purpose.** A capable agent will offer improvements beyond what you asked for. Some are
 reasonable. Reasonable is not the same as in scope. This is where you practise saying no to a good
@@ -268,7 +268,7 @@ edited. FAIL if Codex began implementing any of them.
 
 ---
 
-## Step 4 — Confirm Plan mode produced a bounded, reviewable first pass
+## Step 4 — Confirm Plan mode produces a bounded, reviewable first pass
 
 **Purpose.** Close the planning pass with proof rather than belief. A plan you cannot point at is
 not a plan, and the whole value of planning before implementing rests on the code being untouched

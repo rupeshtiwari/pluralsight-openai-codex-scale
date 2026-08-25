@@ -83,6 +83,12 @@ check "all" "working tree clean" '[ -z "$(git status --porcelain -- ":!module1/l
   "./module2/scripts/demo_reset.sh" \
   "Show me every uncommitted change in this repository and what produced it."
 
+check "all" "runbooks match the approved outline" \
+  'node "${ROOT}/scripts/check.mjs" clip-outline-alignment' \
+  "The outline is the contract Curriculum approved. A step heading shortened for readability reads fine on its own while dropping scope the outline promised." \
+  "Restore the runbook to match docs/outline-clip-map.json. Edit the runbook, never the map." \
+  "Which runbook steps differ from their outline bullets?"
+
 check "all" "nothing left staged" '[ -z "$(git diff --cached --name-only)" ]' \
   "A previous hunk-review run leaves changes staged, which breaks the next run's starting state." \
   "git reset" \
