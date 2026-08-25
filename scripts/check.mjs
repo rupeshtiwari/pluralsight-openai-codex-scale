@@ -23,6 +23,46 @@ import { execSync } from 'node:child_process';
 const ROOT = process.env.CHECK_ROOT || '.';
 const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 
+/**
+ * The post-rejection state of plans/migration-plan.md: exactly two checkpoint
+ * entries, each independently validatable and revertible, neither batching code
+ * with dependencies. Shared by the two branch guards, which assert the same
+ * shape from different checkouts. Writes the reason to stderr, because "the plan
+ * is wrong" is not actionable at the point someone hits it.
+ */
+function splitPlanHolds() {
+  const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+  const t = read('plans/migration-plan.md');
+
+  const start = t.indexOf('## Milestones');
+  if (start < 0) return reject('plans/migration-plan.md has no "## Milestones" section');
+  const end = t.indexOf('\n## ', start + 1);
+  const section = t.slice(start, end < 0 ? t.length : end);
+
+  const entries = section.split(/\n### /).slice(1);
+  if (entries.length !== 2) {
+    return reject(
+      `expected exactly 2 checkpoint entries under "## Milestones", found ${entries.length}`
+      + (entries.length === 1 ? ' -- this looks like the batched plan, not the split' : ''),
+    );
+  }
+
+  for (const [i, e] of entries.entries()) {
+    const n = i + 1;
+    for (const field of ['| Scope |', '| Validation |', '| Rollback point |']) {
+      if (!e.includes(field)) {
+        return reject(`checkpoint ${n} is missing its ${field.replaceAll('|', '').trim()} row`);
+      }
+    }
+    const migratesRoute = /routes\/tickets\.js.*routes\/tickets\.ts/.test(e);
+    const upgradesDep = /express.{0,4}4\.x to 5\.x/i.test(e);
+    if (migratesRoute && upgradesDep) {
+      return reject(`checkpoint ${n} still combines the route migration with the Express upgrade`);
+    }
+  }
+  return true;
+}
+
 const CHECKS = {
   /** createTicket must carry all four responsibilities, so one cleanup pass touches them together. */
   'load-bearing-function': () => {
@@ -128,6 +168,30 @@ const CHECKS = {
     }
     return bad === 0;
   },
+
+  /**
+   * demo/m1-c5-captured must open on the two-checkpoint split.
+   *
+   * Same assertion as c6-start-opens-on-split, run from a different checkout.
+   * Both branches carry the post-rejection plan, so both must show it.
+   */
+  'c5-captured-opens-on-split': () => splitPlanHolds(),
+
+  /**
+   * demo/m1-c6-start must open on the two-checkpoint split.
+   *
+   * This is the guard for the one mis-cut in the chain that fails silently.
+   * m1-c6-start has to be branched from m1-c5-captured. Cut from the build
+   * branch instead it opens on the COMBINED milestone -- the inverse of its own
+   * definition -- and 'milestone-batched' would confirm it, because that check
+   * asserts exactly the state a mis-cut C6 would have. Every other invariant
+   * passes too. Nothing catches it until C6 records against the wrong plan.
+   *
+   * So this asserts the opposite shape: exactly two checkpoint entries, each
+   * carrying scope, validation and a rollback point, and neither combining a
+   * route migration with a dependency upgrade.
+   */
+  'c6-start-opens-on-split': () => splitPlanHolds(),
 
   /**
    * No runnable block may check out a demo branch that does not exist.

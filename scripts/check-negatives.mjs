@@ -104,6 +104,77 @@ const CASES = [
  * would drag in every path it links to, so the control could not be green for the
  * right reason. A synthetic root isolates the two detectors instead.
  */
+/**
+ * Builds a plans/migration-plan.md body with the given checkpoint entries, so
+ * the split-plan guards can be exercised against shapes that do not exist in
+ * the repository yet. Each entry is [title, scope, extraRows].
+ */
+function planWith(entries) {
+  let s = "# Migration plan\n\n## Milestones\n\n";
+  for (const [title, scope, rows] of entries) {
+    s += "### " + title + "\n\n| | |\n|---|---|\n| Scope | " + scope + " |\n";
+    s += (rows === undefined ? "| Validation | `npm test` |\n| Rollback point | abc1234 |\n" : rows);
+    s += "\n";
+  }
+  return s + "## Validation checks\n\nrun the gates\n";
+}
+
+const ROUTE_ONLY = "`routes/tickets.js` to `routes/tickets.ts`";
+const DEP_ONLY = "`express` 4.x to 5.x";
+const BATCHED = ROUTE_ONLY + "; " + DEP_ONLY;
+
+const SPLIT = [
+  ["Checkpoint 1 — Migrate the route slice", ROUTE_ONLY],
+  ["Checkpoint 2 — Upgrade the platform", DEP_ONLY],
+];
+
+const SPLIT_CASES = [];
+for (const check of ["c5-captured-opens-on-split", "c6-start-opens-on-split"]) {
+  SPLIT_CASES.push(
+    {
+      check,
+      what: "the batched milestone is back — the plan was never split, or the branch was cut from the wrong parent",
+      control: { "plans/migration-plan.md": planWith(SPLIT) },
+      negative: { "plans/migration-plan.md": planWith([["Milestone 1 — Migrate and upgrade", BATCHED]]) },
+    },
+    {
+      check,
+      what: "the plan has three checkpoints, so the split did not produce the two the demo claims",
+      control: { "plans/migration-plan.md": planWith(SPLIT) },
+      negative: {
+        "plans/migration-plan.md": planWith([...SPLIT, ["Checkpoint 3 — Tidy up", "leftovers"]]),
+      },
+    },
+  );
+}
+
+// The subtle one: two entries, but the split did not actually separate the
+// concerns. Counting entries alone would pass this.
+SPLIT_CASES.push(
+  {
+    check: "c6-start-opens-on-split",
+    what: "there are two entries but one still batches the route with the dependency upgrade",
+    control: { "plans/migration-plan.md": planWith(SPLIT) },
+    negative: {
+      "plans/migration-plan.md": planWith([
+        ["Checkpoint 1 — Migrate and upgrade", BATCHED],
+        ["Checkpoint 2 — Tidy up", "leftovers"],
+      ]),
+    },
+  },
+  {
+    check: "c6-start-opens-on-split",
+    what: "a checkpoint has no rollback point, so it cannot be reverted independently",
+    control: { "plans/migration-plan.md": planWith(SPLIT) },
+    negative: {
+      "plans/migration-plan.md": planWith([
+        ["Checkpoint 1 — Migrate the route slice", ROUTE_ONLY, "| Validation | `npm test` |\n"],
+        ["Checkpoint 2 — Upgrade the platform", DEP_ONLY],
+      ]),
+    },
+  },
+);
+
 const SYNTHETIC_CASES = [
   {
     check: 'skill-tells-unique',
@@ -230,7 +301,7 @@ for (const c of CASES) {
   else pass(`${c.check}: red when ${c.what}`);
 }
 
-for (const c of SYNTHETIC_CASES) {
+for (const c of [...SYNTHETIC_CASES, ...SPLIT_CASES]) {
   const green = runCheck(c.check, buildFrom(c.control));
   // negative: null marks a case that exists to prove the check does NOT fire --
   // a false positive is a defect too, and an over-eager check gets switched off.
@@ -250,7 +321,7 @@ rmSync(TMP, { recursive: true, force: true });
 
 // A check with no case here is an unproven check. Fail rather than stay quiet.
 const listed = execFileSync(process.execPath, ['scripts/check.mjs', '--list']).toString().trim().split('\n');
-const proven = new Set([...CASES, ...SYNTHETIC_CASES].map((c) => c.check));
+const proven = new Set([...CASES, ...SYNTHETIC_CASES, ...SPLIT_CASES].map((c) => c.check));
 process.stdout.write('\n');
 for (const name of listed) {
   if (proven.has(name)) continue;
