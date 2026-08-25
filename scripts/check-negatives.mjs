@@ -33,6 +33,7 @@ const TMP = join(process.cwd(), '.check-negatives-tmp');
 const GIT_BACKED = {
   'c2-refs-identical': 'clean-clone check — the local-refs-only version failed there, as it should have',
   'no-route-migrated': 'create a throwaway supporthub-api/migration/routes/x.ts and watch it go red',
+  'demo-checkout-refs-exist': 'it found two on its first run -- the C6 evidence artifact and the C6 runbook both handed out a checkout of demo/m1-c6-start, which cannot exist until C5 is walked',
   'migration-tests-pass': 'append a failing test to supporthub-api/migration/tests/tickets.test.js and watch it go red -- done, it does',
 };
 

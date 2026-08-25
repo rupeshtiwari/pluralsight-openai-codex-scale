@@ -130,6 +130,41 @@ const CHECKS = {
   },
 
   /**
+   * No runnable block may check out a demo branch that does not exist.
+   *
+   * The C6 evidence artifact opened with 'git checkout demo/m1-c6-start' inside a
+   * bash fence, and that branch cannot exist until C5 has been walked. Following
+   * the document as written failed on its first line. A blocked checkpoint has to
+   * be described, not handed over as a command -- so this only inspects bash
+   * fences, and indented prose showing what to run *later* is deliberately fine.
+   *
+   * Reads git, so it ignores CHECK_ROOT.
+   */
+  'demo-checkout-refs-exist': () => {
+    const exists = (ref) => {
+      for (const r of [ref, `origin/${ref}`]) {
+        try {
+          if (execSync(`git rev-parse --verify -q ${r}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()) return true;
+        } catch { /* try the next form */ }
+      }
+      return false;
+    };
+    const files = execSync('git ls-files "*.md"', { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
+    let bad = 0;
+    for (const f of files) {
+      for (const fence of readFileSync(f, 'utf8').matchAll(/```bash\n([\s\S]*?)\n```/g)) {
+        for (const m of fence[1].matchAll(/git checkout\s+(demo\/[A-Za-z0-9._\/-]+)/g)) {
+          if (!exists(m[1])) {
+            process.stderr.write(`  ${f}: runnable block checks out ${m[1]}, which does not exist\n`);
+            bad += 1;
+          }
+        }
+      }
+    }
+    return bad === 0;
+  },
+
+  /**
    * The skill-off tells must stay unique to the skill.
    *
    * The toggle pre-check judges whether Codex read SKILL.md by looking for

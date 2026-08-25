@@ -99,6 +99,12 @@ check "all" "working tree clean" \
   "./module1/scripts/demo_reset.sh" \
   "Show me every uncommitted change in this repository and what produced it."
 
+check "all" "no runnable block checks out a missing branch" \
+  'node "${ROOT}/scripts/check.mjs" demo-checkout-refs-exist' \
+  "Four demo checkpoints do not exist yet and depend on walkthroughs. A runbook that hands out a checkout of one fails on its first line, in front of the camera." \
+  "Show the commands as indented prose with the dependency named, instead of a runnable bash block." \
+  "Which markdown bash blocks check out a demo branch that does not exist?"
+
 check "all" "runbook links resolve" \
   'node "${ROOT}/scripts/check.mjs" doc-links-resolve' \
   "The module READMEs are how a learner finds a runbook. Every runbook link in both of them was once written without its opening paren, so markdown rendered it as text pointing nowhere." \

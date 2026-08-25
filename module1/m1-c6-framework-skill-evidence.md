@@ -74,8 +74,12 @@ there the demo relies on context carrying forward, here the evidence relies on i
 proves nothing *directs* Codex to the skill; it cannot prove Codex does not reach for it anyway.
 Only behavior shows that.
 
+Run it from **any clean Module 1 checkpoint** — `demo/m1-c5-start` is fine, and so is the build
+branch. It deliberately does not need `demo/m1-c6-start`, which does not exist yet; a pre-check that
+depended on the blocked branch could not do its job of deciding whether to unblock it.
+
 Before investing in two full runs, start a **fresh Codex thread** and send a short migration prompt
-with **no** skill line:
+with **no** skill line. **This goes into the Codex panel, not a terminal:**
 
 ```text
 Migrate GET /tickets/:id in supporthub-api/migration to TypeScript on Express 5.
@@ -139,11 +143,24 @@ If the skill does not load unasked, the toggle works and both runs below are wor
 
 ## Reproducing
 
-```bash
-git checkout demo/m1-c6-start
-./module1/scripts/demo_reset.sh
-git status --short          # must be empty
-```
+**`demo/m1-c6-start` does not exist yet, so the two runs below cannot be performed.** Its defining
+content is the two-checkpoint split that walking C5 produces, so it has to be branched from
+`demo/m1-c5-captured`:
+
+    walk C5  ->  m1-c5-captured  ->  m1-c6-start  ->  walk C6  ->  m1-c6-captured
+
+Cutting it from anywhere else gives it the *combined* milestone, which is the inverse of the state
+C6 starts from.
+
+The toggle pre-check above does **not** need that branch. That is the point of running it first: it
+is one prompt against any clean Module 1 checkpoint, and it decides whether these two runs are worth
+setting up at all.
+
+Once `demo/m1-c6-start` exists, each run starts from it in a fresh Codex thread:
+
+    git checkout demo/m1-c6-start
+    ./module1/scripts/demo_reset.sh
+    git status --short          # must be empty
 
 Run A, capture the output verbatim below. Reset. Run B with the first line removed, capture verbatim.
 Do not edit either transcript.
