@@ -252,7 +252,7 @@ $FMT section "clip 6 - migrate one route"
 check "c6" "framework skill present" \
   '[ -f framework-skill/node-express-migration/SKILL.md ]' \
   "EO2d requires the equivalent framework skill to be available in the repository." \
-  "git checkout -- .codex/" \
+  "git checkout -- framework-skill/" \
   "The express-typescript-migration skill is missing. Restore it."
 
 check "c6" "skill-off tells still unique to the skill" \
