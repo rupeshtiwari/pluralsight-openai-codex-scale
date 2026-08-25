@@ -151,7 +151,7 @@ check "c3" "no draft is pre-approved" \
 $FMT section "clip 5 - inspect automation diffs"
 check "c5" "run-3001 patch applies" 'git apply --check automation/runs/run-3001.patch' \
   "The clip seeds its uncommitted changes with this patch; if it will not apply there is nothing to review." \
-  "git checkout -- . then re-run this check" \
+  "./module2/scripts/demo_reset.sh then re-run this check" \
   "automation/runs/run-3001.patch does not apply. Show the conflict."
 
 check "c5" "run-3001 touches exactly two files" \
@@ -169,7 +169,7 @@ check "c5" "run-3001 declares one valid and one invalid hunk" \
 $FMT section "clip 6 - trace and recover"
 check "c6" "run-3002 patch applies" 'git apply --check automation/runs/run-3002.patch' \
   "The recovery clip seeds the failed run with this patch." \
-  "git checkout -- . then re-run this check" \
+  "./module2/scripts/demo_reset.sh then re-run this check" \
   "automation/runs/run-3002.patch does not apply. Show the conflict."
 
 check "c6" "run-3002 carries work worth preserving" \
