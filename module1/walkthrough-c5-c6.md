@@ -91,6 +91,13 @@ Step 4 of the C5 runbook asks for two checkpoints by name. Codex does not always
 "later cleanup" or "platform prep" entry is the common variant. The check will correctly refuse the
 cut, so decide here rather than at the commit.
 
+**Expect the first row.** A Codex run during the build of this repository produced exactly this
+shape — platform prep, route migration, later cleanup — so a third entry is the likely outcome
+rather than the edge case. Read the table knowing that, and have the re-prompt ready before you
+start: it asks for the work as two independently validatable checkpoints, which lets Codex fold the
+cleanup into checkpoint 2 rather than arguing it away. That disposition is a correct answer, not a
+concession.
+
 | What came back | Do this |
 |---|---|
 | Exactly two, concerns separated | Proceed to step 3 |
