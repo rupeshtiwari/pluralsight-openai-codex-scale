@@ -38,10 +38,7 @@ LEARNING OBJECTIVES
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT FAIL  [all] working tree clean
-WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
-HOW TO FIX      ./module1/scripts/demo_reset.sh
-CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+RESULT PASS  [all] working tree clean
 
 $ node "${ROOT}/scripts/check.mjs" demo-checkout-refs-exist
 
@@ -225,10 +222,4 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 1    EO2d  framework skill guidance
   Clip 6 step 2-4  EO2c  validation after the milestone
 
-FAILED CHECKS
-  [all] working tree clean
-    why it matters : Every demo starts from a clean tree; leftover edits change what the diff shows.
-    how to fix     : ./module1/scripts/demo_reset.sh
-    codex prompt   : Show me every uncommitted change in this repository and what produced it.
-
-VERDICT  NOT READY - 1 check(s) failed.
+VERDICT  READY - all Module 1 demos can be run.
