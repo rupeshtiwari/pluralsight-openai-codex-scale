@@ -158,7 +158,7 @@ is visible beside the panel.
 > use the label you actually see. The prompt below carries the hard boundary regardless of which
 > control you use: it instructs Codex not to edit any files.
 
-**Prompt.** Paste exactly this. It is also saved at `prompts/m1-c2-map-noisy-modules.md`.
+**Prompt.** Paste exactly this. It is also saved at `plans/prompts/m1-c2-map-codebase.md`.
 
 ```text
 Analyze the TypeScript service in supporthub-api/modern. Do not edit any files.

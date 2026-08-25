@@ -16,7 +16,7 @@
  * docs/troubleshooting.md. Checks that shell out to git ignore CHECK_ROOT and
  * are marked below; they are proven a different way.
  */
-import { readFileSync, existsSync, globSync } from 'node:fs';
+import { readFileSync, existsSync, globSync, readdirSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { execSync } from 'node:child_process';
 
@@ -84,6 +84,13 @@ const CHECKS = {
     // relocated CHECK_ROOT that is not a git repository.
     const files = globSync('**/*.md', { cwd: ROOT })
       .filter((f) => !f.includes('node_modules') && !f.startsWith('.git/'));
+    // Top-level directories of the repository, read from the tree itself so a
+    // new one does not silently fall outside the check.
+    const TOP = new Set(
+      readdirSync(ROOT, { withFileTypes: true })
+        .filter((e) => e.isDirectory() && !e.name.startsWith('.') && e.name !== 'node_modules')
+        .map((e) => e.name),
+    );
     let bad = 0;
     for (const f of files) {
       const abs = join(ROOT, f);
@@ -104,6 +111,19 @@ const CHECKS = {
       for (const m of text.matchAll(/\[[^\]\n]*\][^(\s][^\n)]*\)/g)) {
         process.stderr.write(`  malformed link  ${f}: ${m[0].slice(0, 60)}\n`);
         bad += 1;
+      }
+      // Repository paths written in backticks rather than as links. Only those
+      // rooted at a real top-level directory are checked: the runbooks also use
+      // short forms like `utils/priority.ts` for a file inside a workspace, and
+      // those are prose, not references. Two renamed prompt files sat wrong here
+      // for weeks because a backtick path is invisible to a link checker.
+      for (const m of text.matchAll(/`([A-Za-z0-9_.@-]+(?:\/[A-Za-z0-9_.@-]+)+\.(?:ts|js|mjs|json|md|sh|txt|yml))`/g)) {
+        const rel = m[1];
+        if (!TOP.has(rel.split('/')[0])) continue;
+        if (!existsSync(join(ROOT, rel))) {
+          process.stderr.write(`  broken path  ${f} -> ${rel}\n`);
+          bad += 1;
+        }
       }
     }
     return bad === 0;

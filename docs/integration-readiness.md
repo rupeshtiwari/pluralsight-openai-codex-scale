@@ -102,8 +102,18 @@ go.
 
 ## Author preparation
 
-`scripts/verify_integrations.sh` is author preparation. **It is not narrated and does not appear on
-camera.** It is run before recording to confirm the environment.
+**There is no verification script yet.** A script at scripts/verify_integrations.sh was referenced
+here as author preparation but was never written, so anyone following this document went looking for
+a file that does not exist. Its name is written without backticks above because it is not a path in
+this repository, and writing it as one is what let the gap sit unnoticed.
+
+It is deliberately still unwritten. What it would assert depends on gate 1: until the same-thread
+scheduling behaviour is known, a script that reports "integrations ready" would be asserting on a
+contract nobody has confirmed — a false PASS on the one gate that decides Module 2's shape. Verify
+the integrations by hand against the Gate 1 results table above, and write the script once the three
+answers are recorded.
+
+Whatever replaces it is author preparation: **not narrated, and not on camera.**
 
 On camera, integration readiness is established inside Codex in compact form:
 

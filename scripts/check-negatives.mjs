@@ -106,6 +106,18 @@ const CASES = [
 const SYNTHETIC_CASES = [
   {
     check: 'doc-links-resolve',
+    what: 'a backtick path points at a renamed file — invisible to a link checker',
+    control: { 'a.md': 'see `plans/ExecPlan.md` for detail\n', 'plans/ExecPlan.md': 'x\n' },
+    negative: { 'a.md': 'see `plans/refactor-execplan.md` for detail\n', 'plans/ExecPlan.md': 'x\n' },
+  },
+  {
+    check: 'doc-links-resolve',
+    what: 'a backtick path uses a workspace short form — prose, and must NOT be flagged',
+    control: { 'a.md': 'the file `utils/priority.ts` normalizes it\n' },
+    negative: null,
+  },
+  {
+    check: 'doc-links-resolve',
     what: 'a link points at a file that does not exist — what a rename leaves behind',
     control: { 'a.md': '[ok](b.md)\n', 'b.md': 'x\n' },
     negative: { 'a.md': '[gone](m1-demo1-map-noisy-typescript-modules.md)\n' },
@@ -179,7 +191,15 @@ for (const c of CASES) {
 }
 
 for (const c of SYNTHETIC_CASES) {
-  if (runCheck(c.check, buildFrom(c.control))) pass(`${c.check}: green on a clean synthetic root`);
+  const green = runCheck(c.check, buildFrom(c.control));
+  // negative: null marks a case that exists to prove the check does NOT fire --
+  // a false positive is a defect too, and an over-eager check gets switched off.
+  if (c.negative === null) {
+    if (green) pass(`${c.check}: stays green when ${c.what}`);
+    else fail(`${c.check}: FIRED when ${c.what} — false positive`);
+    continue;
+  }
+  if (green) pass(`${c.check}: green on a clean synthetic root`);
   else fail(`${c.check}: RED on a clean synthetic root — the harness is broken, not the artifact`);
 
   if (runCheck(c.check, buildFrom(c.negative))) fail(`${c.check}: STILL GREEN when ${c.what}`);

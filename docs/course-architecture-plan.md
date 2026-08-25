@@ -322,7 +322,31 @@ Values live only in `.env.example` and are never printed.
 
 ---
 
-## 10. Release sanitization checklist
+## 10. Runbook fence convention
+
+A runbook mixes prose, commands, Codex prompts and expected output. On recording day the author
+copies from it under time pressure, so what is safe to paste has to be obvious at a glance.
+
+| Fence | Meaning | Safe to paste |
+|---|---|---|
+| ```bash | commands to run in a terminal | yes, into a shell |
+| ```text under **Prompt.** | a Codex prompt | yes, into Codex — never into a shell |
+| ```text under **Expected output.** or **Expected result.** | what you should see | no, read only |
+
+**A fenced block never holds an illustration.** Wrong output, broken markup, a before-and-after
+example — those go in prose or an indented block. A fence reads as something to run, and a line
+beginning with `>` or `|` pasted into a shell is a redirect or a syntax error, not a demonstration.
+That is not hypothetical: three junk files were created in one session that way, from output that
+was only ever meant to be read.
+
+The same rule applies to anything printed by a script. `demo_reset.sh` prints its remediation
+commands bare, without the `>` value prefix every other line carries, for exactly this reason.
+
+`scripts/check.mjs doc-links-resolve` asserts the mechanical half — that every markdown link and
+every repository-rooted path in backticks resolves. The paste-safety half is a convention, enforced
+by review.
+
+## 11. Release sanitization checklist
 
 - [ ] `.env.local` absent from history, not just working tree
 - [ ] no Sentry / Slack / Linear credential in any commit
