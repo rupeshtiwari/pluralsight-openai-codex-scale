@@ -85,6 +85,33 @@ Preflight must end `PASS: Module 1 is ready.` Then walk the demo from
 Before committing, save the two artifacts named above into `plans/captured/`. The batched plan must
 be saved *before* you have Codex split it — once it is split, the original is gone.
 
+### 2b. If the split does not come back as two
+
+Step 4 of the C5 runbook asks for two checkpoints by name. Codex does not always give two — a third
+"later cleanup" or "platform prep" entry is the common variant. The check will correctly refuse the
+cut, so decide here rather than at the commit.
+
+| What came back | Do this |
+|---|---|
+| Exactly two, concerns separated | Proceed to step 3 |
+| Three or more, where the extra is deferred cleanup with no scope of its own | Re-prompt once, asking for the work as two independently validatable checkpoints. Codex folding cleanup into checkpoint 2 is a correct answer |
+| Three or more, each naming a distinct concern | Re-prompt once. If the second attempt still returns three, **stop** |
+| Two, but one still carries the route and the upgrade together | Re-prompt once, naming what has to be separated and why. This is the split failing to separate the concerns rather than the text |
+
+**Never hand-edit the plan to make the check pass.** The committed plan is what
+`plans/captured/m1-c5-plan-split.md` claims Codex produced, and it is what C6 inherits. A hand-forced
+two-way split is a manufactured artifact — the same defect as filling the skill-off run from
+expectation, and invisible afterwards. If you re-prompt, capture the second reply, not the first.
+
+**Two attempts is the limit.** If Codex reliably returns three substantive checkpoints, the bullet
+claims something the tool does not naturally do, and forcing two on camera is theatre. That is a
+seed-and-narration question to settle before recording, not something to push through: either the
+seeded plan makes a two-way split the obvious reading, or the bullet and narration should describe
+what actually happens.
+
+Record the attempt count in `plans/captured/m1-c5-plan-split.md`. "It took two tries" is a fact
+about the demo — a demo that needs two tries off camera needs a different Step 4 prompt on it.
+
 ### 3. Cut `demo/m1-c5-captured`
 
 The walk leaves the tree dirty on `m1-c5-start`. Carry that work onto a new branch rather than
@@ -150,6 +177,15 @@ Once the branch exists, from your working clone:
 Run A sends `plans/prompts/m1-c6-migrate-route.md` as-is. Reset. Run B sends the same file with its
 first line and the blank line after it removed, and nothing else changed.
 
+**Order does not matter. Sitting does.** With a fresh thread each, nothing carries from one run into
+the other, so A-then-B and B-then-A are equally valid.
+
+**If you re-run one, re-run both.** The temptation on a second take is to redo only the run that
+looked worse. That introduces a second difference between them — a different session, a different
+day, possibly a different model build — on top of the one line the control is meant to isolate. The
+comparison would then measure that difference too, and it would flatter whichever run was redone.
+Replace both captures together, or neither.
+
 Before either run, confirm the toggle pre-check in `m1-c6-framework-skill-evidence.md` has been done
 and passed. If the skill loads unasked, these two runs cannot form a control and there is no point
 performing them.
@@ -212,7 +248,8 @@ and a changed assertion is unproven until it has been seen to fail.
 | Symptom | Cause | What to do |
 |---|---|---|
 | `c6-start-opens-on-split` reports the batched milestone | branch cut from the build branch or `main` | delete `demo/m1-c6-start` and redo step 5 from `demo/m1-c5-captured` |
-| `c5-captured-opens-on-split` reports three entries | Codex split into more than two, or an entry was added by hand | the demo claims two checkpoints; reconcile the plan with what was narrated before committing |
+| `c5-captured-opens-on-split` reports three entries | Codex split into more than two | see step 2b — re-prompt once, stop after two attempts, never hand-edit |
+| One run looks weak and you want to redo just it | model variation between sittings | re-run both or neither; see step 7 |
 | Two entries but the check still fails | one entry still carries both the route and the dependency upgrade | the split separated the text, not the concerns — this is the case the bullet exists to teach |
 | Preflight fails `working tree clean` mid-walk | expected during a walk | it is a starting-state check; run it before the walk, not during |
 | A transcript is too messy to paste | it is evidence, not a deliverable | paste it as it is |

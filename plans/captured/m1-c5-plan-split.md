@@ -9,6 +9,8 @@ hand-editing. This is the state `demo/m1-c5-captured` is committed from and the 
 - Date:
 - Checkpoint: `demo/m1-c5-captured`
 - Codex thread: same as the batched capture
+- Attempts to get two checkpoints: 
+- If more than one: what the extra checkpoint was, and what the re-prompt asked for: 
 
 ```text
 [ paste the plan verbatim ]
