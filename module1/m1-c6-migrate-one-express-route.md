@@ -151,7 +151,8 @@ implements changes.
 > Confirm the exact control in your installed Codex panel before running this demo,
 > and use the label you actually see.
 
-**Prompt.**
+**Prompt.** Saved at `plans/prompts/m1-c6-migrate-route.md`. Send that file rather than retyping
+this, so Run B can be it minus its first line and nothing else.
 
 ```text
 Read framework-skill/node-express-migration/SKILL.md and follow its guidance.
