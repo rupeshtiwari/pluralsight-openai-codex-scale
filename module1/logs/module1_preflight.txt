@@ -161,6 +161,10 @@ $ [ -f framework-skill/node-express-migration/SKILL.md ]
 
 RESULT PASS  [c6] framework skill present
 
+$ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
+
+RESULT PASS  [c6] Run A prompt saved and matching the runbook
+
 $ node "${ROOT}/scripts/check.mjs" skill-not-ambient
 
 RESULT PASS  [c6] skill is opt-in, not ambient
