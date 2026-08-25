@@ -118,6 +118,9 @@ Every bullet has an artifact and a checkpoint. Nothing is unbacked.
 
 ## Open items, stated plainly
 
+The procedure for producing all four is [module1/walkthrough-c5-c6.md](../module1/walkthrough-c5-c6.md),
+including the guard for the one mis-cut that fails silently.
+
 **`demo/m1-c6-start` does not exist.** Its defining content is the two-checkpoint split that walking
 C5 produces, so it must be branched from `demo/m1-c5-captured`. The C6 rows are backed by artifacts
 but cannot be walked until that checkpoint exists.
