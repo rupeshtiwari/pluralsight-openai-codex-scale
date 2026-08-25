@@ -161,6 +161,10 @@ $ [ -f framework-skill/node-express-migration/SKILL.md ]
 
 RESULT PASS  [c6] framework skill present
 
+$ node "${ROOT}/scripts/check.mjs" skill-tells-unique
+
+RESULT PASS  [c6] skill-off tells still unique to the skill
+
 $ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
 
 RESULT PASS  [c6] Run A prompt saved and matching the runbook
