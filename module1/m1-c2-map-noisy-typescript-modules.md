@@ -224,12 +224,15 @@ Report your findings only. Do not propose changes yet. Do not edit files.
 **Expected result.** A written analysis naming:
 
 - `services/ticketService.ts` as the largest module, with several responsibilities
-- priority normalization appearing in **three** files
+- priority normalization appearing at **three sites across two** files
 - `normalizeLegacySeverity` in `utils/legacy.ts` with **no** importers
 - priority branching inside the `POST /tickets` route handler
 
-**Highlight.** The three file paths for the duplicated logic, and the zero-importer finding. Those
-came from the repository, not from a guess.
+**Highlight.** The three sites for the duplicated logic — two of them in the same file — and the
+zero-importer finding. Those came from the repository, not from a guess.
+
+Say **sites**, not files. There are three sites in two files, and the Expected values table above
+exists because those two numbers were conflated once already.
 
 Worth saying out loud, without pointing at anything: no linter was going to give you this. A linter
 reasons inside one file, so the two dead private helpers are the most it could ever have found. The
@@ -326,7 +329,10 @@ fine; do not run tests, builds, or installs.
 possibly splitting `ticketService.ts` into several modules.
 
 **Highlight.** The file count per item. Architecture changes touch many files; the approved
-cleanup touches three. That ratio is the argument.
+cleanup touches the ones Step 2 named. That ratio is the argument.
+
+Do not say a number here. Step 2 accepts a one-file theme and a three-file theme, and a live walk
+produced the one-file shape. Read the count off the screen, or make the point without one.
 
 **Decision produced.** Architectural work is rejected for this pass — set aside, not discarded.
 
@@ -362,7 +368,7 @@ Do not implement it and do not edit files. Read-only inspection is fine; do
 not run tests, builds, or installs.
 ```
 
-**Expected result.** One theme, three files, the route and priority contracts, the commands
+**Expected result.** One theme, the files Step 2 named, the route and priority contracts, the commands
 `npm run lint`, `npm run typecheck`, and `npm test`, and the deferred architectural work listed
 separately.
 
@@ -392,14 +398,14 @@ for a single number.
 
 | Step | LO | Objective element | Proof |
 |---|---|---|---|
-| 1 | EO1a | map noisy modules, identify dead code | three duplicate sites named, zero-importer helper found |
-| 2 | EO1a | propose one cleanup theme at a time before editing | exactly one theme, three files |
+| 1 | EO1a | map noisy modules, identify dead code | three duplicate sites named, dead code and zero-importer exports found |
+| 2 | EO1a | propose one cleanup theme at a time before editing | exactly one theme, its files named |
 | 3 | TO1 | reviewable passes: unrelated work separated | architectural work named and set aside |
 | 4 | EO1d, TO1 | Plan mode used before committing to implementation | bounded plan produced, `git status` empty |
 
 ## Final state
 
 - one cleanup theme approved
-- three duplicate sites and one dead helper identified by file path
+- three duplicate sites, two dead private helpers and five unreferenced exports, identified by file path
 - architectural work explicitly deferred
 - no file edited
