@@ -351,6 +351,98 @@ const CHECKS = {
   },
 
   /**
+   * The three sections clip 3 fills in must be empty at the starting checkpoint.
+   *
+   * Step 1's whole job is writing them on camera. A leftover gate list or
+   * progress row from a previous take leaves Codex nothing to do and the step
+   * plays as a no-op, which is invisible until the recording is watched back.
+   *
+   * Validation checks is the one that was missing. It used to ship pre-filled
+   * with a gate list, so Step 1 appeared to fill a section that was already
+   * written -- and a measured run overwrote it with a different list, which is
+   * how the count drifted from the runbook in the first place.
+   */
+  'execplan-starts-unwritten': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const t = read('plans/ExecPlan.md');
+    const section = (name) => {
+      const i = t.indexOf(`## ${name}`);
+      if (i < 0) return null;
+      const j = t.indexOf('\n## ', i + 1);
+      return t.slice(i, j < 0 ? t.length : j);
+    };
+    let ok = true;
+
+    const v = section('Validation checks');
+    if (v === null) ok = reject('plans/ExecPlan.md has no "## Validation checks" section') && ok;
+    else if (!/_Not yet recorded\._/.test(v)) {
+      ok = reject('Validation checks is already written — Step 1 has nothing to record on camera') && ok;
+    } else if (/npm run |npm test/.test(v)) {
+      ok = reject('Validation checks still names commands — reset it to the unwritten placeholder') && ok;
+    }
+
+    const p = section('Progress log');
+    if (p === null || !/\|\s*not started\s*\|/.test(p)) {
+      ok = reject('Progress log is not at its empty starting row') && ok;
+    }
+
+    const d = section('Deferred work');
+    if (d === null) ok = reject('plans/ExecPlan.md has no "## Deferred work" section') && ok;
+    else {
+      const rows = [...d.matchAll(/^\|(?!\s*(?:Item|-+)\s*\|)(.+)\|\s*$/gm)]
+        .filter((m) => !/^[\s|—–-]*$/.test(m[1]));
+      if (rows.length) ok = reject(`Deferred work already has ${rows.length} row(s) — Step 4 fills it`) && ok;
+    }
+    return ok;
+  },
+
+  /**
+   * Nothing may state how many validation gates clip 3 runs.
+   *
+   * Step 1's prompt asks Codex for "the exact commands that will prove those
+   * contracts hold", so the gate list is its judgment, not a constant. A
+   * measured run recorded four -- lint, typecheck, build, test -- adding a build
+   * gate unprompted, which is correct: npm run build exists and a full tsc
+   * catches emit failures --noEmit does not surface.
+   *
+   * The runbook used to grade that answer against three, and the ExecPlan used
+   * to open on "Run all three". Both are the clip 2 defect in a new place: a
+   * number written down beside a thing the model decides. Steps 2 and 4 now run
+   * whatever the plan names, and no document states a count.
+   *
+   * Scoped to clip 3's files. Clip 6 legitimately says four, because the
+   * framework skill fixes its gate list.
+   */
+  'c3-gates-not-hardcoded': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    // Two forms. The noun-anchored one catches "three gates" and "all three
+    // gates pass". The second catches "Run all four.", where the noun is
+    // implicit -- the exact phrasing this check exists for, which slipped
+    // through the noun-anchored pattern alone until a negative case caught it.
+    //
+    // Both are deliberately narrow. A first attempt matched any count after
+    // "all", and flagged "preconditions for all four Module 1 demos" -- a fixed
+    // number that has nothing to do with gates. Counts this repository really
+    // does assert (four demos, four contract files, 25 tests, four intended
+    // changes) must not trip a check about a number Codex chooses.
+    const COUNT = /\bRun all (?:two|three|four|five|six|[2-6])\b|\b(?:two|three|four|five|six) (?:validation )?(?:gates|checks|commands)\b/i;
+    const HARDCODED_RUN = /npm run lint\s*&&\s*npm run typecheck/;
+    let ok = true;
+    for (const f of [
+      'module1/m1-c3-execute-codex-refactor.md',
+      'plans/prompts/m1-c3-bounded-cleanup.md',
+      'plans/ExecPlan.md',
+    ]) {
+      const t = read(f);
+      const c = t.match(COUNT);
+      if (c) ok = reject(`${f} states a gate count ("${c[0].trim()}") — Step 1 lets Codex choose the list`) && ok;
+      const h = t.match(HARDCODED_RUN);
+      if (h) ok = reject(`${f} hardcodes the gate command line — run what the ExecPlan names instead`) && ok;
+    }
+    return ok;
+  },
+
+  /**
    * Every workspace opened on camera must lint completely silent -- zero errors
    * AND zero warnings.
    *

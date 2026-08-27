@@ -97,6 +97,7 @@ Run these outside the recording, not in the integrated terminal.
 | Evidence | Value |
 |---|---|
 | Baseline tests | 25 passed |
+| Validation gates in the ExecPlan | whatever Step 1 records — three or four, both correct |
 | ExecPlan intended changes | 4 numbered items |
 | Progress log at start | empty |
 | Deferred work at start | empty |
@@ -151,9 +152,23 @@ Edit only plans/ExecPlan.md. Do not touch any file under supporthub-api/.
 ```
 
 **Expected result.** The Behavior contracts section names the four contract test files and the
-route, status code, field-name, and priority contracts. Validation checks lists `npm run lint`,
-`npm run typecheck`, and `npm test` — the same three gates Steps 2 and 4 verify. Both tables remain
-empty.
+route, status code, field-name, and priority contracts. Validation checks lists real scripts from
+the modern workspace. Both tables remain empty.
+
+**The gate list is Codex's answer, not a fixed one.** The prompt asks for *the exact commands that
+will prove those contracts hold*, so the set it records is a judgment and the runbook does not
+grade it against a number. A measured run recorded four — `lint`, `typecheck`, `build`, `test` —
+adding a build gate on its own initiative. That is correct: `npm run build` exists in this
+workspace, and a full `tsc` catches emit failures that `--noEmit` does not surface. Three is also
+correct. Accept either.
+
+FAIL only if a recorded command is not a real script in `supporthub-api/modern/package.json`, since
+Step 2 runs whatever this section names.
+
+**Operator action.** Read the Validation checks section aloud before moving on. Step 2 runs
+exactly what it names, so this is the moment the plan becomes executable — and if Codex recorded a
+command this workspace does not have, this is where it costs a retake instead of a failed gate on
+camera.
 
 **Highlight.** The empty Progress log and Deferred work tables. Those two are where this demo's
 evidence will land, and they are empty right now.
@@ -208,10 +223,12 @@ Do not reorganize the service architecture.
 After implementing, update the Progress log in plans/ExecPlan.md, and
 record anything you chose not to do under Deferred work.
 
-Then run: npm run lint && npm run typecheck && npm test
+Then run every command in the ExecPlan's Validation checks section.
 ```
 
-**Expected result.** Codex edits several files and reports the validation commands passing.
+**Expected result.** Codex edits several files and reports every command in Validation checks
+passing. The count is whatever Step 1 recorded — read it off the screen rather than saying a
+number.
 
 **Highlight.** `Tests  25 passed (25)`. The same 25 that passed before the change still pass after
 it — that is the behavior contract holding.
@@ -219,7 +236,8 @@ it — that is the behavior contract holding.
 **Decision produced.** The change compiles and preserves behavior. Whether all of it belongs is
 still unknown.
 
-**Verification.** PASS if lint, typecheck, and all 25 tests pass. FAIL if any test fails.
+**Verification.** PASS if every gate the ExecPlan names passes, including all 25 contract tests.
+FAIL if any gate fails, or if a gate the plan names was not run.
 
 **Recovery.** If tests fail, run `./module1/scripts/demo_reset.sh` and repeat this step. Do not
 attempt to fix a failed refactor by hand.
@@ -289,7 +307,7 @@ Then add the reverted architectural change to the Deferred work table in
 plans/ExecPlan.md as its own task, with one sentence on why it was
 deferred.
 
-Then run: npm run lint && npm run typecheck && npm test
+Then run every command in the ExecPlan's Validation checks section.
 ```
 
 **Expected result.** The extra module is gone, the cleanup remains, all 25 tests still pass, and
@@ -305,12 +323,12 @@ work table has an entry; 25 tests pass.
 
 ```bash
 git diff --stat
-npm run lint && npm run typecheck && npm test
+grep -A6 "## Validation checks" plans/ExecPlan.md   # run each command it names
 grep -A3 "## Deferred work" plans/ExecPlan.md
 ```
 
-PASS if the diff touches only the ExecPlan's intended files, all three gates pass, and Deferred
-work contains one row. FAIL if the extra module is still present, or Deferred work is empty.
+PASS if the diff touches only the ExecPlan's intended files, every gate the plan names passes, and
+Deferred work contains one row. FAIL if the extra module is still present, or Deferred work is empty.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` and restart from Step 2.
 

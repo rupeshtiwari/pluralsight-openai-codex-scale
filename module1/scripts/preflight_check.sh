@@ -216,6 +216,18 @@ check "c3" "refactor ExecPlan present" '[ -f plans/ExecPlan.md ]' \
   "git checkout -- plans/ExecPlan.md" \
   "plans/ExecPlan.md is missing. Restore it."
 
+check "c3" "ExecPlan sections Step 1 fills are unwritten" \
+  'node "${ROOT}/scripts/check.mjs" execplan-starts-unwritten' \
+  "Step 1 writes Validation checks, and Steps 2 and 4 run whatever it names. A gate list left over from a previous take leaves Codex nothing to record, and the step plays as a no-op." \
+  "git checkout -- plans/ExecPlan.md" \
+  "Which section of plans/ExecPlan.md is already written?"
+
+check "c3" "no document fixes the clip 3 gate count" \
+  'node "${ROOT}/scripts/check.mjs" c3-gates-not-hardcoded' \
+  "Step 1 asks Codex for the commands that prove the contracts, so the gate list is its judgment. A measured run recorded four, adding a build gate unprompted, against a runbook that said three." \
+  "Remove the count; Steps 2 and 4 run what the ExecPlan names." \
+  "Which document states how many gates clip 3 runs?"
+
 check "c3" "ExecPlan progress log is empty" \
   'grep -q "not started" plans/ExecPlan.md' \
   "A pre-filled progress log means a previous run was not reset." \
