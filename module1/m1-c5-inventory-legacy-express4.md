@@ -268,14 +268,36 @@ Do not implement anything. Read-only inspection is fine; do not run tests,
 builds, or installs.
 ```
 
-**Expected result.** A plan naming `supporthub-api/modern/src/compat/dirname.ts` and
-`supporthub-api/modern/src/compat/legacyRequire.ts`, distinguishing `module.exports = fn` from
-`module.exports = { ... }`, listing rollback points, and giving every compatibility shim either a
-removal checkpoint or a stated reason it is permanent.
+**Expected result.** A plan naming a real `dirname` and `legacyRequire` compat module by path,
+distinguishing `module.exports = fn` from `module.exports = { ... }`, listing rollback points, and
+giving every compatibility shim either a removal checkpoint or a stated reason it is permanent.
 
-The removal checkpoint is the half that is easy to skip. `compat/legacyRequire.ts` describes itself
-as a bridge "during the transition", and nothing in this repository schedules its removal — which is
-exactly how temporary bridging code becomes permanent architecture.
+**Either workspace's copy is correct, and the migration copy is the better answer.** The pair
+exists twice — in `supporthub-api/migration/compat/` and in `supporthub-api/modern/src/compat/`.
+Accept either, and expect the migration path, because that is the one this repository's own plan
+uses: the compatibility table in `plans/migration-plan.md` cites
+`supporthub-api/migration/compat/dirname.ts` and `supporthub-api/migration/compat/legacyRequire.ts`
+by path.
+
+They are not the same file. The two copies share their implementation and differ in their doc
+comments, and the migration copy is written for this demo:
+
+- `migration/compat/dirname.ts` opens on the service's own problem — *"This service reads its
+  configuration relative to the module's own location"* — which is the `__dirname` dependency Step 1
+  highlighted, so the inventory leads straight to it.
+- `migration/compat/legacyRequire.ts` carries the export-shape table this step's Highlight teaches,
+  `module.exports = createApp` against `module.exports = { get, create }`, and states the removal
+  rule outright: *"Every use of this bridge is migration debt. It is removed when the module it
+  reaches for has itself migrated."*
+
+The modern copies say neither of those things. If Codex cites them, accept it and ask the recovery
+question below to bring it to the migration copy.
+
+**Why the plan still needs a removal checkpoint.** The rule above is stated in a code comment, not
+scheduled anywhere. The compatibility table in `plans/migration-plan.md` has columns for the
+concern, the module and what it replaces, and no column for when the module goes away; no milestone
+mentions removing a shim. A rule nobody schedules is how temporary bridging code becomes permanent
+architecture, which is what item 4 in the prompt exists to force.
 
 **Highlight.** The two export shapes. `app.js` uses `module.exports = createApp` while
 `services/ticketService.js` uses a named bag — they convert differently, and confusing them fails
@@ -283,12 +305,13 @@ at runtime rather than at compile time.
 
 **Decision produced.** The plan is now reviewable against concrete criteria.
 
-**Verification.** PASS if the compat layer names both real files, behavioral exceptions are
-listed, each step has a rollback point, and every shim carries a removal checkpoint or a stated
+**Verification.** PASS if the compat layer names both real files by path — from either workspace —
+behavioral exceptions are listed, each step has a rollback point, and every shim carries a removal checkpoint or a stated
 reason it is permanent. FAIL if compatibility is described only in prose, or if a shim is proposed
 with no end date and no reason it has none.
 
-**Recovery.** Ask: `Which file in this repository implements the __dirname replacement?`
+**Recovery.** Ask: `Which file in this repository implements the __dirname replacement?` Two files
+do; either answer is right.
 
 ---
 
