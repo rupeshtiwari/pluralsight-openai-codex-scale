@@ -38,11 +38,18 @@ LEARNING OBJECTIVES
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT PASS  [all] working tree clean
+RESULT FAIL  [all] working tree clean
+WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
+HOW TO FIX      ./module1/scripts/demo_reset.sh
+CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
 
 $ node "${ROOT}/scripts/check.mjs" eslint-tsconfigrootdir-set
 
 RESULT PASS  [all] ESLint parser root pinned in both workspaces
+
+$ node "${ROOT}/scripts/check.mjs" workspace-lint-silent
+
+RESULT PASS  [all] no workspace shows a lint badge
 
 $ node "${ROOT}/scripts/check.mjs" prompts-allow-read-only-inspection
 
@@ -76,13 +83,6 @@ $ npm run lint
 
 > @supporthub/api@1.0.0 lint
 > eslint src tests
-
-
-./supporthub-api/modern/src/services/ticketService.ts
-  70:10  warning  'toPriority' is defined but never used         @typescript-eslint/no-unused-vars
-  98:10  warning  'validateNewTicket' is defined but never used  @typescript-eslint/no-unused-vars
-
-✖ 2 problems (0 errors, 2 warnings)
 RESULT PASS  [all] ESLint
 
 $ npm run typecheck
@@ -126,8 +126,7 @@ $ [ "$(grep -c "value === 'p0'" supporthub-api/modern/src/routes/tickets.ts)" -e
 RESULT PASS  [c2] the route does not normalize priority
 
 $ node "${ROOT}/scripts/check.mjs" c2-refs-identical
-  note: local demo/m1-c2-start is stale (d240dde vs origin db898a5)
-  note: git fetch origin && git branch -f demo/m1-c2-start origin/demo/m1-c2-start
+
 RESULT PASS  [c2] start and captured checkpoints are the same commit
 
 $ [ -f plans/prompts/m1-c2-map-codebase.md ]
@@ -243,4 +242,10 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 1    EO2d  framework skill guidance
   Clip 6 step 2-4  EO2c  validation after the milestone
 
-VERDICT  READY - all Module 1 demos can be run.
+FAILED CHECKS
+  [all] working tree clean
+    why it matters : Every demo starts from a clean tree; leftover edits change what the diff shows.
+    how to fix     : ./module1/scripts/demo_reset.sh
+    codex prompt   : Show me every uncommitted change in this repository and what produced it.
+
+VERDICT  NOT READY - 1 check(s) failed.

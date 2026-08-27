@@ -105,6 +105,12 @@ check "all" "ESLint parser root pinned in both workspaces" \
   "Set parserOptions.tsconfigRootDir in the config the check names: import.meta.dirname in modern, __dirname in migration." \
   "Which ESLint config is missing parserOptions.tsconfigRootDir?"
 
+check "all" "no workspace shows a lint badge" \
+  'node "${ROOT}/scripts/check.mjs" workspace-lint-silent' \
+  "Section 12: nothing unexplained shows a badge on camera, and a warning badge is an error badge in a friendlier colour. Clip 2 held a yellow badge on ticketService.ts for six minutes from two no-unused-vars warnings on the seeded dead helpers." \
+  "Fix the finding it names. If the code is right for the demo, suppress the rule in the workspace eslint.config.js -- never with an eslint-disable in a file that opens on camera." \
+  "Which file and line is ESLint reporting, and is that code deliberate?"
+
 check "all" "no prompt bans commands outright" \
   'node "${ROOT}/scripts/check.mjs" prompts-allow-read-only-inspection' \
   "Clip 2 Step 1 said \"do not run any commands\" to stop tests and installs. Codex read it as covering reading too and refused to inspect the repository, which is the whole step. A prompt has to forbid writes and permit reads separately." \
