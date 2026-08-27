@@ -16,7 +16,7 @@
  * docs/troubleshooting.md. Checks that shell out to git ignore CHECK_ROOT and
  * are marked below; they are proven a different way.
  */
-import { readFileSync, existsSync, globSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, globSync, readdirSync, unlinkSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { execSync } from 'node:child_process';
 
@@ -167,6 +167,47 @@ const CHECKS = {
       }
     }
     return bad === 0;
+  },
+
+  /**
+   * The 25 contract tests must pass. Counted from JSON, not from the summary line.
+   *
+   * This asserted on vitest's formatted output -- a literal grep for
+   * "Tests  25 passed (25)", including its two spaces. It matched on Linux with a
+   * piped stdout and failed on macOS while the very same tests passed when run by
+   * hand a moment earlier, because the rendered line is not the same bytes in
+   * every environment: colour codes, terminal width and reporter defaults all
+   * move it.
+   *
+   * Instance 8's rule, a second time: never assert on a tool's default output
+   * format. The JSON reporter is a contract; the pretty summary is a rendering.
+   */
+  'contract-tests-pass': () => {
+    // Absolute, because vitest resolves outputFile against its own cwd while the
+    // read below resolves against the repo root. A relative path silently lands
+    // in supporthub-api/modern/supporthub-api/modern/.
+    const dir = resolve(ROOT, 'supporthub-api/modern');
+    const out = resolve(dir, '.vitest-check.json');
+    try {
+      execSync(`npx vitest run --reporter=json --outputFile=${JSON.stringify(out)}`, {
+        cwd: dir,
+        stdio: ['ignore', 'ignore', 'ignore'],
+      });
+    } catch { /* a failing suite still writes the file; read it and report properly */ }
+    let r;
+    try { r = JSON.parse(readFileSync(out, 'utf8')); }
+    catch { process.stderr.write('  vitest produced no JSON report — the run did not start\n'); return false; }
+    finally { try { unlinkSync(out); } catch { /* nothing to clean up */ } }
+
+    if (r.numFailedTests > 0) {
+      process.stderr.write(`  ${r.numFailedTests} contract test(s) failing\n`);
+      return false;
+    }
+    if (r.numPassedTests !== 25) {
+      process.stderr.write(`  ${r.numPassedTests} contract tests passed, expected 25 — a test was added or removed\n`);
+      return false;
+    }
+    return true;
   },
 
   /**

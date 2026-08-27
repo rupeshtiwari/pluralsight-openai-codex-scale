@@ -226,7 +226,9 @@ appeared often enough to be predictable rather than unlucky:
 
 | 8 | `migration tests pass (expect 8)` failed | the 8 tests passed. The check grepped for `# pass 8`, which Node prints under the tap reporter; Node 23 made **spec** the default, and it prints `i pass 8` | false FAIL | running the preflight on macOS with Node 24 — the version the course targets. It passed on the Node 22 in the build container |
 
-Five of the eight are false passes, and that asymmetry is the point. **A false FAIL costs a take. A
+| 9 | `contract tests (expect 25)` failed | the 25 tests passed. The check grepped for the literal `Tests  25 passed (25)`, including its two spaces. That is a rendering, not a contract: colour codes, terminal width and reporter defaults all move it, so it matched on Linux and failed on macOS | false FAIL | running the preflight on the recording machine seconds after `npm test` passed by hand |
+
+Five of the nine are false passes, and that asymmetry is the point. **A false FAIL costs a take. A
 false PASS costs a re-record**, because the demo proceeds on an assertion that was never true — and
 you keep trusting it right up to the moment the camera is on.
 
@@ -257,6 +259,11 @@ restructure that is correct in itself can still move the text a check anchors on
 
 Instance 6 is worth reading twice: the check that certifies readiness was itself creating the one
 change that would appear on camera. Verifying tooling is not exempt from the thing it verifies.
+
+Instances 8 and 9 are the same mistake in two tools -- Node's test runner and vitest -- found a day
+apart. Both greps read fine and both were wrong, which is why the rule is stated as an absolute:
+**never assert on a tool's default output format.** Where a machine-readable form exists, use it;
+vitest and Node both offer one. The pretty summary is for humans and is allowed to change.
 
 Instance 8 is the version-dependent variant of instance 1: green on the machine it was written on, red on the
 machine it was written *for*. **Never assert on a tool's default output format.** Defaults change
