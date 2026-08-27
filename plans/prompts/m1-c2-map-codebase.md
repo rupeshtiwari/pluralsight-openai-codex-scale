@@ -5,7 +5,11 @@ Two prompts, used in order. Neither may produce edits.
 ## Step 1 — Map the code
 
 ```text
-Analyze the TypeScript service in supporthub-api/modern. Do not edit any files.
+Analyze the TypeScript service in supporthub-api/modern.
+
+Read the repository freely with read-only commands such as ls, find, rg, sed
+and cat. Do not edit any files, and do not run tests, builds, installs, or any
+command that writes to the working tree.
 
 Produce:
 1. A map of the modules under supporthub-api/modern/src, and which module depends on which.
@@ -28,7 +32,9 @@ From those findings, propose exactly ONE bounded cleanup theme that:
 State the theme in one sentence, then list the exact files it would change.
 
 Propose one theme only. Do not propose architectural restructuring, new
-abstractions, layers, or directories. Do not edit files.
+abstractions, layers, or directories.
+Do not edit files. Read-only inspection is fine; do not run tests, builds,
+or installs.
 ```
 
 ## Step 3 — Surface what is out of scope
@@ -39,7 +45,9 @@ remove duplication: new layers, new abstractions, moved persistence boundaries,
 or reorganized directories.
 
 For each one, state how many files it would touch and why it is not part of a
-duplication cleanup. Do not implement any of them.
+duplication cleanup.
+Do not implement any of them and do not edit files. Read-only inspection is
+fine; do not run tests, builds, or installs.
 ```
 
 ## Step 4 — Close the pass
@@ -53,7 +61,8 @@ Summarize this pass as a reviewable plan:
 - the commands that will prove those contracts still hold
 - what you identified but deliberately deferred
 
-Do not implement it.
+Do not implement it and do not edit files. Read-only inspection is fine; do
+not run tests, builds, or installs.
 ```
 
 ## Expected shape of a good response

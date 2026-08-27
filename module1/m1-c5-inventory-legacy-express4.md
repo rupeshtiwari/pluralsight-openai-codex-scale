@@ -186,7 +186,10 @@ workflow rather than one that applies changes.
 
 ```text
 Inventory the legacy service in supporthub-api/migration.
-Do not edit any files and do not run any commands - read and report only.
+
+Read the repository freely with read-only commands such as ls, find, rg, sed
+and cat. Do not edit any files, and do not run tests, builds, installs, or any
+command that writes to the working tree.
 
 Cover all six categories separately, with file paths:
 1. Express routes - every path, method, status codes, and middleware each one runs
@@ -244,7 +247,8 @@ Base the compatibility layer on code that already exists in this repository.
 Do not read or apply any framework skill, migration playbook, or external
 guidance - plan from the inventory and the code alone.
 
-Do not implement anything and do not run any commands.
+Do not implement anything. Read-only inspection is fine; do not run tests,
+builds, or installs.
 ```
 
 **Expected result.** A plan naming `supporthub-api/modern/src/compat/dirname.ts` and
@@ -287,7 +291,8 @@ Each milestone must:
 List them in order. For each, give the files it touches, the command that
 validates it, and the commit it rolls back to.
 
-Do not implement anything and do not run any commands.
+Do not implement anything. Read-only inspection is fine; do not run tests,
+builds, or installs.
 ```
 
 **Expected result.** A short ordered list, typically three to five milestones, covering the route
@@ -322,7 +327,7 @@ planning stage must end with the code untouched.
 For each milestone, state whether it changes application code, upgrades a
 dependency, or both. Flag any that answers "both".
 
-Do not run any commands.
+Read-only inspection is fine; do not run tests, builds, or installs.
 ```
 
 **Expected result.** At least one milestone combines migrating a route with upgrading Express 4 to
@@ -345,7 +350,7 @@ the exact commit to roll back to, and the external contract it must not change.
 
 Record both in plans/migration-plan.md under Milestones, replacing the entry you
 flagged. Milestones and checkpoints are one list — do not add a second
-section. Change no other file, and do not run any commands.
+section. Change no other file, and do not run tests, builds, or installs.
 ```
 
 **Highlight.** Each checkpoint now answers "code or dependency" with one answer, not both.

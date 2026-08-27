@@ -212,6 +212,24 @@ check "c5" "milestone batches" 'node "${ROOT}/scripts/check.mjs" milestone-batch
 `scripts/check.mjs` holds the named invariants; `scripts/json.mjs` holds the JSON queries. Both exit
 0 or 1 and say what broke.
 
+## An over-broad prompt constraint
+
+**Codex declines a read-only analysis step, saying it cannot inspect the repository.**
+The prompt banned commands outright. The reply is the tell:
+
+  I can't produce reliable findings from the current context alone. Because you explicitly said
+  do not run any commands and do not edit files, I won't inspect the repo via shell.
+
+Nothing is wrong with the model or the repository. The constraint was written to stop `npm test`
+and caught `ls` and `rg` with it. Fix the prompt, not the run: forbid writes by name — edits,
+tests, builds, installs — and grant reads out loud. Section 11 of `docs/course-architecture-plan.md`
+carries the wording, and `node scripts/check.mjs prompts-allow-read-only-inspection` names any
+prompt that still bans commands outright or any read-only clip that no longer grants reads.
+
+The general shape: **a constraint written against one behaviour will be read against its whole
+category.** Name the property you are protecting — the tree stays clean, the clip stays short —
+rather than the nearest mechanism that would have prevented the thing you saw.
+
 ## Prove the negative case
 
 **A new assertion is not trusted until it has been observed to fail on the condition it exists to
