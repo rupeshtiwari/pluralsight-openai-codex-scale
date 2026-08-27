@@ -141,7 +141,7 @@ check "all" "build" "npm run build" \
   "npm run build fails but typecheck passes. Explain the difference and fix it."
 
 check "all" "contract tests (expect 25)" \
-  '[ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]' \
+  'node "${ROOT}/scripts/check.mjs" contract-tests-pass' \
   "The 25 contract tests are the behavior contract the refactor must preserve." \
   "npm install then npm test; if a test genuinely changed, update the runbook expectations" \
   "npm test does not report 25 passing tests. Show which test changed and why."

@@ -11,3 +11,6 @@ coverage/
 
 # throwaway CHECK_ROOT built by scripts/check-negatives.mjs
 .check-negatives-tmp/
+
+# transient vitest JSON report written by scripts/check.mjs contract-tests-pass
+.vitest-check.json
