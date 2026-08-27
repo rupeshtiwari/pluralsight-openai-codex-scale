@@ -397,6 +397,67 @@ const CHECKS = {
   },
 
   /**
+   * Clip 3's implementation prompt may not forbid the drift clip 3 exists to catch.
+   *
+   * Step 2's prompt carried three suppressors: "Implement ONLY the approved
+   * cleanup theme", "Do not introduce a repository layer, a new directory, or
+   * any new abstraction", and "Do not reorganize the service architecture".
+   * Step 4's title is "Remove the architecture migration Codex bundled into the
+   * cleanup diff". The prompt forbade in Step 2 exactly what Step 4 depends on
+   * finding, and a measured run did what it was told: three files, all inside
+   * the theme, with Codex reporting "No route files were changed."
+   *
+   * This is the clip 5 failure in a second place. There, a skill reference made
+   * Codex plan by the rule Step 4 needed it to break. Here, a prohibition made
+   * Codex behave the way Step 4 needed it to misbehave. A demo cannot instruct
+   * against the thing it is about to teach you to catch.
+   *
+   * Two halves. The first bans structural prohibitions, which suppress the
+   * drift. The second requires the behavioral contract to survive, because that
+   * one must stay: it is EO1c's preservation half, and unlike the structural
+   * bans it does not stop an agent from over-reaching -- a new repository module
+   * changes no route path, status code or field name, which is precisely why
+   * tests alone cannot catch it.
+   */
+  'c3-prompt-does-not-preempt-removal': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const BANS = [
+      /do not (?:introduce|add|create)\b[^\n]*\b(?:repository|abstraction|layer|directory|module)/i,
+      /do not (?:reorganize|restructure)\b/i,
+      /\bimplement only\b/i,
+      /do not (?:change|touch|alter) the (?:service )?architecture/i,
+    ];
+    const KEEP = /Do not change any route path, HTTP status code, or response field name/;
+
+    let ok = true;
+    for (const f of [
+      'module1/m1-c3-execute-codex-refactor.md',
+      'plans/prompts/m1-c3-bounded-cleanup.md',
+    ]) {
+      const t = read(f);
+      // The implementation prompt only. Step 3's fallback deliberately asks for
+      // an extraction, and the prose around both explains the rule -- neither is
+      // an instruction to Codex, and neither may trip this.
+      const prompts = [...t.matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
+      const impl = prompts.find((b) => /Implement\b[^\n]*approved cleanup theme/i.test(b));
+      if (!impl) {
+        ok = reject(`${f}: no implementation prompt found — the runbook shape changed`) && ok;
+        continue;
+      }
+      for (const re of BANS) {
+        const m = impl.match(re);
+        if (m) {
+          ok = reject(`${f}: the implementation prompt forbids structural work ("${m[0].trim()}") — Step 4 has nothing left to remove`) && ok;
+        }
+      }
+      if (!KEEP.test(impl)) {
+        ok = reject(`${f}: the implementation prompt lost the behavioral contract — Step 3 needs a diff that preserves behavior while exceeding scope`) && ok;
+      }
+    }
+    return ok;
+  },
+
+  /**
    * Nothing may state how many validation gates clip 3 runs.
    *
    * Step 1's prompt asks Codex for "the exact commands that will prove those
