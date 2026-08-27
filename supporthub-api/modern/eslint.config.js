@@ -8,6 +8,14 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',
+      parserOptions: {
+        // Set explicitly because this repository holds two sibling TypeScript
+        // workspaces. The CLI infers a root from its working directory, but the
+        // VS Code ESLint extension scans from the repository root, finds both
+        // candidates, and refuses to guess -- putting a parsing error badge on
+        // every open .ts tab while the command line stays green.
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     rules: {
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],

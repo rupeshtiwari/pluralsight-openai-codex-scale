@@ -99,6 +99,12 @@ check "all" "working tree clean" \
   "./module1/scripts/demo_reset.sh" \
   "Show me every uncommitted change in this repository and what produced it."
 
+check "all" "ESLint parser root pinned in both workspaces" \
+  'node "${ROOT}/scripts/check.mjs" eslint-tsconfigrootdir-set' \
+  "Two sibling TypeScript workspaces mean an editor cannot infer the parser root. Unpinned, the VS Code ESLint extension puts a parsing-error badge on every open .ts tab while the command line stays green -- and clip 2 closes by proving nothing is wrong." \
+  "Set parserOptions.tsconfigRootDir in the config the check names: import.meta.dirname in modern, __dirname in migration." \
+  "Which ESLint config is missing parserOptions.tsconfigRootDir?"
+
 check "all" "runbooks match the approved outline" \
   'node "${ROOT}/scripts/check.mjs" clip-outline-alignment' \
   "The outline is the contract Curriculum approved. A step heading shortened for readability reads fine on its own while dropping scope the outline promised -- two did, and one of those carried EO2d's framework-skill substitution." \
