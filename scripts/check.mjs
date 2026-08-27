@@ -351,6 +351,52 @@ const CHECKS = {
   },
 
   /**
+   * Every workspace opened on camera must lint completely silent -- zero errors
+   * AND zero warnings.
+   *
+   * Section 12 of docs/course-architecture-plan.md is the rule; this measures
+   * it. An error badge says a tool could not do its job. A warning badge is an
+   * error badge in a friendlier colour: unexplained on screen, it reads as a
+   * defect in the thing being taught, and clip 2's whole closing argument is
+   * that nothing is wrong and nothing was touched.
+   *
+   * Clip 2 carried two: @typescript-eslint/no-unused-vars on the seeded dead
+   * helpers toPriority and validateNewTicket, yellow on ticketService.ts for the
+   * full six minutes. Fixed in supporthub-api/modern/eslint.config.js by turning
+   * the rule off to match "noUnusedLocals": false in the tsconfig beside it --
+   * not with an eslint-disable in the source, which would have annotated the
+   * finding Codex is meant to make. c2-seed-shape guards that half.
+   *
+   * Counted from --format json rather than from the printed summary. Instance 8's
+   * rule: never assert on a tool's default output format. Needs the real
+   * node_modules, so it ignores CHECK_ROOT and is proven by hand.
+   */
+  'workspace-lint-silent': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    let ok = true;
+    for (const ws of ['supporthub-api/modern', 'supporthub-api/migration']) {
+      const cwd = resolve(ROOT, ws);
+      let out;
+      try {
+        out = execSync('npx eslint . --format json', { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      } catch (err) {
+        // eslint exits non-zero on errors and still writes the report to stdout.
+        out = err.stdout || '';
+      }
+      let r;
+      try { r = JSON.parse(out); }
+      catch { ok = reject(`${ws}: eslint produced no JSON report — the run did not start`) && ok; continue; }
+      for (const f of r) {
+        for (const m of f.messages) {
+          const where = f.filePath.replace(`${cwd}/`, '');
+          ok = reject(`${ws}: ${m.severity === 2 ? 'error' : 'warning'} at ${where}:${m.line} — ${m.ruleId}: ${m.message}`) && ok;
+        }
+      }
+    }
+    return ok;
+  },
+
+  /**
    * No prompt may ban commands outright, and the read-only demos must grant
    * inspection out loud.
    *

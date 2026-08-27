@@ -137,19 +137,20 @@ listed them as unreferenced *exports*, which is a different finding and a catego
 unreferenced exports, Codex correctly does not name them. They are dead code, and Step 1's prompt
 asks for dead-code candidates, so they may still appear under that heading.
 
-**`ticketService.ts` carries a yellow badge for the whole clip, and that is deliberate.** ESLint
-reports `toPriority` and `validateNewTicket` as unused — two warnings, no errors. Do not suppress
-them. Section 12 of `docs/course-architecture-plan.md` covers why: those helpers being unused is
-the finding Step 1 asks Codex to make, so an `eslint-disable` would write the answer into the file
-on screen and hide the only independent corroboration the demo has. `c2-seed-shape` fails if a
-suppression comment appears.
+**The `ticketService.ts` tab must be completely clean — no badge of any colour.** ESLint used to
+report `toPriority` and `validateNewTicket` as unused and hold a yellow warning badge on the tab
+for the whole clip. `@typescript-eslint/no-unused-vars` is now off in
+`supporthub-api/modern/eslint.config.js`, matching `"noUnusedLocals": false` in the tsconfig beside
+it, and the workspace lints with zero errors and zero warnings.
 
-Narrate the badge in Step 1 rather than working around it. The editor sees two dead helpers inside
-the file it has open; Codex names five unreferenced exports it cannot flag, because an export is
-used-in-principle until something proves otherwise. Two of seven against seven of seven is the
-argument for the clip.
+**The suppression is in the config, never in the source, and that distinction matters here.** An
+`eslint-disable` comment would sit two lines above `toPriority` and announce that it is unused —
+in the exact file the learner is watching Codex analyse, giving away the finding Step 1 exists to
+produce. `c2-seed-shape` fails if an `eslint-disable` ever appears in `ticketService.ts`, and
+`workspace-lint-silent` fails if any badge comes back.
 
-The count is fixed at two. A third warning is unexplained and gets fixed before recording.
+Neither change touches the seed. The two helpers are still dead, still private, still what Step 1
+asks Codex to find — the editor has simply stopped commenting on them.
 
 `scripts/check.mjs c2-seed-shape` asserts all three counts against the code, so this table cannot
 drift from the repository again.
@@ -230,9 +231,10 @@ Report your findings only. Do not propose changes yet. Do not edit files.
 **Highlight.** The three file paths for the duplicated logic, and the zero-importer finding. Those
 came from the repository, not from a guess.
 
-Then the badge on the `ticketService.ts` tab: the editor found two of these on its own, and stops
-there, because it only reasons inside one file. The cross-module findings are the ones no linter
-was going to give you.
+Worth saying out loud, without pointing at anything: no linter was going to give you this. A linter
+reasons inside one file, so the two dead private helpers are the most it could ever have found. The
+five unreferenced exports need the whole workspace, because an export is used-in-principle until
+something proves otherwise — and proving otherwise means reading every module that could import it.
 
 **Decision produced.** You know what is wrong, in named files, having changed nothing.
 

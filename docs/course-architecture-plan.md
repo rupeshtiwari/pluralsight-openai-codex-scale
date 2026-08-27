@@ -403,26 +403,32 @@ Errors and warnings are not the same problem, and the rule is not the same for b
 demos is about broken tooling, so an error is always noise, always distracting, and always fixed
 before the camera runs.
 
-**A warning badge is acceptable only when the demo teaches it and the narration names it.**
-Otherwise it is an error badge with a friendlier colour — unexplained, and read as a defect just
-the same.
+**A warning badge is an error badge in a friendlier colour.** Yellow does not read as "this is
+fine" to someone watching a screen for six minutes; it reads as something wrong that nobody
+mentioned. Every workspace opened on camera lints completely silent — **zero errors and zero
+warnings** — and `scripts/check.mjs workspace-lint-silent` measures exactly that, counted from
+`--format json` rather than from a printed summary.
 
-Clip 2 is the case that forced the distinction. Its seed leaves `toPriority` and
-`validateNewTicket` dead in `ticketService.ts`, and `@typescript-eslint/no-unused-vars` reports
-both, putting a yellow badge on the tab for the whole clip. The tempting fix is an
-`eslint-disable` comment on the seed. **Do not add one.** Those two helpers being unused is the
-finding Step 1 asks Codex to make; annotating them as known-dead both writes the answer into the
-file the learner is watching and hides the one piece of independent corroboration the demo has.
+Clip 2 is the case that forced the rule. Its seed leaves `toPriority` and `validateNewTicket` dead
+in `ticketService.ts`, and `@typescript-eslint/no-unused-vars` reported both, holding a yellow
+badge on the tab for the entire clip.
 
-Narrate it instead, because it is the better beat: the editor finds the two dead helpers inside
-the file it can see, and Codex finds five unreferenced exports the editor cannot flag, because an
-export is used-in-principle until something proves otherwise. Two of seven from the linter, seven
-of seven from the agent — that gap is the argument for the whole clip, and the yellow badge is the
-evidence for it. The seed keeps no suppression comment, asserted by
-`scripts/check.mjs c2-seed-shape`.
+**Where the suppression lives is the whole question.** The obvious fix is an `eslint-disable`
+comment above the seed, and it is the wrong one: that comment sits two lines above `toPriority`
+and says *this is unused* in the exact file the learner is watching Codex analyse. It gives away
+the finding Step 1 exists to produce. Nothing in `src/` may be annotated —
+`scripts/check.mjs c2-seed-shape` fails if an `eslint-disable` appears in the source.
 
-The warning count is fixed at two, both from the seed. Any third warning is unexplained by
-definition and gets fixed before recording.
+The rule is turned off in `supporthub-api/modern/eslint.config.js` instead, matching
+`"noUnusedLocals": false` in the tsconfig beside it. That is not a workaround bolted on for the
+camera: a workspace that deliberately carries dead code as a teaching seed should not run a rule
+that flags it, and the typechecker was already configured that way. Off workspace-wide rather than
+scoped to `ticketService.ts`, because a file-scoped exemption naming that one file is itself a
+pointer to the seed.
+
+**The generalisation.** When a tool is right about the code but the code is right for the demo,
+suppress it in configuration, never in the file on screen. Configuration is not on camera; source
+is.
 
 This is not covered by the preflight, and cannot be: the preflight runs command-line tools, and the
 badge comes from an editor extension that resolves configuration differently.
