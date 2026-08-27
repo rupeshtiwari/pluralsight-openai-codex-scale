@@ -403,7 +403,7 @@ const CHECKS = {
    * contracts hold", so the gate list is its judgment, not a constant. A
    * measured run recorded four -- lint, typecheck, build, test -- adding a build
    * gate unprompted, which is correct: npm run build exists and a full tsc
-   * catches emit failures --noEmit does not surface.
+   * writes output, so it can fail where a type-check-only run passes.
    *
    * The runbook used to grade that answer against three, and the ExecPlan used
    * to open on "Run all three". Both are the clip 2 defect in a new place: a

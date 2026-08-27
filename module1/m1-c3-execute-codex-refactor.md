@@ -159,8 +159,8 @@ the modern workspace. Both tables remain empty.
 will prove those contracts hold*, so the set it records is a judgment and the runbook does not
 grade it against a number. A measured run recorded four — `lint`, `typecheck`, `build`, `test` —
 adding a build gate on its own initiative. That is correct: `npm run build` exists in this
-workspace, and a full `tsc` catches emit failures that `--noEmit` does not surface. Three is also
-correct. Accept either.
+workspace, and a full `tsc` writes output, so it can fail where a type-check-only run passes.
+Three is also correct. Accept either.
 
 FAIL only if a recorded command is not a real script in `supporthub-api/modern/package.json`, since
 Step 2 runs whatever this section names.
