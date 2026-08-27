@@ -93,7 +93,7 @@ $ npm run build
 > tsc -p tsconfig.json
 RESULT PASS  [all] build
 
-$ [ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]
+$ node "${ROOT}/scripts/check.mjs" contract-tests-pass
 
 RESULT PASS  [all] contract tests (expect 25)
 
