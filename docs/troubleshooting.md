@@ -53,6 +53,13 @@ node -e 'const k=Object.keys(require("./package-lock.json").packages);
 All three must print `true`. A lockfile generated in a Linux container without this step pins only
 `rollup-linux-x64-gnu`, and every macOS learner hits the error above on first run.
 
+**VS Code shows a parsing error on a .ts tab while `npm run lint` passes.**
+The editor extension scans from the repository root and finds two candidate TypeScript roots -- the
+modern and migration workspaces -- and refuses to guess. Both configs pin `tsconfigRootDir` to their
+own directory to resolve it. If the badge returns, run `node scripts/check.mjs
+eslint-tsconfigrootdir-set`; it names which config lost the setting. Reload the ESLint server after
+pulling a config change: Command Palette, `ESLint: Restart ESLint Server`.
+
 ## Validation gates
 
 **`npm run typecheck` fails on `req.params`.**

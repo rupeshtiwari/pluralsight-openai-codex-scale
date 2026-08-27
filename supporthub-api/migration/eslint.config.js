@@ -27,6 +27,12 @@ module.exports = tseslint.config(
   {
     files: ['**/*.ts'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    languageOptions: { ecmaVersion: 2023, sourceType: 'module' },
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: 'module',
+      // Same reason as the modern workspace: two sibling TypeScript roots under
+      // one repository, so the parser root cannot be inferred by an editor.
+      parserOptions: { tsconfigRootDir: __dirname },
+    },
   },
 );

@@ -170,6 +170,45 @@ const CHECKS = {
   },
 
   /**
+   * Both ESLint configs must pin tsconfigRootDir to their own directory.
+   *
+   * The repository holds two sibling TypeScript workspaces. The CLI infers a
+   * parser root from its working directory, so 'npm run lint' passes either way
+   * -- but the VS Code ESLint extension scans from the repository root, finds two
+   * candidate roots, and refuses to guess. The result is a parsing-error badge on
+   * every open .ts tab while every command line says PASS.
+   *
+   * That badge is a recording defect, not a code defect. Clip 2's closing proof is
+   * that nothing is wrong and nothing was touched; a red tab through the whole
+   * demo argues the opposite, and a learner cloning the repository sees it too.
+   *
+   * The value must be a self-relative expression, never a literal path: a
+   * hardcoded root works on the machine it was written on and breaks for everyone
+   * else, which is the same defect wearing a different hat.
+   */
+  'eslint-tsconfigrootdir-set': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const WANT = {
+      'supporthub-api/modern/eslint.config.js': 'import.meta.dirname',
+      'supporthub-api/migration/eslint.config.js': '__dirname',
+    };
+    let ok = true;
+    for (const [file, expr] of Object.entries(WANT)) {
+      const src = read(file);
+      const m = src.match(/tsconfigRootDir\s*:\s*([^,\n}]+)/);
+      if (!m) {
+        ok = reject(`${file} does not set parserOptions.tsconfigRootDir`) && ok;
+        continue;
+      }
+      const value = m[1].trim();
+      if (value !== expr) {
+        ok = reject(`${file} sets tsconfigRootDir to ${value}, expected ${expr}`) && ok;
+      }
+    }
+    return ok;
+  },
+
+  /**
    * The 25 contract tests must pass. Counted from JSON, not from the summary line.
    *
    * This asserted on vitest's formatted output -- a literal grep for

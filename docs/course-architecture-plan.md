@@ -352,7 +352,32 @@ commands bare, without the `>` value prefix every other line carries, for exactl
 every repository-rooted path in backticks resolves. The paste-safety half is a convention, enforced
 by review.
 
-## 11. Release sanitization checklist
+## 12. Nothing may show an error badge on camera
+
+**Before recording, open every file the demo opens and confirm the tab carries no error or warning
+badge.** A badge the narration does not explain reads as a defect in the thing being taught, and in
+a course about reviewable change it argues against the entire point.
+
+This is not covered by the preflight, and cannot be: the preflight runs command-line tools, and the
+badge comes from an editor extension that resolves configuration differently.
+
+The case that produced this rule: the VS Code ESLint extension put a parsing error on every open
+`.ts` tab, reporting that it could not choose between two candidate TypeScript roots, while
+`npm run lint` passed and the preflight reported `ESLint: PASS`. The badge would have sat on
+`ticketService.ts` for the whole of clip 2 — a demo whose closing proof is that nothing is wrong and
+nothing was touched. Fixed by pinning `tsconfigRootDir` in both workspace configs, and asserted by
+`scripts/check.mjs eslint-tsconfigrootdir-set`.
+
+The general shape is worth keeping in mind: **the command line and the editor resolve configuration
+differently.** A tool passing in the terminal says nothing about what the editor shows, and the
+editor is what the learner sees. Where a fix exists, pin the setting so both agree. Where it does
+not, resolve the badge before recording or explain it in the narration — never leave it unexplained
+on screen.
+
+Also check, in the same pass: no unsaved-file dots, no source-control decorations on unrelated
+files, no notification toasts pending, and no extension update prompts.
+
+## 13. Release sanitization checklist
 
 - [ ] `.env.local` absent from history, not just working tree
 - [ ] no Sentry / Slack / Linear credential in any commit
