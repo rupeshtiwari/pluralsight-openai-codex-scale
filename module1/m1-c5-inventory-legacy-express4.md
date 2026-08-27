@@ -206,11 +206,26 @@ on Express 5, and what stays the same.
 **Expected result.** Six labelled sections. Routes: `GET /tickets/:id`, `POST /tickets`,
 `PATCH /tickets/:id/status`, each behind API-key auth. Models: four statuses with a transition
 table. Auth: `x-api-key` header, 401 when missing, 403 when invalid. Build tooling: `node server.js`
-with no build step. Tests: Node's built-in runner, 8 tests. External contracts: paths, status
-codes, and response field names.
+to run, with `tsc` build and typecheck scripts already present. Tests: Node's built-in runner,
+8 tests, with vitest also configured. External contracts: paths, status codes, and response field
+names.
+
+Codex will report the `tsc` scripts and the second test runner, because both are in `package.json`.
+That is correct — the migration tooling was added ahead of the migration. Findings beyond this list
+are a pass, not a failure.
 
 **Highlight.** Two findings that will shape the plan: auth is applied **per route**, not globally,
-and the service has **no build step** today while the target needs one.
+and `services/ticketService.js` reads its configuration through `__dirname` **at module load** — a
+dependency on `config/limits.json` that no import statement reveals, pinned by a test at
+`tests/tickets.test.js:104`, and the first thing that breaks under ESM.
+
+That second one is worth pointing at. An import graph shows `ticketService` depending on
+`models/ticket` and stops; the config read lives in the function body, so only reading the code
+finds it. It is also why `compat/dirname.ts` exists, which makes Step 2 a consequence rather than a
+lookup.
+
+Do not claim the service has no build step. It has one — `npm run build` runs
+`tsc -p tsconfig.json` against a real `tsconfig.json` — and an honest inventory will say so.
 
 **Decision produced.** The full surface is known and written down.
 
@@ -242,6 +257,8 @@ The plan must state explicitly:
 2. Any behavior that will deliberately differ after migration, and why that is
    acceptable
 3. The rollback point for each step, as a commit you could return to
+4. The checkpoint at which each compatibility shim is removed, or a statement
+   that it is permanent and why
 
 Base the compatibility layer on code that already exists in this repository.
 Do not read or apply any framework skill, migration playbook, or external
@@ -253,7 +270,12 @@ builds, or installs.
 
 **Expected result.** A plan naming `supporthub-api/modern/src/compat/dirname.ts` and
 `supporthub-api/modern/src/compat/legacyRequire.ts`, distinguishing `module.exports = fn` from
-`module.exports = { ... }`, and listing rollback points.
+`module.exports = { ... }`, listing rollback points, and giving every compatibility shim either a
+removal checkpoint or a stated reason it is permanent.
+
+The removal checkpoint is the half that is easy to skip. `compat/legacyRequire.ts` describes itself
+as a bridge "during the transition", and nothing in this repository schedules its removal — which is
+exactly how temporary bridging code becomes permanent architecture.
 
 **Highlight.** The two export shapes. `app.js` uses `module.exports = createApp` while
 `services/ticketService.js` uses a named bag — they convert differently, and confusing them fails
@@ -262,7 +284,9 @@ at runtime rather than at compile time.
 **Decision produced.** The plan is now reviewable against concrete criteria.
 
 **Verification.** PASS if the compat layer names both real files, behavioral exceptions are
-listed, and each step has a rollback point. FAIL if compatibility is described only in prose.
+listed, each step has a rollback point, and every shim carries a removal checkpoint or a stated
+reason it is permanent. FAIL if compatibility is described only in prose, or if a shim is proposed
+with no end date and no reason it has none.
 
 **Recovery.** Ask: `Which file in this repository implements the __dirname replacement?`
 
@@ -375,7 +399,7 @@ if a separate checkpoint or rollback section appeared. Milestones and checkpoint
 | Step | LO | Objective element | Proof |
 |---|---|---|---|
 | 1 | EO2a | inventory routing, models, auth, build tooling, tests, external contracts | six categories with file paths |
-| 2 | EO2b | compatibility layers and explicit behavioral exceptions | compat files named, exceptions listed |
+| 2 | EO2b | compatibility layers and explicit behavioral exceptions | compat files named, exceptions listed, each shim given a removal checkpoint |
 | 2 | EO2b | rollback visibility | rollback point per step |
 | 3 | EO2b | milestones validated independently | one command and one rollback per milestone |
 | 4 | TO2, EO2b | incremental checkpoints; batched milestone rejected | two checkpoints, no application code modified |
