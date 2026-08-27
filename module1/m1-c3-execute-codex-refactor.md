@@ -139,6 +139,9 @@ approved theme and the empty tables this step fills in.
 
 **Navigation.** VS Code, with `plans/ExecPlan.md` open in the editor beside the Codex panel.
 
+That file is on screen for all four steps, and Codex rewrites its tables in this one. Section 12
+applies: `npm run lint:md` must be silent before you record, and again if you reset between takes.
+
 **Prompt.**
 
 ```text
@@ -224,7 +227,7 @@ centralize duplicate ticket-priority normalization.
 
 - normalizePriority() in supporthub-api/modern/src/utils/priority.ts is the single implementation
 - the private toPriority() in ticketService.ts calls it instead of duplicating it
-- the POST /tickets handler stops normalizing inline and passes the raw value through
+- the inline copy inside createTicket() is replaced by a call to it
 - remove normalizeLegacySeverity() only after confirming it has no importers
 
 Do not change any route path, HTTP status code, or response field name.
@@ -276,31 +279,49 @@ git status --short
 git diff --stat
 ```
 
-**Expected result.** More files changed than the ExecPlan's Intended changes listed. Alongside the
-expected edits to `utils/priority.ts`, `services/ticketService.ts`, `routes/tickets.ts`, and
-`utils/legacy.ts`, expect at least one file the plan never mentioned — commonly a new
-`repositories/` or `store/` module, with `ticketService.ts` rewired to use it.
+**Expected result.** A diff that stays inside the plan. Two measured runs both produced
+`plans/ExecPlan.md` modified, `services/ticketService.ts` modified, `utils/legacy.ts` deleted —
+and nothing else. No new file, no new directory, no repository module.
 
-**Highlight.** Compare the changed-file list against the ExecPlan's four intended changes. Say the
-count out loud: the plan named four changes, the diff contains more.
+**This is the normal outcome, and it is worth saying so.** Given a precise ExecPlan, Codex
+implements the plan. Run 1 had the structural prohibition in the prompt and stayed in scope; run 2
+had it removed and stayed in scope, doing *more* cleanup — `validateNewTicket()` and the
+unreachable status guard — but all of it inside the theme, because those are the plan's own
+intended changes 3 and 4. The prohibition was never the binding constraint. **The ExecPlan is.**
 
-**Decision produced.** The extra change is identified as out of scope, whatever its merit.
+So do not stand at the mic waiting for an over-reach. Read the diff, confirm it is in scope and
+behavior-preserving — that is bullet 3, and it holds either way — then produce the architectural
+change deliberately, below.
 
-**Verification.** PASS if at least one changed file appears that the ExecPlan does not list.
+**Highlight.** The changed-file list against the plan's intended changes. Read the counts off the
+screen; do not say a number you rehearsed.
 
-**If the diff contains only the intended changes.** This is the branch to rehearse, because it
-happens. A measured run produced three files, all inside the theme, and Codex said so out loud:
-*"No route files were changed."* Ask for the change the ExecPlan's own Risks table predicts:
+**Decision produced.** The diff is confirmed in scope and behavior-preserving.
+
+**Verification.** PASS if every changed file appears in the ExecPlan's intended changes and all
+contract tests pass. An unprompted extra file is a pass too — it just means you can skip the
+prompt below.
+
+**Operator action — produce the architectural change.** Ask for the one the ExecPlan's own Risks
+table predicts, rated **High**:
 
 ```text
 createTicket() still reads and writes the ticket store inline. Extract that data
 access into its own module and rewire createTicket() to use it.
 ```
 
-Naming the extraction rather than asking for "an architectural improvement" matters: it produces
-the same drift the unprompted branch produces, so Step 4 is identical either way and the narration
-does not change. It is still a second prompt, and the honest framing on camera is the one the Risks
-table already uses — *this is the change the plan warned this cleanup would attract.*
+**Narrate it as what it is.** Do not imply Codex reached for this on its own — it did not, in two
+measured runs, and a viewer who later tries this will find the same. The honest framing is the one
+the plan already wrote down:
+
+> The plan flagged this as the High risk for this cleanup: *the cleanup touches the load-bearing
+> function and drags data access with it.* So let us find out. I will ask for exactly that change,
+> and then decide whether it belongs in this pass.
+
+That is a stronger beat than a lucky over-reach, because the risk was predicted in writing before
+any code was touched, and the decision in Step 4 is the same decision either way. Naming the
+extraction rather than asking for "an architectural improvement" keeps both branches producing the
+same diff, so Step 4 and the narration do not change.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` then repeat Step 2.
 

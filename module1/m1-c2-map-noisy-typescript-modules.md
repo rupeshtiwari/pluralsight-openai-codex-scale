@@ -231,7 +231,7 @@ Report your findings only. Do not propose changes yet. Do not edit files.
 - `services/ticketService.ts` as the largest module, with several responsibilities
 - priority normalization appearing at **three sites across two** files
 - `normalizeLegacySeverity` in `utils/legacy.ts` with **no** importers
-- priority branching inside the `POST /tickets` route handler
+- the third normalization site inline inside `createTicket()`, not in any route handler
 
 **Highlight.** The three sites for the duplicated logic — two of them in the same file — and the
 zero-importer finding. Those came from the repository, not from a guess.

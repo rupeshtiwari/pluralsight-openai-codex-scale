@@ -6,7 +6,7 @@ centralize duplicate ticket-priority normalization.
 
 - normalizePriority() in supporthub-api/modern/src/utils/priority.ts is the single implementation
 - the private toPriority() in ticketService.ts calls it instead of duplicating it
-- the POST /tickets handler stops normalizing inline and passes the raw value through
+- the inline copy inside createTicket() is replaced by a call to it
 - remove normalizeLegacySeverity() only after confirming it has no importers
 
 Do not change any route path, HTTP status code, or response field name.

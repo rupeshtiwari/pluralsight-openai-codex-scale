@@ -36,6 +36,7 @@ const GIT_BACKED = {
   'demo-checkout-refs-exist': 'it found two on its first run -- the C6 evidence artifact and the C6 runbook both handed out a checkout of demo/m1-c6-start, which cannot exist until C5 is walked',
   'contract-tests-pass': 'it needs the real node_modules, so CHECK_ROOT cannot relocate it. Proven by hand both ways: append a failing test and it reports "1 contract test(s) failing"; append a passing one and it reports "26 contract tests passed, expected 25"',
   'workspace-lint-silent': 'it needs the real node_modules, so CHECK_ROOT cannot relocate it. Proven by hand both ways: it is what reported the two no-unused-vars warnings on ticketService.ts that put a yellow badge on clip 2, naming both file and line; silenced in eslint.config.js it goes green, and restoring the rule to \'warn\' turns it red again with the same two lines',
+  'oncamera-markdown-lint-silent': 'it needs the real node_modules, so CHECK_ROOT cannot relocate it. Proven by hand both ways: it is what reported the 518 problems on plans/ExecPlan.md that put an error badge on the filmed tab, grouped by rule; with .markdownlint.json in place it goes green, and deleting that file turns it red again with the same MD060 count',
   'migration-tests-pass': 'append a failing test to supporthub-api/migration/tests/tickets.test.js and watch it go red -- done, it does',
 };
 

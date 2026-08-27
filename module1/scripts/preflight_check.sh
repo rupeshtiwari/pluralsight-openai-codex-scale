@@ -105,6 +105,12 @@ check "all" "ESLint parser root pinned in both workspaces" \
   "Set parserOptions.tsconfigRootDir in the config the check names: import.meta.dirname in modern, __dirname in migration." \
   "Which ESLint config is missing parserOptions.tsconfigRootDir?"
 
+check "all" "no on-camera markdown shows a lint badge" \
+  'node "${ROOT}/scripts/check.mjs" oncamera-markdown-lint-silent' \
+  "plans/ExecPlan.md is on screen for all four clip 3 steps and Codex rewrites its tables in step 1. A measured run put 518 markdownlint problems on it, 494 of them errors, while the command line said nothing because nothing on the command line was running markdownlint." \
+  "npm run lint:md, then fix what it names or configure the rule in .markdownlint.json if it is a house-style disagreement rather than a defect." \
+  "Which rule is firing, and is it a real defect or a style default this repository does not follow?"
+
 check "all" "no workspace shows a lint badge" \
   'node "${ROOT}/scripts/check.mjs" workspace-lint-silent' \
   "Section 12: nothing unexplained shows a badge on camera, and a warning badge is an error badge in a friendlier colour. Clip 2 held a yellow badge on ticketService.ts for six minutes from two no-unused-vars warnings on the seeded dead helpers." \
