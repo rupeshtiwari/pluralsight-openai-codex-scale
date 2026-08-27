@@ -134,7 +134,16 @@ const CHECKS = {
     let bad = 0;
     for (const f of files) {
       const abs = join(ROOT, f);
-      const text = readFileSync(abs, 'utf8');
+      // Fenced code is not prose. A bash or JS block full of array literals and
+      // character classes is not a set of markdown links, and scanning it
+      // produced five "malformed link" reports for one regex -- `[^/]+\/)` and
+      // friends -- the first time a snippet in docs/troubleshooting.md used
+      // brackets. Blank the fences rather than dropping them, so line numbers
+      // and any prose after a fence stay where they were.
+      const text = readFileSync(abs, 'utf8').replace(
+        /^(```|~~~)[^\n]*\n[\s\S]*?^\1[^\n]*$/gm,
+        (block) => block.replace(/[^\n]/g, ' '),
+      );
       // Well-formed links to repo-relative paths must resolve.
       for (const m of text.matchAll(/\[[^\]\n]*\]\(([^)\s]+)\)/g)) {
         const target = m[1];
@@ -501,6 +510,61 @@ const CHECKS = {
       if (h) ok = reject(`${f} hardcodes the gate command line — run what the ExecPlan names instead`) && ok;
     }
     return ok;
+  },
+
+  /**
+   * The markdown files opened on camera must lint completely silent.
+   *
+   * Same shape as workspace-lint-silent, different tool. plans/ExecPlan.md is on
+   * screen for all four clip 3 steps and Codex rewrites its tables in step 1;
+   * plans/migration-plan.md is clip 5's artifact. A measured run put 518
+   * markdownlint problems on ExecPlan.md -- 494 errors, almost all
+   * MD060/table-column-style -- while the command line said nothing, because
+   * nothing on the command line was running markdownlint at all.
+   *
+   * Section 12 used to say a badge like this "is not covered by the preflight,
+   * and cannot be", on the grounds that the badge comes from an editor extension.
+   * That was true of the ESLint parser-root case and is false here: the
+   * extension and the CLI read the same .markdownlint.json, so the badge is
+   * measurable and is now measured.
+   *
+   * .markdownlint.json disables the rules where markdownlint's defaults disagree
+   * with a convention this repository uses on purpose -- MD060 for tables Codex
+   * writes, MD046 for the indented illustration blocks section 10 requires,
+   * MD025 for the '# ON-CAMERA' divider. It does not silence real defects: six
+   * MD022 findings in migration-plan.md were headings genuinely missing a blank
+   * line, and those were fixed rather than configured away.
+   *
+   * Needs the real node_modules, so it ignores CHECK_ROOT and is proven by hand.
+   */
+  'oncamera-markdown-lint-silent': () => {
+    const FILES = ['plans/ExecPlan.md', 'plans/migration-plan.md'];
+    let out = '';
+    try {
+      execSync(`npx markdownlint-cli2 ${FILES.join(' ')}`, {
+        cwd: resolve(ROOT), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      return true;
+    } catch (err) {
+      out = `${err.stdout || ''}${err.stderr || ''}`;
+    }
+    const lines = out.split('\n').filter((l) => /^\S+\.md:\d+/.test(l));
+    if (lines.length === 0) {
+      process.stderr.write('  markdownlint produced no report — the run did not start\n');
+      return false;
+    }
+    const byRule = {};
+    for (const l of lines) {
+      const m = l.match(/(MD\d+\/[a-z-]+)/);
+      const k = m ? m[1] : 'unknown';
+      byRule[k] = (byRule[k] || 0) + 1;
+    }
+    process.stderr.write(`  ${lines.length} markdownlint problem(s) on files that are open on camera\n`);
+    for (const [rule, n] of Object.entries(byRule).sort((a, b) => b[1] - a[1])) {
+      process.stderr.write(`    ${rule}: ${n}\n`);
+    }
+    process.stderr.write(`  ${lines[0]}\n`);
+    return false;
   },
 
   /**

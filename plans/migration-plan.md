@@ -27,21 +27,27 @@ mid-migration condition, not a misconfiguration.
 To be produced before any implementation. Every category must be covered.
 
 ### Express routes
+
 _Not yet inventoried._
 
 ### Data models
+
 _Not yet inventoried._
 
 ### Authentication
+
 _Not yet inventoried._
 
 ### Build tooling
+
 _Not yet inventoried._
 
 ### Tests
+
 _Not yet inventoried._
 
 ### External contracts
+
 _Not yet inventoried._
 
 ## CommonJS-to-ESM compatibility layer

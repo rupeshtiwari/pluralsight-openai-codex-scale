@@ -46,12 +46,23 @@ the binaries for all three platforms are present:
 rm -rf node_modules supporthub-api/*/node_modules package-lock.json
 npm install
 node -e 'const k=Object.keys(require("./package-lock.json").packages);
-  for (const t of ["darwin-arm64","win32-x64-msvc","linux-x64-gnu"])
-    console.log(t, k.some(p=>p.includes("rollup-"+t)))'
+  const want=["darwin-arm64","win32-x64","linux-x64"], fams={};
+  for (const p of k) { const m=p.match(/node_modules\/((?:@[^/]+\/)?[^/]+)$/); if(!m) continue;
+    const t=want.find(w=>m[1].includes(w)); if(!t) continue;
+    (fams[m[1].replace(new RegExp("[-.]?"+t+".*"),"")] ||= new Set()).add(t); }
+  for (const [f,s] of Object.entries(fams))
+    console.log(f, [...s].join(" "), s.size===3?"OK":"INCOMPLETE")'
 ```
 
-All three must print `true`. A lockfile generated in a Linux container without this step pins only
-`rollup-linux-x64-gnu`, and every macOS learner hits the error above on first run.
+Every family must print `OK`. A lockfile generated in a Linux container without this step pins only
+the Linux binary, and every macOS learner hits the error above on first run.
+
+**Do not name a specific package here.** This snippet used to grep for `rollup-<platform>`, and
+vitest 4 dropped rollup entirely — so it printed `false false false` on a lockfile that was
+perfectly complete, and would have gone on doing that forever. A check that can only report failure
+is as useless as one that can only report success. The version above discovers the platform
+families present and asks whether each is complete, so it survives the next tooling change; today
+they are `@rolldown/binding` and `lightningcss`.
 
 **VS Code shows a parsing error on a .ts tab while `npm run lint` passes.**
 The editor extension scans from the repository root and finds two candidate TypeScript roots -- the

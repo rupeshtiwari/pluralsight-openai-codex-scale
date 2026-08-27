@@ -1,0 +1,25 @@
+{
+  "//": "House style for this repository. Rules are disabled where markdownlint's default disagrees with a convention this repo uses deliberately, not to silence real defects. The on-camera files -- plans/ExecPlan.md and plans/migration-plan.md -- must lint clean under this config, because an editor extension puts an error badge on a filmed tab. See section 12 of docs/course-architecture-plan.md.",
+
+  "MD013": { "line_length": 110, "tables": false, "code_blocks": false, "headings": false },
+
+  "//MD060": "Table column style. Codex writes the tables in plans/ExecPlan.md during clip 3 step 1, and their padding is its own. A cosmetic rule cannot be allowed to redden a file that is on screen for four steps.",
+  "MD060": false,
+
+  "//MD025": "Multiple H1s. The runbooks open on a title and use '# ON-CAMERA' as a second-level divider, deliberately.",
+  "MD025": false,
+
+  "//MD036": "Emphasis as heading. '**Prompt.**' and '**Verification.**' are the runbook's lead-in convention, not headings.",
+  "MD036": false,
+
+  "//MD046": "Code block style. Section 10 requires indented blocks for illustrations and fenced blocks for anything runnable. Both appear on purpose.",
+  "MD046": false,
+
+  "MD004": false,
+  "MD007": false,
+  "MD024": false,
+  "MD014": false,
+  "MD033": false,
+  "MD049": false,
+  "MD034": false
+}

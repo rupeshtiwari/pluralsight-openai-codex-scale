@@ -430,8 +430,22 @@ pointer to the seed.
 suppress it in configuration, never in the file on screen. Configuration is not on camera; source
 is.
 
-This is not covered by the preflight, and cannot be: the preflight runs command-line tools, and the
-badge comes from an editor extension that resolves configuration differently.
+**Covered by the preflight where the tool allows it, and by your eyes where it does not.** Two
+badge sources have bitten so far and they behave differently:
+
+- **The VS Code ESLint extension** resolved configuration differently from the CLI, so the CLI could
+  not see the badge at all. Fixed by pinning `tsconfigRootDir`; the preflight now asserts the pin
+  and the silence, but the badge itself stays unmeasurable.
+- **markdownlint** reads the same `.markdownlint.json` as its CLI, so the badge *is* measurable.
+  `scripts/check.mjs oncamera-markdown-lint-silent` runs it over the files that appear on camera and
+  fails on any finding.
+
+The lesson is not "editors cannot be checked". It is **ask whether the extension and a CLI share a
+config, and if they do, run the CLI in the preflight.** Assuming they could not is what left
+`plans/ExecPlan.md` carrying 518 markdownlint problems — 494 errors — through every clip 3 take,
+on a file that is open for all four steps.
+
+Where a badge genuinely cannot be measured, it still gets opened and looked at before recording.
 
 The case that produced this rule: the VS Code ESLint extension put a parsing error on every open
 `.ts` tab, reporting that it could not choose between two candidate TypeScript roots, while
