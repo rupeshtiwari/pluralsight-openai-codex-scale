@@ -29,10 +29,7 @@ LEARNING OBJECTIVES
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT FAIL  [all] working tree clean
-WHY IT MATTERS  The review demos seed changes with a patch; leftover edits make the diff unreadable.
-HOW TO FIX      ./module2/scripts/demo_reset.sh
-CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+RESULT PASS  [all] working tree clean
 
 $ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
 
@@ -122,10 +119,4 @@ STEP TO OBJECTIVE COVERAGE
   Clip 5 step 1-4  EO4a  review pane, per-hunk stage and revert
   Clip 6 step 1-4  EO4a  trace, revert bad hunk, rerun corrected
 
-FAILED CHECKS
-  [all] working tree clean
-    why it matters : The review demos seed changes with a patch; leftover edits make the diff unreadable.
-    how to fix     : ./module2/scripts/demo_reset.sh
-    codex prompt   : Show me every uncommitted change in this repository and what produced it.
-
-VERDICT  NOT READY - 1 check(s) failed.
+VERDICT  READY - all Module 2 demos can be run.
