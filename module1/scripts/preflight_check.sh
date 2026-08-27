@@ -105,6 +105,18 @@ check "all" "ESLint parser root pinned in both workspaces" \
   "Set parserOptions.tsconfigRootDir in the config the check names: import.meta.dirname in modern, __dirname in migration." \
   "Which ESLint config is missing parserOptions.tsconfigRootDir?"
 
+check "all" "no prompt bans commands outright" \
+  'node "${ROOT}/scripts/check.mjs" prompts-allow-read-only-inspection' \
+  "Clip 2 Step 1 said \"do not run any commands\" to stop tests and installs. Codex read it as covering reading too and refused to inspect the repository, which is the whole step. A prompt has to forbid writes and permit reads separately." \
+  "Replace the blanket ban with the read-only permission sentence the check names." \
+  "Which prompt in this repository forbids running any command at all?"
+
+check "all" "saved clip 2 prompts match the runbook" \
+  'node "${ROOT}/scripts/check.mjs" c2-prompts-saved' \
+  "The runbook names plans/prompts/m1-c2-map-codebase.md as the saved copy, so either is a plausible paste source on recording day. They had already drifted: the runbook carried the command ban and the saved file did not." \
+  "Copy the runbook prompt blocks over the saved ones; the runbook is the source." \
+  "Which saved clip 2 prompt differs from the runbook?"
+
 check "all" "runbooks match the approved outline" \
   'node "${ROOT}/scripts/check.mjs" clip-outline-alignment' \
   "The outline is the contract Curriculum approved. A step heading shortened for readability reads fine on its own while dropping scope the outline promised -- two did, and one of those carried EO2d's framework-skill substitution." \

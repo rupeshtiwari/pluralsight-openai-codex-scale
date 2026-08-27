@@ -297,6 +297,17 @@ const CHECKS = {
         ok = reject(`${name} is called somewhere — it must stay dead for the finding to hold`) && ok;
       }
     }
+
+    // 4. No suppression comment. ESLint reports both helpers as unused, which
+    // puts a yellow badge on ticketService.ts for the whole clip, and the
+    // tempting fix is an eslint-disable on the seed. Section 12 of
+    // docs/course-architecture-plan.md rules against it: the helpers being
+    // unused IS the finding Step 1 asks for, so annotating them as known-dead
+    // writes the answer into the file on screen and hides the linter's
+    // corroboration. The badge is narrated instead.
+    if (/eslint-disable/.test(svc)) {
+      ok = reject('ticketService.ts carries an eslint-disable — the seed must not annotate its own dead code') && ok;
+    }
     return ok;
   },
 
@@ -336,6 +347,93 @@ const CHECKS = {
     if (!prompts.some((b) => /Do not read or apply any framework skill/i.test(b))) {
       ok = reject('m1-c5: no prompt forbids the framework skill out loud — omission alone does not stop retrieval') && ok;
     }
+    return ok;
+  },
+
+  /**
+   * No prompt may ban commands outright, and the read-only demos must grant
+   * inspection out loud.
+   *
+   * Clip 2's Step 1 prompt said "do not edit any files and do not run any
+   * commands". Codex read the second clause as covering reading too, and
+   * refused the step: "Because you explicitly said do not run any commands and
+   * do not edit files, I won't inspect the repo via shell." It is right to. The
+   * ban was written to stop tests, builds and installs -- work that writes to the
+   * tree or takes noticeable time on camera -- but ls, rg and cat are commands as
+   * well, and a demo whose whole subject is analysing a real repository cannot
+   * run with the repository closed.
+   *
+   * Two halves, for the reason c5-prompts-skill-free has two: omission is not
+   * permission. Deleting the ban leaves the prompt silent about reading, and
+   * silence beside "do not edit any files" is what Codex generalised from in the
+   * first place. So the permission has to be stated, and the statement has to
+   * survive editing.
+   *
+   * The first half scans every prompt block in the repository rather than only
+   * clip 2's and clip 5's: the phrasing is easy to copy into a new runbook, and
+   * prompts that legitimately run commands (clip 3, clip 6) never contain it.
+   * Prose is not scanned -- this file and docs/troubleshooting.md both quote the
+   * banned phrasing to explain it, the same trap skill-not-ambient hit.
+   */
+  'prompts-allow-read-only-inspection': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const BLANKET = /do not run any (?:shell )?commands|run no commands|without running any commands|no commands at all/i;
+    const PERMISSION = /Read the repository freely with read-only commands/i;
+    const prompts = (src) => [...src.matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
+
+    const files = globSync('**/*.md', { cwd: ROOT })
+      .filter((f) => !f.includes('node_modules') && !f.includes('/dist/') && !f.includes('/logs/'));
+    let ok = true;
+    for (const f of files) {
+      prompts(readFileSync(join(ROOT, f), 'utf8')).forEach((body, i) => {
+        const hit = body.match(BLANKET);
+        if (hit) {
+          ok = reject(`${f} prompt ${i + 1} bans commands outright ("${hit[0]}") — Codex then declines to inspect the repository at all`) && ok;
+        }
+      });
+    }
+
+    // The two read-only demos. Both analyse a repository they may not touch, so
+    // both have to say what "may not touch" does and does not cover.
+    for (const f of [
+      'module1/m1-c2-map-noisy-typescript-modules.md',
+      'module1/m1-c5-inventory-legacy-express4.md',
+    ]) {
+      const bodies = prompts(read(f));
+      if (bodies.length === 0) {
+        ok = reject(`${f}: no prompt blocks found — the runbook shape changed`) && ok;
+        continue;
+      }
+      if (!bodies.some((b) => PERMISSION.test(b))) {
+        ok = reject(`${f}: no prompt grants read-only inspection out loud — silence beside "do not edit any files" is what broke Step 1`) && ok;
+      }
+    }
+    return ok;
+  },
+
+  /**
+   * The saved clip 2 prompts must match the runbook's, byte for byte.
+   *
+   * Same drift c6-prompt-saved exists to catch, and it had already happened
+   * here unnoticed: the runbook carried the command ban and
+   * plans/prompts/m1-c2-map-codebase.md did not, so the two places an author can
+   * paste from were giving Codex different instructions. The runbook points at
+   * the saved file by name, which makes either one a plausible source on
+   * recording day.
+   */
+  'c2-prompts-saved': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const prompts = (f) => [...read(f).matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
+    const rb = prompts('module1/m1-c2-map-noisy-typescript-modules.md');
+    const saved = prompts('plans/prompts/m1-c2-map-codebase.md');
+    if (rb.length === 0) return reject('m1-c2: no prompt blocks found — the runbook shape changed');
+    if (rb.length !== saved.length) {
+      return reject(`m1-c2 has ${rb.length} prompts, plans/prompts/m1-c2-map-codebase.md has ${saved.length}`);
+    }
+    let ok = true;
+    rb.forEach((body, i) => {
+      if (body !== saved[i]) ok = reject(`m1-c2 prompt ${i + 1} differs from the saved copy`) && ok;
+    });
     return ok;
   },
 

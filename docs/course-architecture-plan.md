@@ -352,11 +352,77 @@ commands bare, without the `>` value prefix every other line carries, for exactl
 every repository-rooted path in backticks resolves. The paste-safety half is a convention, enforced
 by review.
 
-## 12. Nothing may show an error badge on camera
+## 11. What a prompt may forbid
 
-**Before recording, open every file the demo opens and confirm the tab carries no error or warning
-badge.** A badge the narration does not explain reads as a defect in the thing being taught, and in
-a course about reviewable change it argues against the entire point.
+**Forbid writes, not reads.** A prompt constraint has to name the thing it is actually protecting.
+Every planning demo protects two properties — the working tree stays clean, and no minute of the
+clip is spent watching a test suite run — and neither of those is "no commands".
+
+The case that produced this rule: clip 2's Step 1 said *do not edit any files and do not run any
+commands*. The second clause was written to stop `npm test`, which Codex had run unprompted in an
+earlier walk. Codex read it as written and refused the step:
+
+  I can't produce reliable findings from the current context alone. Because you explicitly said
+  do not run any commands and do not edit files, I won't inspect the repo via shell.
+
+That is a correct reading. `ls`, `rg` and `cat` are commands, and clip 2 is a demo about analysing
+a real repository — with the repository closed there is nothing to analyse. The ban was aimed at
+writes and cost the demo its reads.
+
+So the constraint is stated in two halves, permission first:
+
+  Read the repository freely with read-only commands such as ls, find, rg, sed
+  and cat. Do not edit any files, and do not run tests, builds, installs, or any
+  command that writes to the working tree.
+
+**Permission has to be explicit.** Deleting the ban is not enough. Silence next to *do not edit any
+files* is what Codex generalised from in the first place, and a model that guesses conservatively
+about its own permissions guesses in the direction that loses the demo. This is the same shape as
+the framework-skill rule in clip 5: omission is not a constraint, and omission is not a licence
+either — whichever way you need it read, say it.
+
+Both halves are asserted by `scripts/check.mjs prompts-allow-read-only-inspection`: no prompt block
+anywhere in the repository may ban commands outright, and clips 2 and 5 must each carry the
+permission sentence in a prompt. Clip 3 and clip 6 legitimately tell Codex to run gates, so the
+check keys on the blanket phrasing rather than on the presence of commands.
+
+**A prompt saved in two places drifts.** The runbooks name `plans/prompts/` copies by path, so
+either is a plausible paste source under time pressure. That drift had already happened here
+unnoticed — the runbook carried the command ban and the saved file did not — so both copies are
+asserted byte-identical, by `c2-prompts-saved` and `c6-prompt-saved`.
+
+## 12. Nothing unexplained may show a badge on camera
+
+**Before recording, open every file the demo opens and account for every badge on every tab.** A
+badge the narration does not explain reads as a defect in the thing being taught, and in a course
+about reviewable change it argues against the entire point.
+
+Errors and warnings are not the same problem, and the rule is not the same for both.
+
+**An error badge is never acceptable.** It says a tool could not do its job. Nothing in these
+demos is about broken tooling, so an error is always noise, always distracting, and always fixed
+before the camera runs.
+
+**A warning badge is acceptable only when the demo teaches it and the narration names it.**
+Otherwise it is an error badge with a friendlier colour — unexplained, and read as a defect just
+the same.
+
+Clip 2 is the case that forced the distinction. Its seed leaves `toPriority` and
+`validateNewTicket` dead in `ticketService.ts`, and `@typescript-eslint/no-unused-vars` reports
+both, putting a yellow badge on the tab for the whole clip. The tempting fix is an
+`eslint-disable` comment on the seed. **Do not add one.** Those two helpers being unused is the
+finding Step 1 asks Codex to make; annotating them as known-dead both writes the answer into the
+file the learner is watching and hides the one piece of independent corroboration the demo has.
+
+Narrate it instead, because it is the better beat: the editor finds the two dead helpers inside
+the file it can see, and Codex finds five unreferenced exports the editor cannot flag, because an
+export is used-in-principle until something proves otherwise. Two of seven from the linter, seven
+of seven from the agent — that gap is the argument for the whole clip, and the yellow badge is the
+evidence for it. The seed keeps no suppression comment, asserted by
+`scripts/check.mjs c2-seed-shape`.
+
+The warning count is fixed at two, both from the seed. Any third warning is unexplained by
+definition and gets fixed before recording.
 
 This is not covered by the preflight, and cannot be: the preflight runs command-line tools, and the
 badge comes from an editor extension that resolves configuration differently.

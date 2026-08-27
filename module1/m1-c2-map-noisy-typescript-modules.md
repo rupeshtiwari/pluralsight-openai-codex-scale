@@ -137,6 +137,20 @@ listed them as unreferenced *exports*, which is a different finding and a catego
 unreferenced exports, Codex correctly does not name them. They are dead code, and Step 1's prompt
 asks for dead-code candidates, so they may still appear under that heading.
 
+**`ticketService.ts` carries a yellow badge for the whole clip, and that is deliberate.** ESLint
+reports `toPriority` and `validateNewTicket` as unused — two warnings, no errors. Do not suppress
+them. Section 12 of `docs/course-architecture-plan.md` covers why: those helpers being unused is
+the finding Step 1 asks Codex to make, so an `eslint-disable` would write the answer into the file
+on screen and hide the only independent corroboration the demo has. `c2-seed-shape` fails if a
+suppression comment appears.
+
+Narrate the badge in Step 1 rather than working around it. The editor sees two dead helpers inside
+the file it has open; Codex names five unreferenced exports it cannot flag, because an export is
+used-in-principle until something proves otherwise. Two of seven against seven of seven is the
+argument for the clip.
+
+The count is fixed at two. A third warning is unexplained and gets fixed before recording.
+
 `scripts/check.mjs c2-seed-shape` asserts all three counts against the code, so this table cannot
 drift from the repository again.
 
@@ -189,7 +203,11 @@ is visible beside the panel.
 **Prompt.** Paste exactly this. It is also saved at `plans/prompts/m1-c2-map-codebase.md`.
 
 ```text
-Analyze the TypeScript service in supporthub-api/modern. Do not edit any files and do not run any commands.
+Analyze the TypeScript service in supporthub-api/modern.
+
+Read the repository freely with read-only commands such as ls, find, rg, sed
+and cat. Do not edit any files, and do not run tests, builds, installs, or any
+command that writes to the working tree.
 
 Produce:
 1. A map of the modules under supporthub-api/modern/src, and which module depends on which.
@@ -211,6 +229,10 @@ Report your findings only. Do not propose changes yet. Do not edit files.
 
 **Highlight.** The three file paths for the duplicated logic, and the zero-importer finding. Those
 came from the repository, not from a guess.
+
+Then the badge on the `ticketService.ts` tab: the editor found two of these on its own, and stops
+there, because it only reasons inside one file. The cross-module findings are the ones no linter
+was going to give you.
 
 **Decision produced.** You know what is wrong, in named files, having changed nothing.
 
@@ -245,7 +267,8 @@ State the theme in one sentence, then list the exact files it would change.
 
 Propose one theme only. Do not propose architectural restructuring, new
 abstractions, layers, or directories.
-Do not edit files and do not run any commands.
+Do not edit files. Read-only inspection is fine; do not run tests, builds,
+or installs.
 ```
 
 **Expected result.** Exactly one bounded theme, stated in a sentence, with the files it would change
@@ -293,7 +316,8 @@ or reorganized directories.
 
 For each one, state how many files it would touch and why it is not part of a
 duplication cleanup.
-Do not implement any of them, do not edit files, and do not run any commands.
+Do not implement any of them and do not edit files. Read-only inspection is
+fine; do not run tests, builds, or installs.
 ```
 
 **Expected result.** A short list, typically including a repository or data-access layer, and
@@ -332,7 +356,8 @@ Summarize this pass as a reviewable plan:
 - the commands that will prove those contracts still hold
 - what you identified but deliberately deferred
 
-Do not implement it, do not edit files, and do not run any commands.
+Do not implement it and do not edit files. Read-only inspection is fine; do
+not run tests, builds, or installs.
 ```
 
 **Expected result.** One theme, three files, the route and priority contracts, the commands
