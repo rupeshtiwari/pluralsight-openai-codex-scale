@@ -17,7 +17,7 @@ Do not reorganize the service architecture.
 After implementing, update the Progress log in plans/ExecPlan.md, and
 record anything you chose not to do under Deferred work.
 
-Then run: npm run lint && npm run typecheck && npm test
+Then run every command in the ExecPlan's Validation checks section.
 ```
 
 ## What to inspect in the diff

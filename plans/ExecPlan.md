@@ -57,13 +57,10 @@ These are externally visible and must not change. They are locked by
 
 ## Validation checks
 
-Run all three. Every one must pass before the change is accepted.
+The commands that prove the behavior contracts above still hold. Recorded in Step 1, run in full
+before the change is accepted.
 
-```bash
-npm run lint
-npm run typecheck
-npm test
-```
+_Not yet recorded._
 
 ## Risks
 
