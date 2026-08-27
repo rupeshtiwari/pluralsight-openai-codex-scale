@@ -12,22 +12,25 @@ external behavior exactly.
 
 ## Current state
 
-Priority normalization is implemented twice, with the same rules copied in each place:
+Priority normalization is implemented at three sites across two files, with the same rules copied
+in each place:
 
-| Site | Form |
-|---|---|
-| `supporthub-api/modern/src/utils/priority.ts` | exported `normalizePriority()` |
-| `supporthub-api/modern/src/services/ticketService.ts` | inline, inside `createTicket()` |
+| Site | Form | Reached at runtime |
+|---|---|---|
+| `supporthub-api/modern/src/utils/priority.ts` | exported `normalizePriority()` | no — nothing imports it |
+| `supporthub-api/modern/src/services/ticketService.ts` | private `toPriority()` | no — never called |
+| `supporthub-api/modern/src/services/ticketService.ts` | inline, inside `createTicket()` | yes — the only live copy |
 
-The second copy is the one that matters. `createTicket()` is the busiest function in the service:
+The inline copy is the one that matters. `createTicket()` is the busiest function in the service:
 every ticket creation path runs through it, and it carries validation, priority normalization,
 storage access, and response shaping in a single body. Any change to the duplicated normalization
 has to be made inside that function, which is also where the inline storage access lives.
 
-Stale code with no importers: `normalizeLegacySeverity()` in `utils/legacy.ts`, and the private
-`toPriority()` and `validateNewTicket()` helpers in `ticketService.ts`, which stopped being called
-when creation began doing both jobs inline. `changeStatus()` also carries a branch that can never
-be reached.
+Stale code: `normalizeLegacySeverity()` in `utils/legacy.ts` has no importers, and the private
+`toPriority()` and `validateNewTicket()` helpers in `ticketService.ts` stopped being called when
+creation began doing both jobs inline. So `toPriority()` is both a third copy of the normalization
+and dead code — removing it settles two findings at once, which is why it appears in the table
+above and here. `changeStatus()` also carries a branch that can never be reached.
 
 ## Intended changes
 
@@ -54,12 +57,11 @@ These are externally visible and must not change. They are locked by
 
 ## Validation checks
 
-Run all four. Every one must pass before the change is accepted.
+Run all three. Every one must pass before the change is accepted.
 
 ```bash
 npm run lint
 npm run typecheck
-npm run build
 npm test
 ```
 
