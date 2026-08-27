@@ -500,22 +500,44 @@ const CHECKS = {
    * where the local-refs-only version failed as it should have.
    */
   'c2-refs-identical': () => {
-    // A fresh clone has no local branches beyond the checked-out one, so resolve
-    // the local ref first and fall back to the remote-tracking ref. Checking only
-    // local refs passes in a repository where they happen to exist and fails for
-    // everyone who clones.
-    const rev = (r) => {
-      for (const ref of [r, `origin/${r}`]) {
-        try {
-          const out = execSync(`git rev-parse --verify -q ${ref}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-          if (out) return out;
-        } catch { /* try the next form */ }
-      }
-      return '';
+    // Published refs are the subject. A stale local branch is a different problem
+    // from a diverged repository, and conflating them cost three false FAILs on
+    // the recording machine: every push left the sibling local branch behind, and
+    // the check reported the repository as broken when only the checkout was.
+    // origin/ is asked first for that reason; local is the fallback for a clone
+    // with no remote.
+    const rev = (ref) => {
+      try {
+        return execSync(`git rev-parse --verify -q ${ref}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+      } catch { return ''; }
     };
-    const a = rev('demo/m1-c2-start');
-    const b = rev('demo/m1-c2-captured');
-    return a !== '' && a === b;
+    const resolve2 = (b) => rev(`origin/${b}`) || rev(b);
+    const START = 'demo/m1-c2-start';
+    const CAPTURED = 'demo/m1-c2-captured';
+
+    const a = resolve2(START);
+    const b = resolve2(CAPTURED);
+    if (a === '') {
+      process.stderr.write(`  ${START} does not resolve — fetch the demo branches\n`);
+      return false;
+    }
+    if (a !== b) {
+      process.stderr.write(`  ${START} and ${CAPTURED} are different commits in the repository\n`);
+      process.stderr.write('  clip 2 writes nothing, so a difference means the demo edited files\n');
+      return false;
+    }
+
+    // Published state is correct. Report a stale local checkout separately, and
+    // do not fail on it: it is the reader's machine, not the repository.
+    for (const b2 of [START, CAPTURED]) {
+      const local = rev(b2);
+      const remote = rev(`origin/${b2}`);
+      if (local && remote && local !== remote) {
+        process.stderr.write(`  note: local ${b2} is stale (${local.slice(0, 7)} vs origin ${remote.slice(0, 7)})\n`);
+        process.stderr.write(`  note: git fetch origin && git branch -f ${b2} origin/${b2}\n`);
+      }
+    }
+    return true;
   },
 
   /**
