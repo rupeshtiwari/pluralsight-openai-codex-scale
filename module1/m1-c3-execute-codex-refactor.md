@@ -152,7 +152,8 @@ Edit only plans/ExecPlan.md. Do not touch any file under supporthub-api/.
 
 **Expected result.** The Behavior contracts section names the four contract test files and the
 route, status code, field-name, and priority contracts. Validation checks lists `npm run lint`,
-`npm run typecheck`, `npm run build`, and `npm test`. Both tables remain empty.
+`npm run typecheck`, and `npm test` — the same three gates Steps 2 and 4 verify. Both tables remain
+empty.
 
 **Highlight.** The empty Progress log and Deferred work tables. Those two are where this demo's
 evidence will land, and they are empty right now.
