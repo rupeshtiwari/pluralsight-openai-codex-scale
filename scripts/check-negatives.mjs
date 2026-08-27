@@ -31,7 +31,7 @@ const TMP = join(process.cwd(), '.check-negatives-tmp');
  * they are not provable here; each names how it was proven instead.
  */
 const GIT_BACKED = {
-  'c2-refs-identical': 'clean-clone check — the local-refs-only version failed there, as it should have',
+  'c2-refs-identical': 'reads git, so CHECK_ROOT cannot relocate it. Proven both ways by hand: point origin/demo/m1-c2-captured at a different commit and it reports "different commits in the repository"; leave a local branch stale and it PASSES with a note, which is the distinction it was rebuilt to make',
   'no-route-migrated': 'create a throwaway supporthub-api/migration/routes/x.ts and watch it go red',
   'demo-checkout-refs-exist': 'it found two on its first run -- the C6 evidence artifact and the C6 runbook both handed out a checkout of demo/m1-c6-start, which cannot exist until C5 is walked',
   'contract-tests-pass': 'it needs the real node_modules, so CHECK_ROOT cannot relocate it. Proven by hand both ways: append a failing test and it reports "1 contract test(s) failing"; append a passing one and it reports "26 contract tests passed, expected 25"',
