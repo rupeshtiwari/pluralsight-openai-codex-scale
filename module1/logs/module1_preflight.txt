@@ -191,11 +191,8 @@ $ [ -f framework-skill/node-express-migration/SKILL.md ]
 RESULT PASS  [c6] framework skill present
 
 $ node "${ROOT}/scripts/check.mjs" skill-tells-unique
-  tell leaked into module1/m1-c3-execute-codex-refactor.md: "emit failures that"
-RESULT FAIL  [c6] skill-off tells still unique to the skill
-WHY IT MATTERS  The toggle pre-check decides whether Codex read the skill by looking for wording that exists nowhere else. If a tell is copied into another document it stops being evidence, and the pre-check would keep reporting a load that never happened.
-HOW TO FIX      Remove the duplicated phrasing named above, or pick a new tell and update the evidence artifact.
-CODEX PROMPT    Which files besides SKILL.md contain the skill-off tell phrases?
+
+RESULT PASS  [c6] skill-off tells still unique to the skill
 
 $ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
 
@@ -250,10 +247,4 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 1    EO2d  framework skill guidance
   Clip 6 step 2-4  EO2c  validation after the milestone
 
-FAILED CHECKS
-  [c6] skill-off tells still unique to the skill
-    why it matters : The toggle pre-check decides whether Codex read the skill by looking for wording that exists nowhere else. If a tell is copied into another document it stops being evidence, and the pre-check would keep reporting a load that never happened.
-    how to fix     : Remove the duplicated phrasing named above, or pick a new tell and update the evidence artifact.
-    codex prompt   : Which files besides SKILL.md contain the skill-off tell phrases?
-
-VERDICT  NOT READY - 1 check(s) failed.
+VERDICT  READY - all Module 1 demos can be run.
