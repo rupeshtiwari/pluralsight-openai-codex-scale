@@ -102,7 +102,8 @@ Run these outside the recording, not in the integrated terminal.
 | Evidence | Value |
 |---|---|
 | Baseline tests | 25 passed |
-| Validation gates in the ExecPlan | whatever Step 1 records — three or four, both correct |
+| Validation gates in the ExecPlan | whatever Step 1 records — it has differed on every measured run |
+| Bundled architecture change in Step 2 | not guaranteed — one measured run produced none; Step 3 carries the branch |
 | ExecPlan intended changes | 4 numbered items |
 | Progress log at start | empty |
 | Deferred work at start | empty |
@@ -167,8 +168,14 @@ adding a build gate on its own initiative. That is correct: `npm run build` exis
 workspace, and a full `tsc` writes output, so it can fail where a type-check-only run passes.
 Three is also correct. Accept either.
 
-FAIL only if a recorded command is not a real script in `supporthub-api/modern/package.json`, since
-Step 2 runs whatever this section names.
+FAIL only if a recorded command does not resolve — every one must be a real script, at the
+repository root or in the modern workspace, since Step 2 runs whatever this section names.
+
+Invocation style is Codex's too. A measured run wrote its gates as
+`npm --prefix supporthub-api/modern run ...`, and recorded both a focused contract-test command and
+a full test run. Root-level `npm test` and workspace-prefixed forms are equally correct; do not
+rewrite them to match a house style on camera, and do not read the list as a target — the count
+has differed on every run so far.
 
 **Operator action.** Read the Validation checks section aloud before moving on. Step 2 runs
 exactly what it names, so this is the moment the plan becomes executable — and if Codex recorded a
@@ -212,21 +219,17 @@ implements changes rather than the planning one used to inspect without editing.
 **Prompt.** Saved at `plans/prompts/m1-c3-bounded-cleanup.md`.
 
 ```text
-Implement ONLY the approved cleanup theme recorded in plans/ExecPlan.md:
+Implement the approved cleanup theme recorded in plans/ExecPlan.md:
 centralize duplicate ticket-priority normalization.
 
-Constraints:
 - normalizePriority() in supporthub-api/modern/src/utils/priority.ts is the single implementation
 - the private toPriority() in ticketService.ts calls it instead of duplicating it
 - the POST /tickets handler stops normalizing inline and passes the raw value through
 - remove normalizeLegacySeverity() only after confirming it has no importers
 
 Do not change any route path, HTTP status code, or response field name.
-Do not introduce a repository layer, a new directory, or any new abstraction.
-Do not reorganize the service architecture.
 
-After implementing, update the Progress log in plans/ExecPlan.md, and
-record anything you chose not to do under Deferred work.
+After implementing, update the Progress log in plans/ExecPlan.md.
 
 Then run every command in the ExecPlan's Validation checks section.
 ```
@@ -234,6 +237,13 @@ Then run every command in the ExecPlan's Validation checks section.
 **Expected result.** Codex edits several files and reports every command in Validation checks
 passing. The count is whatever Step 1 recorded — read it off the screen rather than saying a
 number.
+
+**A first test run may fail with `listen EPERM`, then pass on a retry.** That is not a flake and
+not a broken test. The contract tests use supertest, which binds an ephemeral port, and Codex's
+sandbox denies the bind; rerunning outside the sandbox succeeds. Expect it, and narrate it rather
+than cutting it — an agent hitting a sandbox boundary and retrying is worth three seconds in a
+course about running agents at scale. What must not pass unexplained is a red result the narration
+ignores.
 
 **Highlight.** `Tests  25 passed (25)`. The same 25 that passed before the change still pass after
 it — that is the behavior contract holding.
@@ -278,14 +288,19 @@ count out loud: the plan named four changes, the diff contains more.
 
 **Verification.** PASS if at least one changed file appears that the ExecPlan does not list.
 
-If the diff happens to contain only the four intended changes, ask Codex:
+**If the diff contains only the intended changes.** This is the branch to rehearse, because it
+happens. A measured run produced three files, all inside the theme, and Codex said so out loud:
+*"No route files were changed."* Ask for the change the ExecPlan's own Risks table predicts:
 
 ```text
-Suggest one architectural improvement to supporthub-api/modern that would make this code
-easier to maintain, and implement it now.
+createTicket() still reads and writes the ticket store inline. Extract that data
+access into its own module and rewire createTicket() to use it.
 ```
 
-That produces the out-of-scope change this step depends on.
+Naming the extraction rather than asking for "an architectural improvement" matters: it produces
+the same drift the unprompted branch produces, so Step 4 is identical either way and the narration
+does not change. It is still a second prompt, and the honest framing on camera is the one the Risks
+table already uses — *this is the change the plan warned this cleanup would attract.*
 
 **Recovery.** `./module1/scripts/demo_reset.sh` then repeat Step 2.
 

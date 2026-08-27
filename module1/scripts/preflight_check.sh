@@ -222,6 +222,12 @@ check "c3" "ExecPlan sections Step 1 fills are unwritten" \
   "git checkout -- plans/ExecPlan.md" \
   "Which section of plans/ExecPlan.md is already written?"
 
+check "c3" "clip 3's prompt does not forbid the drift step 4 removes" \
+  'node "${ROOT}/scripts/check.mjs" c3-prompt-does-not-preempt-removal' \
+  "Step 4 removes an architecture migration Codex bundled in. The implementation prompt used to forbid exactly that, and a measured run complied: three files, all inside the theme, and Codex said 'No route files were changed.' Same shape as the clip 5 failure." \
+  "Remove the structural prohibition from the implementation prompt; keep the route, status code and field-name contract." \
+  "What in the clip 3 implementation prompt would stop Codex from over-reaching?"
+
 check "c3" "no document fixes the clip 3 gate count" \
   'node "${ROOT}/scripts/check.mjs" c3-gates-not-hardcoded' \
   "Step 1 asks Codex for the commands that prove the contracts, so the gate list is its judgment. A measured run recorded four, adding a build gate unprompted, against a runbook that said three." \

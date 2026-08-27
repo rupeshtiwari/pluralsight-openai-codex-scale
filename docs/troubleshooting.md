@@ -76,6 +76,16 @@ happen. Reset discards the demo's edits and the pull then fast-forwards.
 This has cost three cycles in this repository, always the same way: pull first out of habit, read
 the abort, run the reset, pull again. The order is reset, then pull.
 
+**Codex's test run fails with `listen EPERM`, then passes when rerun.**
+Not a flake, and not a broken test. The contract tests drive the app through supertest, which binds
+an ephemeral port, and the agent's sandbox denies the bind. Rerunning outside the sandbox succeeds.
+
+Nothing to fix in the repository: the tests are correct, the sandbox is correct, and removing
+supertest would weaken the contract tests that are the demo's proof. Clip 3's Step 2 anticipates it
+so the author is not surprised on camera, and narrates it — an agent hitting a sandbox boundary and
+retrying is worth three seconds in a course about running agents at scale. A red result the
+narration ignores is the thing that must not happen.
+
 ## Validation gates
 
 **`npm run typecheck` fails on `req.params`.**
