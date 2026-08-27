@@ -84,6 +84,11 @@ npm test                        # Tests  25 passed (25)
 git status --short              # must print nothing at all
 ```
 
+**Pulling? Reset first.** `git pull` refuses to overwrite modified tracked files, and every demo
+dirties tracked files — `plans/ExecPlan.md`, `plans/migration-plan.md`, anything under
+`supporthub-api/`. A pull straight after a run aborts with *"Your local changes to the following
+files would be overwritten by merge"*. Run the reset, then pull. Never the other way round.
+
 **Run the module preflight once per recording session, not per clip.** It validates the
 preconditions for all four Module 1 demos in a single pass, so it does not need repeating
 between clips.

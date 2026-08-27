@@ -60,6 +60,22 @@ own directory to resolve it. If the badge returns, run `node scripts/check.mjs
 eslint-tsconfigrootdir-set`; it names which config lost the setting. Reload the ESLint server after
 pulling a config change: Command Palette, `ESLint: Restart ESLint Server`.
 
+**`git pull` aborts: "Your local changes to the following files would be overwritten by merge."**
+Reset before pulling, not after:
+
+```bash
+./module1/scripts/demo_reset.sh    # or module2/scripts/demo_reset.sh
+git pull
+```
+
+The demo surface is all tracked files — `supporthub-api/`, `plans/`, `automation/`, both
+`logs/` directories, `docs/triage-rubric.md` — so a demo run leaves the tree dirty in exactly the
+places a pull wants to touch. Git refuses, correctly, and nothing is lost; the pull simply did not
+happen. Reset discards the demo's edits and the pull then fast-forwards.
+
+This has cost three cycles in this repository, always the same way: pull first out of habit, read
+the abort, run the reset, pull again. The order is reset, then pull.
+
 ## Validation gates
 
 **`npm run typecheck` fails on `req.params`.**
