@@ -18,10 +18,7 @@ SCOPE
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT FAIL  [all] working tree clean
-WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
-HOW TO FIX      ./module1/scripts/demo_reset.sh
-CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+RESULT PASS  [all] working tree clean
 
 $ node "${ROOT}/scripts/check.mjs" eslint-tsconfigrootdir-set
 
@@ -117,4 +114,4 @@ $ [ "$(sed -n "/## Intended changes/,/## Behavior contracts/p" plans/ExecPlan.md
 
 RESULT PASS  [c3] ExecPlan names four intended changes
 
-VERDICT  NOT READY - 1 check(s) failed above.
+VERDICT  READY - this clip can be recorded.

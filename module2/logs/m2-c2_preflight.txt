@@ -1,0 +1,51 @@
+M2-C2 PREFLIGHT
+===============
+
+Demo: Run a manual Codex triage sweep across Sentry and GitHub (6 minutes)
+
+RUNBOOK
+  module2/m2-c2-manual-triage.md
+
+LEARNING OBJECTIVES
+  TO3   Apply Codex automations to run recurring bug triage across multiple data sources at team scale.
+  EO3a  Configure a bug triage automation using the Sentry, Slack, Linear, and GitHub plugins to sweep a defined time window
+  EO3b  Evaluate a Codex-generated triage report for correct P0–P3 prioritization, deduplicated bug entries, and evidence-backed recommendations
+
+SCOPE
+  Checks tagged [all] gate every clip in this module.
+  Checks tagged [c2] gate this clip only.
+  Both must pass before this clip is recorded.
+
+$ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
+
+RESULT PASS  [all] working tree clean
+
+$ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
+
+RESULT PASS  [all] runbooks match the approved outline
+
+$ [ -z "$(git diff --cached --name-only)" ]
+
+RESULT PASS  [all] nothing left staged
+
+$ node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json
+
+RESULT PASS  [c2] sentry fixtures valid
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" count automation/sentry-fixtures/issues.json issues)" -eq 5 ]
+
+RESULT PASS  [c2] five sentry issues in window
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/sentry-fixtures/issues.json shared-frame)" -ge 1 ]
+
+RESULT PASS  [c2] duplicate pair shares a stack frame
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/github-seed/commits.json misleading-newer)" -eq 1 ]
+
+RESULT PASS  [c2] misleading commit is nearer in time than the real cause
+
+$ grep -qF "| **P1** | Core workflow degraded or failing for many users | 100 or more |" docs/triage-rubric.md
+
+RESULT PASS  [c2] rubric P1 threshold is 100
+
+VERDICT  READY - this clip can be recorded.
