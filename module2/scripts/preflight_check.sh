@@ -286,6 +286,16 @@ log "  Clip 6 step 1-4  EO4a  trace, revert bad hunk, rerun corrected"
 
 log ""
 log "PER-CLIP TRANSCRIPTS"
+# What the closing line should name. A scoped run checked one clip, so claiming
+# the module is ready would overstate it, and pointing at the module log would
+# send the author to the wrong file.
+SUBJECT="Module 2"
+SUBJ_LOG="module2/logs/module2_preflight.txt"
+if [ -n "$ONLY" ]; then
+  SUBJECT="m2-$ONLY"
+  SUBJ_LOG="module2/logs/m2-${ONLY}_preflight.txt"
+fi
+
 # Per-clip verdicts, counted from each clip's own transcript rather than tracked
 # in a parallel counter that could disagree with the file an author opens.
 # Rewrite each clip transcript as a step-grouped report before verdicts are
@@ -313,8 +323,8 @@ done
 $FMT section "verdict"
 if [ ${#FAILED[@]} -eq 0 ]; then
   $FMT item "all checks passed"
-  log ""; log "VERDICT  READY - all Module 2 demos can be run."
-  $FMT verdict pass "Module 2 is ready. Transcript: module2/logs/module2_preflight.txt"
+  log ""; log "VERDICT  READY - $SUBJECT can be run."
+  $FMT verdict pass "$SUBJECT is ready. Transcript: $SUBJ_LOG"
   exit 0
 fi
 log ""; log "FAILED CHECKS"
@@ -325,5 +335,5 @@ for e in "${FAILED[@]}"; do
   $FMT item "[$demo] $name -> $fix"
 done
 log ""; log "VERDICT  NOT READY - ${#FAILED[@]} check(s) failed."
-$FMT verdict fail "${#FAILED[@]} check(s) failed. See module2/logs/module2_preflight.txt"
+$FMT verdict fail "${#FAILED[@]} check(s) failed. See $SUBJ_LOG"
 exit 1

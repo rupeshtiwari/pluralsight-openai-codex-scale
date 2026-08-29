@@ -5,40 +5,33 @@ Demo: Execute a Codex refactor with ExecPlan checkpoints (6 minutes)
 
 RUNBOOK      module1/m1-c3-execute-codex-refactor.md
 OBJECTIVES   TO1, EO1b, EO1c
-READINESS    NOT READY - 1 of 21 checks failed
+READINESS    READY
 
 STEPS
 -----
 
-Step 1  BLOCKED
+Step 1  READY
   Create an ExecPlan that records intended changes, behavior contracts, validation checks, and progress across the refactor
   gated by 5 check(s): 5 pass, 0 fail
 
-Step 2  BLOCKED
+Step 2  READY
   Let Codex implement one bounded cleanup pass and run Vitest plus TypeScript validation
   gated by 2 check(s): 2 pass, 0 fail
 
-Step 3  BLOCKED
+Step 3  READY
   Inspect the generated diff and confirm public behavior is preserved
   gated only by the checks shared across this module
 
-Step 4  BLOCKED
+Step 4  READY
   Remove the architecture migration Codex bundled into the cleanup diff and log it as a separate ExecPlan task
   gated by 1 check(s): 1 pass, 0 fail
 
-SHARED GATES  14 of 15 pass
+SHARED GATES  15 of 15 pass
 
   These gate every step above. A failure here blocks the whole clip.
-    FAIL  working tree clean
 
-WHAT TO FIX
------------
-
-working tree clean   [all]
-  why  Every demo starts from a clean tree; leftover edits change what the diff shows.
-  fix  ./module1/scripts/demo_reset.sh
-  ask  Show me every uncommitted change in this repository and what produced it.
+Every gate is green. This clip can be recorded.
 
 Full command output for this run: module1/logs/m1-c3_preflight.full.txt
 
-VERDICT  NOT READY - 1 check(s) failed above.
+VERDICT  READY - this clip can be recorded.

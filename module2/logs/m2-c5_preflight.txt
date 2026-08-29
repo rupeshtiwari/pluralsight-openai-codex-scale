@@ -5,33 +5,40 @@ Demo: Inspect automation diffs in the Codex review pane (6 minutes)
 
 RUNBOOK      module2/m2-c5-inspect-automation-diffs.md
 OBJECTIVES   TO4, EO4a
-READINESS    READY
+READINESS    NOT READY - 1 of 6 checks failed
 
 STEPS
 -----
 
-Step 1  READY
+Step 1  BLOCKED
   Open an automation run that produced uncommitted changes and inspect the diff in the Codex review pane
   gated by 1 check(s): 1 pass, 0 fail
 
-Step 2  READY
+Step 2  BLOCKED
   Review changed files and hunks against the triage evidence that caused the automation to act
   gated by 1 check(s): 1 pass, 0 fail
 
-Step 3  READY
+Step 3  BLOCKED
   Use source control to stage valid hunks individually and revert an unrelated or incorrect hunk
   gated by 1 check(s): 1 pass, 0 fail
 
-Step 4  READY
+Step 4  BLOCKED
   Confirm only approved changes remain before the repository is committed
   gated by 1 check(s): 1 pass, 0 fail
 
-SHARED GATES  3 of 3 pass
+SHARED GATES  2 of 3 pass
 
   These gate every step above. A failure here blocks the whole clip.
+    FAIL  working tree clean
 
-Every gate is green. This clip can be recorded.
+WHAT TO FIX
+-----------
+
+working tree clean   [all]
+  why  The review demos seed changes with a patch; leftover edits make the diff unreadable.
+  fix  ./module2/scripts/demo_reset.sh
+  ask  Show me every uncommitted change in this repository and what produced it.
 
 Full command output for this run: module2/logs/m2-c5_preflight.full.txt
 
-VERDICT  READY - this clip can be recorded.
+VERDICT  NOT READY - 1 check(s) failed above.
