@@ -84,10 +84,11 @@ npm test                        # Tests  25 passed (25)
 git status --short              # must print nothing at all
 ```
 
-**Pulling? Reset first.** `git pull` refuses to overwrite modified tracked files, and every demo
-dirties tracked files — `plans/ExecPlan.md`, `plans/migration-plan.md`, anything under
-`supporthub-api/`. A pull straight after a run aborts with *"Your local changes to the following
-files would be overwritten by merge"*. Run the reset, then pull. Never the other way round.
+**Pulling? Use `./scripts/sync.sh`.** It resets both modules, then pulls. Plain `git pull` after a
+run aborts with *"Your local changes to the following files would be overwritten by merge"*, because
+every demo dirties tracked files — `plans/ExecPlan.md`, `plans/migration-plan.md`, anything under
+`supporthub-api/` — and the preflight rewrites the transcripts under `module1/logs/`. Nothing is
+lost when it aborts; the pull just did not run.
 
 **Run this clip's preflight before recording it.**
 
