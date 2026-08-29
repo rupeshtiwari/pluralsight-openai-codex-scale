@@ -95,6 +95,12 @@ module1/scripts/preflight_check.sh
 It must end `PASS: Module 1 is ready.` If any check fails it names the check, why it matters,
 and the command that fixes it. Do not record against a failing preflight.
 
+**This clip's own transcript is `module1/logs/m1-c3_preflight.txt`.** It carries the checks
+tagged `[all]`, which gate every clip in the module, plus the ones tagged for this clip, and
+ends with its own READY / NOT READY verdict. Read that file rather than the module log when
+you are about to record this clip — a failure elsewhere in the module does not necessarily
+block you, and the per-clip verdict is what says so.
+
 Run these outside the recording, not in the integrated terminal.
 
 **Expected values**
