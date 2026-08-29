@@ -1,0 +1,120 @@
+M1-C2 PREFLIGHT
+===============
+
+Demo: Map noisy TypeScript modules with Codex before editing (6 minutes)
+
+RUNBOOK
+  module1/m1-c2-map-noisy-typescript-modules.md
+
+LEARNING OBJECTIVES
+  TO1   Apply Codex to plan and execute a codebase refactoring operation using reviewable passes
+  EO1a  Construct a refactoring prompt that instructs Codex to map noisy modules, identify dead code, and propose one cleanup theme at a time before editing
+  EO1d  Explain when to use Plan mode before committing Codex to implementation
+
+SCOPE
+  Checks tagged [all] gate every clip in this module.
+  Checks tagged [c2] gate this clip only.
+  Both must pass before this clip is recorded.
+
+$ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
+
+RESULT FAIL  [all] working tree clean
+WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
+HOW TO FIX      ./module1/scripts/demo_reset.sh
+CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+
+$ node "${ROOT}/scripts/check.mjs" eslint-tsconfigrootdir-set
+
+RESULT PASS  [all] ESLint parser root pinned in both workspaces
+
+$ node "${ROOT}/scripts/check.mjs" oncamera-markdown-lint-silent
+
+RESULT PASS  [all] no on-camera markdown shows a lint badge
+
+$ node "${ROOT}/scripts/check.mjs" workspace-lint-silent
+
+RESULT PASS  [all] no workspace shows a lint badge
+
+$ node "${ROOT}/scripts/check.mjs" prompts-allow-read-only-inspection
+
+RESULT PASS  [all] no prompt bans commands outright
+
+$ node "${ROOT}/scripts/check.mjs" c2-prompts-saved
+
+RESULT PASS  [all] saved clip 2 prompts match the runbook
+
+$ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
+
+RESULT PASS  [all] runbooks match the approved outline
+
+$ node "${ROOT}/scripts/check.mjs" demo-checkout-refs-exist
+
+RESULT PASS  [all] no runnable block checks out a missing branch
+
+$ node "${ROOT}/scripts/check.mjs" doc-links-resolve
+
+RESULT PASS  [all] runbook links resolve
+
+$ [ -d node_modules ]
+
+RESULT PASS  [all] dependencies installed
+
+$ npm run lint
+
+> supporthub@1.0.0 lint
+> npm run lint --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 lint
+> eslint src tests
+RESULT PASS  [all] ESLint
+
+$ npm run typecheck
+
+> supporthub@1.0.0 typecheck
+> npm run typecheck --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 typecheck
+> tsc -p tsconfig.json --noEmit
+RESULT PASS  [all] TypeScript type-check
+
+$ npm run build
+
+> supporthub@1.0.0 build
+> npm run build --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 build
+> tsc -p tsconfig.json
+RESULT PASS  [all] build
+
+$ node "${ROOT}/scripts/check.mjs" contract-tests-pass
+
+RESULT PASS  [all] contract tests (expect 25)
+
+$ node "${ROOT}/scripts/check.mjs" c2-seed-shape
+
+RESULT PASS  [c2] clip 2 seed matches the runbook's expected values
+
+$ [ "$(grep -rn "from '.*utils/legacy" supporthub-api/modern/src supporthub-api/modern/tests | wc -l | tr -d " ")" -eq 0 ]
+
+RESULT PASS  [c2] dead helper has no importers
+
+$ node "${ROOT}/scripts/check.mjs" load-bearing-function
+
+RESULT PASS  [c2] one load-bearing function carries all four responsibilities
+
+$ [ "$(grep -c "value === 'p0'" supporthub-api/modern/src/routes/tickets.ts)" -eq 0 ]
+
+RESULT PASS  [c2] the route does not normalize priority
+
+$ node "${ROOT}/scripts/check.mjs" c2-refs-identical
+
+RESULT PASS  [c2] start and captured checkpoints are the same commit
+
+$ [ -f plans/prompts/m1-c2-map-codebase.md ]
+
+RESULT PASS  [c2] prompt file present
+
+VERDICT  NOT READY - 1 check(s) failed above.

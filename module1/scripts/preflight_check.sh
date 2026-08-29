@@ -13,6 +13,36 @@ cd "$ROOT"
 mkdir -p "$(dirname "$LOG")"
 : > "$LOG"
 
+# Per-clip transcripts. The master log above covers the whole module; an author
+# about to record one clip wants the gates for that clip and nothing else. Every
+# check is already scoped -- check "all" gates every clip, check "cN" gates one
+# -- so the run is partitioned rather than repeated. Headers come from
+# docs/outline-clip-map.json so a clip's title and objectives cannot drift from
+# the approved outline.
+CLIPS="c2 c3 c5 c6"
+CLIPDIR="${ROOT}/module1/logs"
+node -e '
+  const fs = require("fs");
+  const map = JSON.parse(fs.readFileSync("docs/outline-clip-map.json", "utf8"));
+  for (const c of ["c2", "c3", "c5", "c6"]) {
+    const key = "m1-" + c;
+    const e = map.clips[key] || {};
+    const objs = (e.objectives || []).map((o) => "  " + o.padEnd(6) + (map.objectives[o] || ""));
+    fs.writeFileSync("module1/logs/" + key + "_preflight.txt", [
+      key.toUpperCase() + " PREFLIGHT",
+      "=".repeat(key.length + 10), "",
+      e.title || key, "",
+      "RUNBOOK", "  " + (e.runbook || "unknown"), "",
+      "LEARNING OBJECTIVES", ...objs, "",
+      "SCOPE",
+      "  Checks tagged [all] gate every clip in this module.",
+      "  Checks tagged [" + c + "] gate this clip only.",
+      "  Both must pass before this clip is recorded.",
+      "",
+    ].join("\n"));
+  }
+'
+
 FAILED=()
 
 log(){ echo "$@" >> "$LOG"; }
@@ -47,6 +77,25 @@ check(){
     log "CODEX PROMPT    $prompt"
     FAILED+=("$demo|$name|$why|$fix|$prompt")
   fi
+
+  # Fan the same block out to every clip this check gates. Written here rather
+  # than parsed back out of the master log afterwards, so the per-clip files
+  # cannot drift from what actually ran.
+  local targets t f
+  if [ "$demo" = "all" ]; then targets="$CLIPS"; else targets="$demo"; fi
+  for t in $targets; do
+    f="${CLIPDIR}/m1-${t}_preflight.txt"
+    [ -f "$f" ] || continue
+    { echo ""; echo "\$ $cmd"; printf '%s\n' "$out" | norm; } >> "$f"
+    if [ $rc -eq 0 ]; then
+      echo "RESULT PASS  [$demo] $name" >> "$f"
+    else
+      { echo "RESULT FAIL  [$demo] $name"
+        echo "WHY IT MATTERS  $why"
+        echo "HOW TO FIX      $fix"
+        echo "CODEX PROMPT    $prompt"; } >> "$f"
+    fi
+  done
 }
 
 $FMT title "Module 1 preflight" "Verify every precondition the four demos depend on"
@@ -373,6 +422,26 @@ log "  Clip 5 step 1    EO2a  six inventory categories"
 log "  Clip 5 step 2-4  EO2b  compatibility, exceptions, rollback"
 log "  Clip 6 step 1    EO2d  framework skill guidance"
 log "  Clip 6 step 2-4  EO2c  validation after the milestone"
+
+log ""
+log "PER-CLIP TRANSCRIPTS"
+# Per-clip verdicts, counted from each clip's own transcript rather than tracked
+# in a parallel counter that could disagree with the file an author opens.
+$FMT section "per-clip readiness"
+for c in $CLIPS; do
+  f="${CLIPDIR}/m1-${c}_preflight.txt"
+  [ -f "$f" ] || continue
+  n="$(grep -c '^RESULT FAIL' "$f" 2>/dev/null || true)"
+  n="${n:-0}"
+  if [ "$n" -eq 0 ]; then
+    printf '\nVERDICT  READY - this clip can be recorded.\n' >> "$f"
+    $FMT item "m1-$c: READY"
+  else
+    printf '\nVERDICT  NOT READY - %s check(s) failed above.\n' "$n" >> "$f"
+    $FMT item "m1-$c: NOT READY ($n failed)"
+  fi
+  log "  m1-$c  $( [ "$n" -eq 0 ] && echo READY || echo "NOT READY ($n)" )  logs/m1-${c}_preflight.txt"
+done
 
 $FMT section "verdict"
 if [ ${#FAILED[@]} -eq 0 ]; then
