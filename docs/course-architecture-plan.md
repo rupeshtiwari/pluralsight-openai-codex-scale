@@ -391,6 +391,39 @@ either is a plausible paste source under time pressure. That drift had already h
 unnoticed — the runbook carried the command ban and the saved file did not — so both copies are
 asserted byte-identical, by `c2-prompts-saved` and `c6-prompt-saved`.
 
+## 11a. A prompt may not impose the rule a later step audits
+
+Three demos have failed the same way, and it is now the most expensive recurring defect in this
+repository. Each time, an early prompt instructed the property that a later step exists to catch
+being broken — so the agent complied, and the later step found a clean artifact and nothing to
+decide.
+
+| Clip | The instruction | The step it disarmed |
+|---|---|---|
+| 5 step 2 | referenced the framework skill, whose first rule forbids batching a route migration with a dependency upgrade | step 4, which must find that batch |
+| 3 step 2 | *"Do not introduce a repository layer, a new directory, or any new abstraction"* | step 4, which removes the architecture Codex bundled in |
+| 5 step 3 | *"change one thing, not several"* | step 4 again, which audits milestones for exactly that |
+
+**The test to apply to every prompt: does any later step in this clip exist to catch a violation of
+what I am about to instruct?** If so, the instruction belongs in the operator's narration after the
+finding, not in the prompt before it. It is asserted per clip — `c5-prompts-skill-free`,
+`c3-prompt-does-not-preempt-removal`, `c5-step3-does-not-decompose` — because the wording differs
+each time and only a clip-specific check knows which rule its own step 4 tests.
+
+**The fix is not the same in every case, and the difference is worth naming.** Ask whether the thing
+the later step needs already exists in the artifact:
+
+- **It exists — stop destroying it.** Clip 5's batch is in the plan step 2 produced. Step 3 only had
+  to avoid dissolving it, so removing the atomicity rule restores step 4's finding outright.
+- **It does not exist — ask for it deliberately.** Clip 3's architectural drift is agent behaviour,
+  and no prompt makes an agent over-reach without requesting it. Removing the prohibition raised the
+  odds and did not deliver: two measured walks stayed in scope. So the request became an explicit
+  operator action, narrated as testing a risk the plan predicted in writing rather than as an
+  accident.
+
+Reaching for the second answer when the first would do is what makes a demo look staged. Check the
+artifact before deciding.
+
 ## 12. Nothing unexplained may show a badge on camera
 
 **Before recording, open every file the demo opens and account for every badge on every tab.** A

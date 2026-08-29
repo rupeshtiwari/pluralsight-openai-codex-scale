@@ -362,6 +362,12 @@ check "c5" "__dirname used in legacy service" \
   "git checkout -- supporthub-api/migration/services/ticketService.js" \
   "Restore the __dirname-based config load in the legacy ticket service."
 
+check "c5" "clip 5's milestone prompt does not impose what step 4 audits" \
+  'node "${ROOT}/scripts/check.mjs" c5-step3-does-not-decompose' \
+  "Step 4 audits the milestone list for one that both changes code and upgrades a dependency. Step 3 used to instruct 'change one thing, not several', and a walk produced thirteen compliant milestones with nothing for step 4 to flag." \
+  "Remove the atomicity rule from the milestone prompt; keep the independent-validation half." \
+  "What in the clip 5 milestone prompt tells Codex not to combine concerns?"
+
 check "c5" "no clip 5 prompt references the framework skill" \
   'node "${ROOT}/scripts/check.mjs" c5-prompts-skill-free' \
   "The skill forbids combining a route migration with a dependency upgrade. If a clip 5 prompt points Codex at it, Codex plans by that rule and Step 4 has no batched milestone left to reject. The clip loses the decision it exists for." \

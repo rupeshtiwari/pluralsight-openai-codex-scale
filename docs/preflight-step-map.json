@@ -1,68 +1,183 @@
 {
   "_comment": "Which of a clip's four steps each preflight check gates. The per-clip transcripts group results by step so the file reads as the clip's own readiness rather than a flat list, which is what makes it usable for writing narration without a screenshot. Step titles are NOT stored here -- they come from docs/outline-clip-map.json, which is the approved outline. Checks tagged [all] gate every step of every clip and are not listed. scripts/check.mjs preflight-step-map-complete fails if a check exists with no entry here, or an entry names a check that no longer exists.",
-
   "m1-c2": {
-    "clip 2 seed matches the runbook's expected values": [1],
-    "dead helper has no importers": [1],
-    "the route does not normalize priority": [1],
-    "prompt file present": [1],
-    "one load-bearing function carries all four responsibilities": [2, 3],
-    "start and captured checkpoints are the same commit": [4]
+    "clip 2 seed matches the runbook's expected values": [
+      1
+    ],
+    "dead helper has no importers": [
+      1
+    ],
+    "the route does not normalize priority": [
+      1
+    ],
+    "prompt file present": [
+      1
+    ],
+    "one load-bearing function carries all four responsibilities": [
+      2,
+      3
+    ],
+    "start and captured checkpoints are the same commit": [
+      4
+    ]
   },
   "m1-c3": {
-    "refactor ExecPlan present": [1],
-    "ExecPlan sections Step 1 fills are unwritten": [1],
-    "ExecPlan progress log is empty": [1],
-    "ExecPlan names four intended changes": [1],
-    "no document fixes the clip 3 gate count": [1, 2],
-    "clip 3's prompt does not forbid the drift step 4 removes": [2, 4]
+    "refactor ExecPlan present": [
+      1
+    ],
+    "ExecPlan sections Step 1 fills are unwritten": [
+      1
+    ],
+    "ExecPlan progress log is empty": [
+      1
+    ],
+    "ExecPlan names four intended changes": [
+      1
+    ],
+    "no document fixes the clip 3 gate count": [
+      1,
+      2
+    ],
+    "clip 3's prompt does not forbid the drift step 4 removes": [
+      2,
+      4
+    ]
   },
   "m1-c5": {
-    "legacy service present": [1],
-    "legacy is CommonJS, not ESM": [1],
-    "migration tests pass (expect 8)": [1],
-    "all six inventory categories exist": [1],
-    "__dirname used in legacy service": [1, 2],
-    "no clip 5 prompt references the framework skill": [2, 3, 4],
-    "migration plan opens on exactly one milestone": [3, 4],
-    "that milestone batches code with a dependency upgrade": [4],
-    "that milestone is unreviewed": [4]
+    "legacy service present": [
+      1
+    ],
+    "legacy is CommonJS, not ESM": [
+      1
+    ],
+    "migration tests pass (expect 8)": [
+      1
+    ],
+    "all six inventory categories exist": [
+      1
+    ],
+    "__dirname used in legacy service": [
+      1,
+      2
+    ],
+    "no clip 5 prompt references the framework skill": [
+      2,
+      3,
+      4
+    ],
+    "migration plan opens on exactly one milestone": [
+      3,
+      4
+    ],
+    "that milestone batches code with a dependency upgrade": [
+      4
+    ],
+    "that milestone is unreviewed": [
+      4
+    ],
+    "clip 5's milestone prompt does not impose what step 4 audits": [
+      3,
+      4
+    ]
   },
   "m1-c6": {
-    "framework skill present": [1],
-    "Run A prompt saved and matching the runbook": [1],
-    "skill is opt-in, not ambient": [1],
-    "skill-off tells still unique to the skill": [1],
-    "express 4 in migration workspace": [1],
-    "skill names all four validation gates": [2],
-    "focused route tests pass": [2],
-    "compat modules present": [3],
-    "express 5 in modern workspace": [3, 4]
+    "framework skill present": [
+      1
+    ],
+    "Run A prompt saved and matching the runbook": [
+      1
+    ],
+    "skill is opt-in, not ambient": [
+      1
+    ],
+    "skill-off tells still unique to the skill": [
+      1
+    ],
+    "express 4 in migration workspace": [
+      1
+    ],
+    "skill names all four validation gates": [
+      2
+    ],
+    "focused route tests pass": [
+      2
+    ],
+    "compat modules present": [
+      3
+    ],
+    "express 5 in modern workspace": [
+      3,
+      4
+    ]
   },
   "m2-c2": {
-    "sentry fixtures valid": [1],
-    "five sentry issues in window": [1, 2],
-    "duplicate pair shares a stack frame": [3],
-    "misleading commit is nearer in time than the real cause": [3, 4],
-    "rubric P1 threshold is 100": [3, 4]
+    "sentry fixtures valid": [
+      1
+    ],
+    "five sentry issues in window": [
+      1,
+      2
+    ],
+    "duplicate pair shares a stack frame": [
+      3
+    ],
+    "misleading commit is nearer in time than the real cause": [
+      3,
+      4
+    ],
+    "rubric P1 threshold is 100": [
+      3,
+      4
+    ]
   },
   "m2-c3": {
-    "triage baseline present": [1, 2],
-    "baseline has four findings": [2],
-    "exactly two findings are routable": [3],
-    "all routing payloads are drafts": [4],
-    "no draft is pre-approved": [3, 4]
+    "triage baseline present": [
+      1,
+      2
+    ],
+    "baseline has four findings": [
+      2
+    ],
+    "exactly two findings are routable": [
+      3
+    ],
+    "all routing payloads are drafts": [
+      4
+    ],
+    "no draft is pre-approved": [
+      3,
+      4
+    ]
   },
   "m2-c5": {
-    "run-3001 patch applies": [1],
-    "run-3001 touches exactly two files": [2],
-    "run-3001 declares one valid and one invalid hunk": [3, 4]
+    "run-3001 patch applies": [
+      1
+    ],
+    "run-3001 touches exactly two files": [
+      2
+    ],
+    "run-3001 declares one valid and one invalid hunk": [
+      3,
+      4
+    ]
   },
   "m2-c6": {
-    "run-3002 patch applies": [1],
-    "run-3002 records a bad source assumption": [1],
-    "run-3002 carries work worth preserving": [2, 3],
-    "run-3003 is the corrected rerun": [3, 4],
-    "baseline gates green before seeding a failure": [4]
+    "run-3002 patch applies": [
+      1
+    ],
+    "run-3002 records a bad source assumption": [
+      1
+    ],
+    "run-3002 carries work worth preserving": [
+      2,
+      3
+    ],
+    "run-3003 is the corrected rerun": [
+      3,
+      4
+    ],
+    "baseline gates green before seeding a failure": [
+      4
+    ]
   }
 }

@@ -406,6 +406,58 @@ const CHECKS = {
   },
 
   /**
+   * Clip 5's milestone prompt may not impose the rule clip 5 step 4 audits.
+   *
+   * Step 4 asks Codex which milestones both change application code and upgrade
+   * a dependency, then has it split the one that does. Step 3's prompt opened
+   * with "change one thing, not several" -- that same rule, stated as an
+   * instruction -- and its Highlight added "a milestone with two is doing two
+   * jobs". A walk produced thirteen single-concern milestones and step 4 found
+   * nothing: "None of the milestones are both application-code changes and
+   * dependency upgrades. The dependency upgrade is isolated in milestone 10."
+   *
+   * The batch is not something the agent has to invent here. Step 2's plan
+   * already carries it -- a measured walk had "Migrate Routes to TS/ESM on
+   * Express 5" -- so step 3 only has to avoid dissolving what it was handed.
+   * That is the difference from clip 3, where the drift genuinely had to be
+   * requested because nothing in the artifact supplied it.
+   *
+   * Third instance of one defect: a constraint in an earlier prompt removing the
+   * decision a later step exists to teach. Clip 5 step 2 referenced the skill
+   * whose first rule forbids the batch; clip 3 step 2 forbade the architectural
+   * drift; clip 5 step 3 imposed decomposition. Each time the demo instructed
+   * against the thing it was about to teach the operator to catch.
+   *
+   * Two halves. The prompt must not carry the atomicity rule, and it must still
+   * ask for independent validation -- that half is EO2b and the outline bullet,
+   * and unlike the atomicity rule it does not tell Codex what may be combined.
+   */
+  'c5-step3-does-not-decompose': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const t = read('module1/m1-c5-inventory-legacy-express4.md');
+    const prompts = [...t.matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
+    const milestone = prompts.find((b) => /Break the migration into incremental milestones/i.test(b));
+    if (!milestone) return reject('m1-c5: no milestone prompt found — the runbook shape changed');
+
+    const BANS = [
+      /change one thing,? not several/i,
+      /\bone (?:concern|change|thing) per milestone\b/i,
+      /\bmust not combine\b/i,
+      /\bsingle[- ]concern\b/i,
+      /\bdo not (?:combine|bundle|batch)\b/i,
+    ];
+    let ok = true;
+    for (const re of BANS) {
+      const m = milestone.match(re);
+      if (m) ok = reject(`m1-c5 milestone prompt imposes decomposition ("${m[0].trim()}") — step 4 then audits a list that already complies`) && ok;
+    }
+    if (!/be validated on its own by a named command/i.test(milestone)) {
+      ok = reject('m1-c5 milestone prompt no longer asks for independent validation — that half is EO2b and must stay') && ok;
+    }
+    return ok;
+  },
+
+  /**
    * Clip 3's implementation prompt may not forbid the drift clip 3 exists to catch.
    *
    * Step 2's prompt carried three suppressors: "Implement ONLY the approved
