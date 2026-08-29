@@ -134,6 +134,10 @@ $ [ "$(grep -c "^### Milestone" plans/migration-plan.md)" -eq 1 ]
 
 RESULT PASS  [c5] migration plan opens on exactly one milestone
 
+$ node "${ROOT}/scripts/check.mjs" c5-step4-audits-the-plan-file
+
+RESULT PASS  [c5] step 4 audits the plan file, not the conversation
+
 $ node "${ROOT}/scripts/check.mjs" milestone-batched
 
 RESULT PASS  [c5] that milestone batches code with a dependency upgrade
