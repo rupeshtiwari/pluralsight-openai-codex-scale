@@ -1,3 +1,8 @@
+<!-- markdownlint-disable -->
+<!-- Codex rewrites this file on camera and its shape differs every run.
+     Bare directive only: any text after the command is parsed as rule
+     names, which silently disables nothing. -->
+
 # Migration plan — SupportHub ticket service
 
 Express 4 CommonJS JavaScript to Express 5 ESM TypeScript, migrated in place under

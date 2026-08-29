@@ -16,7 +16,7 @@
  * docs/troubleshooting.md. Checks that shell out to git ignore CHECK_ROOT and
  * are marked below; they are proven a different way.
  */
-import { readFileSync, existsSync, globSync, readdirSync, unlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, globSync, readdirSync, unlinkSync, mkdirSync, rmSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { execSync } from 'node:child_process';
 
@@ -538,33 +538,105 @@ const CHECKS = {
    * Needs the real node_modules, so it ignores CHECK_ROOT and is proven by hand.
    */
   'oncamera-markdown-lint-silent': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const FILES = ['plans/ExecPlan.md', 'plans/migration-plan.md'];
-    let out = '';
+    let ok = true;
+
+    // 1. The config must be valid against the schema the tools validate against.
+    //    An invalid config does not error -- an editor falls back to defaults and
+    //    lights the file up while the CLI shrugs and reports nothing. That is
+    //    exactly what happened: five "//" comment keys held string values, and
+    //    the schema allows unknown keys only when their value is boolean or
+    //    object. CLI silent, editor 590 errors, on the same bytes.
+    const SCHEMA = 'node_modules/markdownlint-cli2/schema/markdownlint-config-schema.json';
+    let schema = null;
+    try { schema = JSON.parse(readFileSync(resolve(ROOT, SCHEMA), 'utf8')); } catch { /* optional */ }
+    let cfg;
+    try { cfg = JSON.parse(read('.markdownlint.json')); }
+    catch (e) { return reject(`.markdownlint.json does not parse: ${e.message}`); }
+    if (schema) {
+      for (const [k, v] of Object.entries(cfg)) {
+        if (schema.properties && k in schema.properties) continue;
+        const t = typeof v;
+        if (t !== 'boolean' && t !== 'object') {
+          ok = reject(`.markdownlint.json: "${k}" holds a ${t}; the schema allows unknown keys only as boolean or object, so an editor that validates this config discards all of it`) && ok;
+        }
+      }
+    }
+
+    // 2. The two on-camera plans are rewritten by Codex at record time and
+    //    their shape is not ours. Measured problem counts on the same step of
+    //    the same demo: 518, then 590. No configuration fitted to one run's
+    //    output survives the next, so these files suppress linting inline. An
+    //    inline directive is honoured by every markdownlint version and by the
+    //    editor extension whatever config file it found, or none -- which a
+    //    config by itself cannot promise.
+    //
+    //    Asserted by EFFECT, never by presence. The first directive written here
+    //    was `<!-- markdownlint-disable -- Codex rewrites this file... -->`, and
+    //    it suppressed nothing: text after the command is parsed as rule names,
+    //    so the bare form is the only one that works. A check that grepped for
+    //    the directive would have passed on that file forever while the editor
+    //    stayed red. So each file's real opening bytes are copied into a probe,
+    //    known-bad markdown is appended, and the probe must lint silent.
+    const HEAD_LINES = 6;
+    for (const f of FILES) {
+      const head = read(f).split('\n').slice(0, HEAD_LINES).join('\n');
+      const dir2 = resolve(ROOT, '.md-directive-probe');
+      let hits = [];
+      try {
+        mkdirSync(dir2, { recursive: true });
+        writeFileSync(join(dir2, '.markdownlint.json'), JSON.stringify(cfg));
+        writeFileSync(join(dir2, 'probe.md'), `${head}\n\n# H\n\n|a|b|\n|--|--|\n|1|2|\n\tTAB\n\n\n\n`);
+        let out = '';
+        try {
+          execSync('npx markdownlint-cli2 probe.md', { cwd: dir2, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+        } catch (err) { out = `${err.stdout || ''}${err.stderr || ''}`; }
+        hits = out.split('\n').filter((l) => /probe\.md:\d+/.test(l));
+      } finally {
+        try { rmSync(dir2, { recursive: true, force: true }); } catch { /* nothing to clean up */ }
+      }
+      if (hits.length) {
+        ok = reject(`${f} does not actually suppress linting - markdown that should raise ${hits.length} finding(s) still raises them under this file's opening lines`) && ok;
+        process.stderr.write(`    first: ${(hits[0] || '').trim()}\n`);
+        process.stderr.write('    the directive must be a bare <!-- markdownlint-disable -->; any text after the command is read as rule names\n');
+      }
+    }
+
+    // 3. The config still has to be sound for agent-written markdown, or every
+    //    other document drifts. Lint a synthetic file in the shape Codex writes
+    //    -- padded wide tables, long rows -- under the real config, with no
+    //    inline directive, and require silence.
+    const dir = resolve(ROOT, '.md-shape-probe');
     try {
-      execSync(`npx markdownlint-cli2 ${FILES.join(' ')}`, {
-        cwd: resolve(ROOT), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
-      });
-      return true;
-    } catch (err) {
-      out = `${err.stdout || ''}${err.stderr || ''}`;
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(join(dir, '.markdownlint.json'), JSON.stringify(cfg));
+      writeFileSync(join(dir, 'probe.md'), [
+        '# Probe', '',
+        '## Behavior contracts', '',
+        '| Route          | Method | Status codes | Response fields                                    | Locked by                                            |',
+        '| -------------- | ------ | ------------ | -------------------------------------------------- | ---------------------------------------------------- |',
+        '| /tickets/:id   | GET    | 200, 404     | id, subject, status, priority, assignee, accountId  | tests/contracts/ticket-read-route.contract.test.ts   |',
+        '',
+        '## Validation checks', '',
+        '| # | Command                                        | Proves |',
+        '|---|------------------------------------------------|--------|',
+        '| 1 | npm --prefix supporthub-api/modern run lint    | style  |',
+        '',
+      ].join('\n'));
+      let out = '';
+      try {
+        execSync('npx markdownlint-cli2 probe.md', { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (err) { out = `${err.stdout || ''}${err.stderr || ''}`; }
+      const hits = out.split('\n').filter((l) => /probe\.md:\d+/.test(l));
+      if (hits.length) {
+        ok = reject(`the config rejects ${hits.length} thing(s) in agent-shaped markdown - it was fitted to one run's output, not to the shape`) && ok;
+        for (const h of hits.slice(0, 4)) process.stderr.write(`    ${h.trim()}\n`);
+      }
+    } finally {
+      try { rmSync(dir, { recursive: true, force: true }); } catch { /* nothing to clean up */ }
     }
-    const lines = out.split('\n').filter((l) => /^\S+\.md:\d+/.test(l));
-    if (lines.length === 0) {
-      process.stderr.write('  markdownlint produced no report — the run did not start\n');
-      return false;
-    }
-    const byRule = {};
-    for (const l of lines) {
-      const m = l.match(/(MD\d+\/[a-z-]+)/);
-      const k = m ? m[1] : 'unknown';
-      byRule[k] = (byRule[k] || 0) + 1;
-    }
-    process.stderr.write(`  ${lines.length} markdownlint problem(s) on files that are open on camera\n`);
-    for (const [rule, n] of Object.entries(byRule).sort((a, b) => b[1] - a[1])) {
-      process.stderr.write(`    ${rule}: ${n}\n`);
-    }
-    process.stderr.write(`  ${lines[0]}\n`);
-    return false;
+    return ok;
   },
 
   /**
