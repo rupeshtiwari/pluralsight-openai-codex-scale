@@ -1,51 +1,44 @@
 M2-C3 PREFLIGHT
-===============
+---------------
 
 Demo: Schedule Codex triage and route work to Slack and Linear (6 minutes)
 
-RUNBOOK
-  module2/m2-c3-schedule-triage.md
+RUNBOOK      module2/m2-c3-schedule-triage.md
+OBJECTIVES   TO3, EO3c, EO3d
+READINESS    NOT READY - 1 of 8 checks failed
 
-LEARNING OBJECTIVES
-  TO3   Apply Codex automations to run recurring bug triage across multiple data sources at team scale.
-  EO3c  Convert a tested manual triage sweep into a scheduled automation using the same thread context
-  EO3d  Apply a routing workflow to draft Slack updates, Linear issues, or GitHub comments after triage approval
+STEPS
+-----
 
-SCOPE
-  Checks tagged [all] gate every clip in this module.
-  Checks tagged [c3] gate this clip only.
-  Both must pass before this clip is recorded.
+Step 1  BLOCKED
+  Convert the tested manual sweep into a scheduled Codex automation using the same thread context
+  gated by 1 check(s): 1 pass, 0 fail
 
-$ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
+Step 2  BLOCKED
+  Run the scheduled workflow and compare its report with the validated manual pattern
+  gated by 2 check(s): 2 pass, 0 fail
 
-RESULT PASS  [all] working tree clean
+Step 3  BLOCKED
+  Approve selected findings before drafting Slack updates or Linear issues
+  gated by 2 check(s): 2 pass, 0 fail
 
-$ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
+Step 4  BLOCKED
+  Verify Slack and Linear drafts preserve the evidence and priority from the triage decision
+  gated by 2 check(s): 2 pass, 0 fail
 
-RESULT PASS  [all] runbooks match the approved outline
+SHARED GATES  2 of 3 pass
 
-$ [ -z "$(git diff --cached --name-only)" ]
+  These gate every step above. A failure here blocks the whole clip.
+    FAIL  working tree clean
 
-RESULT PASS  [all] nothing left staged
+WHAT TO FIX
+-----------
 
-$ node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json
+working tree clean   [all]
+  why  The review demos seed changes with a patch; leftover edits make the diff unreadable.
+  fix  ./module2/scripts/demo_reset.sh
+  ask  Show me every uncommitted change in this repository and what produced it.
 
-RESULT PASS  [c3] triage baseline present
+Full command output for this run: module2/logs/m2-c3_preflight.full.txt
 
-$ [ "$(node "${ROOT}/scripts/json.mjs" count automation/triage/baseline-manual-sweep.json findings)" -eq 4 ]
-
-RESULT PASS  [c3] baseline has four findings
-
-$ [ "$(node "${ROOT}/scripts/json.mjs" rows automation/triage/baseline-manual-sweep.json findings route | grep -c "route=true")" -eq 2 ]
-
-RESULT PASS  [c3] exactly two findings are routable
-
-$ [ "$(grep -l "\"status\": \"draft\"" automation/slack-drafts/*.json automation/linear-drafts/*.json | wc -l | tr -d " ")" -eq 3 ]
-
-RESULT PASS  [c3] all routing payloads are drafts
-
-$ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-drafts/*.json | grep -cv "null")" -eq 0 ]
-
-RESULT PASS  [c3] no draft is pre-approved
-
-VERDICT  READY - this clip can be recorded.
+VERDICT  NOT READY - 1 check(s) failed above.

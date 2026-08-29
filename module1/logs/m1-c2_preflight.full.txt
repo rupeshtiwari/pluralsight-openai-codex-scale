@@ -1,19 +1,19 @@
-M1-C3 PREFLIGHT
+M1-C2 PREFLIGHT
 ===============
 
-Demo: Execute a Codex refactor with ExecPlan checkpoints (6 minutes)
+Demo: Map noisy TypeScript modules with Codex before editing (6 minutes)
 
 RUNBOOK
-  module1/m1-c3-execute-codex-refactor.md
+  module1/m1-c2-map-noisy-typescript-modules.md
 
 LEARNING OBJECTIVES
   TO1   Apply Codex to plan and execute a codebase refactoring operation using reviewable passes
-  EO1b  Apply the ExecPlan pattern to maintain a running log of intended changes, behavior contracts, and validation checks across a multi-session refactor
-  EO1c  Evaluate a Codex-generated refactoring diff to confirm that public behavior is preserved and that architecture migrations are separated into discrete tasks
+  EO1a  Construct a refactoring prompt that instructs Codex to map noisy modules, identify dead code, and propose one cleanup theme at a time before editing
+  EO1d  Explain when to use Plan mode before committing Codex to implementation
 
 SCOPE
   Checks tagged [all] gate every clip in this module.
-  Checks tagged [c3] gate this clip only.
+  Checks tagged [c2] gate this clip only.
   Both must pass before this clip is recorded.
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
@@ -97,26 +97,26 @@ $ node "${ROOT}/scripts/check.mjs" contract-tests-pass
 
 RESULT PASS  [all] contract tests (expect 25)
 
-$ [ -f plans/ExecPlan.md ]
+$ node "${ROOT}/scripts/check.mjs" c2-seed-shape
 
-RESULT PASS  [c3] refactor ExecPlan present
+RESULT PASS  [c2] clip 2 seed matches the runbook's expected values
 
-$ node "${ROOT}/scripts/check.mjs" execplan-starts-unwritten
+$ [ "$(grep -rn "from '.*utils/legacy" supporthub-api/modern/src supporthub-api/modern/tests | wc -l | tr -d " ")" -eq 0 ]
 
-RESULT PASS  [c3] ExecPlan sections Step 1 fills are unwritten
+RESULT PASS  [c2] dead helper has no importers
 
-$ node "${ROOT}/scripts/check.mjs" c3-prompt-does-not-preempt-removal
+$ node "${ROOT}/scripts/check.mjs" load-bearing-function
 
-RESULT PASS  [c3] clip 3's prompt does not forbid the drift step 4 removes
+RESULT PASS  [c2] one load-bearing function carries all four responsibilities
 
-$ node "${ROOT}/scripts/check.mjs" c3-gates-not-hardcoded
+$ [ "$(grep -c "value === 'p0'" supporthub-api/modern/src/routes/tickets.ts)" -eq 0 ]
 
-RESULT PASS  [c3] no document fixes the clip 3 gate count
+RESULT PASS  [c2] the route does not normalize priority
 
-$ grep -q "not started" plans/ExecPlan.md
+$ node "${ROOT}/scripts/check.mjs" c2-refs-identical
 
-RESULT PASS  [c3] ExecPlan progress log is empty
+RESULT PASS  [c2] start and captured checkpoints are the same commit
 
-$ [ "$(sed -n "/## Intended changes/,/## Behavior contracts/p" plans/ExecPlan.md | grep -cE "^[0-9]+\.")" -eq 4 ]
+$ [ -f plans/prompts/m1-c2-map-codebase.md ]
 
-RESULT PASS  [c3] ExecPlan names four intended changes
+RESULT PASS  [c2] prompt file present

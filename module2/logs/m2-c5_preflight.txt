@@ -1,45 +1,44 @@
 M2-C5 PREFLIGHT
-===============
+---------------
 
 Demo: Inspect automation diffs in the Codex review pane (6 minutes)
 
-RUNBOOK
-  module2/m2-c5-inspect-automation-diffs.md
+RUNBOOK      module2/m2-c5-inspect-automation-diffs.md
+OBJECTIVES   TO4, EO4a
+READINESS    NOT READY - 1 of 6 checks failed
 
-LEARNING OBJECTIVES
-  TO4   Demonstrate how to debug and trace Codex automations
-  EO4a  Use the Codex review pane to inspect uncommitted diffs from an automation run, including per-hunk staging and revert controls
+STEPS
+-----
 
-SCOPE
-  Checks tagged [all] gate every clip in this module.
-  Checks tagged [c5] gate this clip only.
-  Both must pass before this clip is recorded.
+Step 1  BLOCKED
+  Open an automation run that produced uncommitted changes and inspect the diff in the Codex review pane
+  gated by 1 check(s): 1 pass, 0 fail
 
-$ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
+Step 2  BLOCKED
+  Review changed files and hunks against the triage evidence that caused the automation to act
+  gated by 1 check(s): 1 pass, 0 fail
 
-RESULT FAIL  [all] working tree clean
-WHY IT MATTERS  The review demos seed changes with a patch; leftover edits make the diff unreadable.
-HOW TO FIX      ./module2/scripts/demo_reset.sh
-CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+Step 3  BLOCKED
+  Use source control to stage valid hunks individually and revert an unrelated or incorrect hunk
+  gated by 1 check(s): 1 pass, 0 fail
 
-$ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
+Step 4  BLOCKED
+  Confirm only approved changes remain before the repository is committed
+  gated by 1 check(s): 1 pass, 0 fail
 
-RESULT PASS  [all] runbooks match the approved outline
+SHARED GATES  2 of 3 pass
 
-$ [ -z "$(git diff --cached --name-only)" ]
+  These gate every step above. A failure here blocks the whole clip.
+    FAIL  working tree clean
 
-RESULT PASS  [all] nothing left staged
+WHAT TO FIX
+-----------
 
-$ git apply --check automation/runs/run-3001.patch
+working tree clean   [all]
+  why  The review demos seed changes with a patch; leftover edits make the diff unreadable.
+  fix  ./module2/scripts/demo_reset.sh
+  ask  Show me every uncommitted change in this repository and what produced it.
 
-RESULT PASS  [c5] run-3001 patch applies
-
-$ [ "$(grep -c "^diff --git" automation/runs/run-3001.patch)" -eq 2 ]
-
-RESULT PASS  [c5] run-3001 touches exactly two files
-
-$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3001.json one-of-each)" -eq 1 ]
-
-RESULT PASS  [c5] run-3001 declares one valid and one invalid hunk
+Full command output for this run: module2/logs/m2-c5_preflight.full.txt
 
 VERDICT  NOT READY - 1 check(s) failed above.

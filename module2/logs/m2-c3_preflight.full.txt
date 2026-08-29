@@ -1,0 +1,52 @@
+M2-C3 PREFLIGHT
+===============
+
+Demo: Schedule Codex triage and route work to Slack and Linear (6 minutes)
+
+RUNBOOK
+  module2/m2-c3-schedule-triage.md
+
+LEARNING OBJECTIVES
+  TO3   Apply Codex automations to run recurring bug triage across multiple data sources at team scale.
+  EO3c  Convert a tested manual triage sweep into a scheduled automation using the same thread context
+  EO3d  Apply a routing workflow to draft Slack updates, Linear issues, or GitHub comments after triage approval
+
+SCOPE
+  Checks tagged [all] gate every clip in this module.
+  Checks tagged [c3] gate this clip only.
+  Both must pass before this clip is recorded.
+
+$ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
+
+RESULT FAIL  [all] working tree clean
+WHY IT MATTERS  The review demos seed changes with a patch; leftover edits make the diff unreadable.
+HOW TO FIX      ./module2/scripts/demo_reset.sh
+CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+
+$ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
+
+RESULT PASS  [all] runbooks match the approved outline
+
+$ [ -z "$(git diff --cached --name-only)" ]
+
+RESULT PASS  [all] nothing left staged
+
+$ node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json
+
+RESULT PASS  [c3] triage baseline present
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" count automation/triage/baseline-manual-sweep.json findings)" -eq 4 ]
+
+RESULT PASS  [c3] baseline has four findings
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" rows automation/triage/baseline-manual-sweep.json findings route | grep -c "route=true")" -eq 2 ]
+
+RESULT PASS  [c3] exactly two findings are routable
+
+$ [ "$(grep -l "\"status\": \"draft\"" automation/slack-drafts/*.json automation/linear-drafts/*.json | wc -l | tr -d " ")" -eq 3 ]
+
+RESULT PASS  [c3] all routing payloads are drafts
+
+$ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-drafts/*.json | grep -cv "null")" -eq 0 ]
+
+RESULT PASS  [c3] no draft is pre-approved

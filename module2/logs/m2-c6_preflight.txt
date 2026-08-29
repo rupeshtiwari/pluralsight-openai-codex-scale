@@ -1,50 +1,44 @@
 M2-C6 PREFLIGHT
-===============
+---------------
 
 Demo: Trace a failed Codex automation and recover safely (6 minutes)
 
-RUNBOOK
-  module2/m2-c6-recover-failed-automation.md
+RUNBOOK      module2/m2-c6-recover-failed-automation.md
+OBJECTIVES   TO4, EO4a
+READINESS    NOT READY - 1 of 8 checks failed
 
-LEARNING OBJECTIVES
-  TO4   Demonstrate how to debug and trace Codex automations
-  EO4a  Use the Codex review pane to inspect uncommitted diffs from an automation run, including per-hunk staging and revert controls
+STEPS
+-----
 
-SCOPE
-  Checks tagged [all] gate every clip in this module.
-  Checks tagged [c6] gate this clip only.
-  Both must pass before this clip is recorded.
+Step 1  BLOCKED
+  Start from a failed automation result and trace the source evidence, generated change, and validation outcome
+  gated by 2 check(s): 2 pass, 0 fail
 
-$ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
+Step 2  BLOCKED
+  Use the review pane to isolate the incorrect hunk instead of discarding the entire run
+  gated by 1 check(s): 1 pass, 0 fail
 
-RESULT PASS  [all] working tree clean
+Step 3  BLOCKED
+  Revert the bad change, preserve valid work, and rerun with corrected context
+  gated by 2 check(s): 2 pass, 0 fail
 
-$ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
+Step 4  BLOCKED
+  Verify the recovered run produces a clean reviewable diff before acceptance
+  gated by 2 check(s): 2 pass, 0 fail
 
-RESULT PASS  [all] runbooks match the approved outline
+SHARED GATES  2 of 3 pass
 
-$ [ -z "$(git diff --cached --name-only)" ]
+  These gate every step above. A failure here blocks the whole clip.
+    FAIL  working tree clean
 
-RESULT PASS  [all] nothing left staged
+WHAT TO FIX
+-----------
 
-$ git apply --check automation/runs/run-3002.patch
+working tree clean   [all]
+  why  The review demos seed changes with a patch; leftover edits make the diff unreadable.
+  fix  ./module2/scripts/demo_reset.sh
+  ask  Show me every uncommitted change in this repository and what produced it.
 
-RESULT PASS  [c6] run-3002 patch applies
+Full command output for this run: module2/logs/m2-c6_preflight.full.txt
 
-$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3002.json has-valid-hunk)" -ge 1 ]
-
-RESULT PASS  [c6] run-3002 carries work worth preserving
-
-$ grep -q "bad source assumption" automation/runs/run-3002.json
-
-RESULT PASS  [c6] run-3002 records a bad source assumption
-
-$ grep -q "\"chose\": \"a1b2c3d\"" automation/runs/run-3003.json
-
-RESULT PASS  [c6] run-3003 is the corrected rerun
-
-$ [ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]
-
-RESULT PASS  [c6] baseline gates green before seeding a failure
-
-VERDICT  READY - this clip can be recorded.
+VERDICT  NOT READY - 1 check(s) failed above.

@@ -95,6 +95,10 @@ if (failed.length) {
   out.push('Every gate is green. This clip can be recorded.', '');
 }
 
-out.push(`Full command output for this run: ${file.replace(/\.txt$/, '.full.txt')}`, '');
+// Repo-relative, never absolute: the transcripts are committed, and an
+// absolute path makes them differ on every machine -- which leaves the tree
+// dirty and breaks clip 2 step 4's empty Source Control view.
+const rel = file.replace(`${process.cwd()}/`, '').replace(/\.txt$/, '.full.txt');
+out.push(`Full command output for this run: ${rel}`, '');
 writeFileSync(file.replace(/\.txt$/, '.full.txt'), readFileSync(file, 'utf8'));
 writeFileSync(file, out.join('\n'));
