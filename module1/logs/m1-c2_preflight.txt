@@ -5,33 +5,40 @@ Demo: Map noisy TypeScript modules with Codex before editing (6 minutes)
 
 RUNBOOK      module1/m1-c2-map-noisy-typescript-modules.md
 OBJECTIVES   TO1, EO1a, EO1d
-READINESS    READY
+READINESS    NOT READY - 1 of 21 checks failed
 
 STEPS
 -----
 
-Step 1  READY
+Step 1  BLOCKED
   Open the TypeScript service in Codex and ask it to map modules, dependencies, public behavior, and dead-code candidates
   gated by 4 check(s): 4 pass, 0 fail
 
-Step 2  READY
+Step 2  BLOCKED
   Constrain Codex to propose one cleanup theme before editing any files
   gated by 1 check(s): 1 pass, 0 fail
 
-Step 3  READY
+Step 3  BLOCKED
   Inspect repository evidence and reject unrelated architectural changes before implementation
   gated by 1 check(s): 1 pass, 0 fail
 
-Step 4  READY
+Step 4  BLOCKED
   Confirm Plan mode produces a bounded, reviewable first pass
   gated by 1 check(s): 1 pass, 0 fail
 
-SHARED GATES  15 of 15 pass
+SHARED GATES  14 of 15 pass
 
   These gate every step above. A failure here blocks the whole clip.
+    FAIL  working tree clean
 
-Every gate is green. This clip can be recorded.
+WHAT TO FIX
+-----------
+
+working tree clean   [all]
+  why  Every demo starts from a clean tree; leftover edits change what the diff shows.
+  fix  ./module1/scripts/demo_reset.sh
+  ask  Show me every uncommitted change in this repository and what produced it.
 
 Full command output for this run: module1/logs/m1-c2_preflight.full.txt
 
-VERDICT  READY - this clip can be recorded.
+VERDICT  NOT READY - 1 check(s) failed above.

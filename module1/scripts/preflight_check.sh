@@ -442,6 +442,16 @@ check "c6" "express 4 in migration workspace" \
   "The legacy workspace should resolve express 4. Show what version is installed."
 
 # ------------------------------------------------------------------- verdict
+# What the closing line should name. A scoped run checked one clip, so claiming
+# the module is ready would overstate it, and pointing at the module log would
+# send the author to the wrong file.
+SUBJECT="Module 1"
+SUBJ_LOG="module1/logs/module1_preflight.txt"
+if [ -n "$ONLY" ]; then
+  SUBJECT="m1-$ONLY"
+  SUBJ_LOG="module1/logs/m1-${ONLY}_preflight.txt"
+fi
+
 log ""
 log "STEP TO OBJECTIVE COVERAGE"
 log "  Clip 2 step 1-2  EO1a  map modules, identify dead code"
@@ -482,8 +492,8 @@ done
 $FMT section "verdict"
 if [ ${#FAILED[@]} -eq 0 ]; then
   $FMT item "all checks passed"
-  log ""; log "VERDICT  READY - all Module 1 demos can be run."
-  $FMT verdict pass "Module 1 is ready. Transcript: module1/logs/module1_preflight.txt"
+  log ""; log "VERDICT  READY - $SUBJECT can be run."
+  $FMT verdict pass "$SUBJECT is ready. Transcript: $SUBJ_LOG"
   exit 0
 fi
 
@@ -499,5 +509,5 @@ for e in "${FAILED[@]}"; do
 done
 log ""
 log "VERDICT  NOT READY - ${#FAILED[@]} check(s) failed."
-$FMT verdict fail "${#FAILED[@]} check(s) failed. See module1/logs/module1_preflight.txt"
+$FMT verdict fail "${#FAILED[@]} check(s) failed. See $SUBJ_LOG"
 exit 1
