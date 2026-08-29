@@ -1,19 +1,19 @@
-M1-C3 PREFLIGHT
+M1-C6 PREFLIGHT
 ===============
 
-Demo: Execute a Codex refactor with ExecPlan checkpoints (6 minutes)
+Demo: Migrate one Express route to TypeScript with framework guidance (6 minutes)
 
 RUNBOOK
-  module1/m1-c3-execute-codex-refactor.md
+  module1/m1-c6-migrate-one-express-route.md
 
 LEARNING OBJECTIVES
-  TO1   Apply Codex to plan and execute a codebase refactoring operation using reviewable passes
-  EO1b  Apply the ExecPlan pattern to maintain a running log of intended changes, behavior contracts, and validation checks across a multi-session refactor
-  EO1c  Evaluate a Codex-generated refactoring diff to confirm that public behavior is preserved and that architecture migrations are separated into discrete tasks
+  TO2   Demonstrate how to orchestrate a legacy-to-modern stack migration with Codex using incremental checkpoints.
+  EO2c  Apply validation checks (lint, type-check, focused tests) after each migration milestone rather than batching cleanup
+  EO2d  Use the ASP.NET Core skill or equivalent framework skill to apply platform-specific migration guidance
 
 SCOPE
   Checks tagged [all] gate every clip in this module.
-  Checks tagged [c3] gate this clip only.
+  Checks tagged [c6] gate this clip only.
   Both must pass before this clip is recorded.
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
@@ -97,26 +97,53 @@ $ node "${ROOT}/scripts/check.mjs" contract-tests-pass
 
 RESULT PASS  [all] contract tests (expect 25)
 
-$ [ -f plans/ExecPlan.md ]
+$ [ -f framework-skill/node-express-migration/SKILL.md ]
 
-RESULT PASS  [c3] refactor ExecPlan present
+RESULT PASS  [c6] framework skill present
 
-$ node "${ROOT}/scripts/check.mjs" execplan-starts-unwritten
+$ node "${ROOT}/scripts/check.mjs" skill-tells-unique
 
-RESULT PASS  [c3] ExecPlan sections Step 1 fills are unwritten
+RESULT PASS  [c6] skill-off tells still unique to the skill
 
-$ node "${ROOT}/scripts/check.mjs" c3-prompt-does-not-preempt-removal
+$ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
 
-RESULT PASS  [c3] clip 3's prompt does not forbid the drift step 4 removes
+RESULT PASS  [c6] Run A prompt saved and matching the runbook
 
-$ node "${ROOT}/scripts/check.mjs" c3-gates-not-hardcoded
+$ node "${ROOT}/scripts/check.mjs" skill-not-ambient
 
-RESULT PASS  [c3] no document fixes the clip 3 gate count
+RESULT PASS  [c6] skill is opt-in, not ambient
 
-$ grep -q "not started" plans/ExecPlan.md
+$ grep -q "ESLint" framework-skill/node-express-migration/SKILL.md && grep -q "type-check" framework-skill/node-express-migration/SKILL.md && grep -q "build validation" framework-skill/node-express-migration/SKILL.md && grep -q "Vitest" framework-skill/node-express-migration/SKILL.md
 
-RESULT PASS  [c3] ExecPlan progress log is empty
+RESULT PASS  [c6] skill names all four validation gates
 
-$ [ "$(sed -n "/## Intended changes/,/## Behavior contracts/p" plans/ExecPlan.md | grep -cE "^[0-9]+\.")" -eq 4 ]
+$ [ -f supporthub-api/modern/src/compat/dirname.ts ] && [ -f supporthub-api/modern/src/compat/legacyRequire.ts ]
 
-RESULT PASS  [c3] ExecPlan names four intended changes
+RESULT PASS  [c6] compat modules present
+
+$ npm run test:route
+
+> supporthub@1.0.0 test:route
+> npm run test:route --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 test:route
+> vitest run tests/contracts/*route*.contract.test.ts
+
+
+ RUN  v4.1.11 ./supporthub-api/modern
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  <time>
+   Duration  <ms> (transform <ms>, setup <ms>, import <ms>, tests <ms>, environment <ms>)
+RESULT PASS  [c6] focused route tests pass
+
+$ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
+
+RESULT PASS  [c6] express 5 in modern workspace
+
+$ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/migration\"]})).version" | cut -d. -f1)" = "4" ]
+
+RESULT PASS  [c6] express 4 in migration workspace

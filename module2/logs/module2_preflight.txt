@@ -42,6 +42,46 @@ $ [ -z "$(git diff --cached --name-only)" ]
 
 RESULT PASS  [all] nothing left staged
 
+$ node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json
+
+RESULT PASS  [c2] sentry fixtures valid
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" count automation/sentry-fixtures/issues.json issues)" -eq 5 ]
+
+RESULT PASS  [c2] five sentry issues in window
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/sentry-fixtures/issues.json shared-frame)" -ge 1 ]
+
+RESULT PASS  [c2] duplicate pair shares a stack frame
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/github-seed/commits.json misleading-newer)" -eq 1 ]
+
+RESULT PASS  [c2] misleading commit is nearer in time than the real cause
+
+$ grep -qF "| **P1** | Core workflow degraded or failing for many users | 100 or more |" docs/triage-rubric.md
+
+RESULT PASS  [c2] rubric P1 threshold is 100
+
+$ node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json
+
+RESULT PASS  [c3] triage baseline present
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" count automation/triage/baseline-manual-sweep.json findings)" -eq 4 ]
+
+RESULT PASS  [c3] baseline has four findings
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" rows automation/triage/baseline-manual-sweep.json findings route | grep -c "route=true")" -eq 2 ]
+
+RESULT PASS  [c3] exactly two findings are routable
+
+$ [ "$(grep -l "\"status\": \"draft\"" automation/slack-drafts/*.json automation/linear-drafts/*.json | wc -l | tr -d " ")" -eq 3 ]
+
+RESULT PASS  [c3] all routing payloads are drafts
+
+$ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-drafts/*.json | grep -cv "null")" -eq 0 ]
+
+RESULT PASS  [c3] no draft is pre-approved
+
 $ git apply --check automation/runs/run-3001.patch
 
 RESULT PASS  [c5] run-3001 patch applies
@@ -54,6 +94,26 @@ $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3001.json one-o
 
 RESULT PASS  [c5] run-3001 declares one valid and one invalid hunk
 
+$ git apply --check automation/runs/run-3002.patch
+
+RESULT PASS  [c6] run-3002 patch applies
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3002.json has-valid-hunk)" -ge 1 ]
+
+RESULT PASS  [c6] run-3002 carries work worth preserving
+
+$ grep -q "bad source assumption" automation/runs/run-3002.json
+
+RESULT PASS  [c6] run-3002 records a bad source assumption
+
+$ grep -q "\"chose\": \"a1b2c3d\"" automation/runs/run-3003.json
+
+RESULT PASS  [c6] run-3003 is the corrected rerun
+
+$ [ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]
+
+RESULT PASS  [c6] baseline gates green before seeding a failure
+
 STEP TO OBJECTIVE COVERAGE
   Clip 2 step 1    EO3a  sources, destinations, and window configured
   Clip 2 step 2-4  EO3b  dedup, P0-P3 priority, evidence-backed
@@ -63,7 +123,10 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 1-4  EO4a  trace, revert bad hunk, rerun corrected
 
 PER-CLIP TRANSCRIPTS
+  m2-c2  NOT READY (1)  logs/m2-c2_preflight.txt
+  m2-c3  NOT READY (1)  logs/m2-c3_preflight.txt
   m2-c5  NOT READY (1)  logs/m2-c5_preflight.txt
+  m2-c6  NOT READY (1)  logs/m2-c6_preflight.txt
 
 FAILED CHECKS
   [all] working tree clean

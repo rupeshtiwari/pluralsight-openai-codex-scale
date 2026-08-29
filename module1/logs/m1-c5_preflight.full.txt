@@ -1,19 +1,19 @@
-M1-C3 PREFLIGHT
+M1-C5 PREFLIGHT
 ===============
 
-Demo: Execute a Codex refactor with ExecPlan checkpoints (6 minutes)
+Demo: Inventory a legacy Express 4 service with Codex (6 minutes)
 
 RUNBOOK
-  module1/m1-c3-execute-codex-refactor.md
+  module1/m1-c5-inventory-legacy-express4.md
 
 LEARNING OBJECTIVES
-  TO1   Apply Codex to plan and execute a codebase refactoring operation using reviewable passes
-  EO1b  Apply the ExecPlan pattern to maintain a running log of intended changes, behavior contracts, and validation checks across a multi-session refactor
-  EO1c  Evaluate a Codex-generated refactoring diff to confirm that public behavior is preserved and that architecture migrations are separated into discrete tasks
+  TO2   Demonstrate how to orchestrate a legacy-to-modern stack migration with Codex using incremental checkpoints.
+  EO2a  Direct Codex to inventory a legacy system's routing, data models, auth, build tooling, tests, and external contracts before proposing a migration plan
+  EO2b  Evaluate a Codex-generated migration plan for compatibility layers, explicit behavioral exceptions, and rollback visibility
 
 SCOPE
   Checks tagged [all] gate every clip in this module.
-  Checks tagged [c3] gate this clip only.
+  Checks tagged [c5] gate this clip only.
   Both must pass before this clip is recorded.
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
@@ -97,26 +97,38 @@ $ node "${ROOT}/scripts/check.mjs" contract-tests-pass
 
 RESULT PASS  [all] contract tests (expect 25)
 
-$ [ -f plans/ExecPlan.md ]
+$ [ -f supporthub-api/migration/app.js ]
 
-RESULT PASS  [c3] refactor ExecPlan present
+RESULT PASS  [c5] legacy service present
 
-$ node "${ROOT}/scripts/check.mjs" execplan-starts-unwritten
+$ ! grep -q "\"type\": \"module\"" supporthub-api/migration/package.json
 
-RESULT PASS  [c3] ExecPlan sections Step 1 fills are unwritten
+RESULT PASS  [c5] legacy is CommonJS, not ESM
 
-$ node "${ROOT}/scripts/check.mjs" c3-prompt-does-not-preempt-removal
+$ node "${ROOT}/scripts/check.mjs" migration-tests-pass
 
-RESULT PASS  [c3] clip 3's prompt does not forbid the drift step 4 removes
+RESULT PASS  [c5] migration tests pass (expect 8)
 
-$ node "${ROOT}/scripts/check.mjs" c3-gates-not-hardcoded
+$ [ -f supporthub-api/migration/routes/tickets.js ] && [ -f supporthub-api/migration/models/ticket.js ] && [ -f supporthub-api/migration/auth/apiKey.js ] && [ -f supporthub-api/migration/package.json ] && [ -f supporthub-api/migration/tests/tickets.test.js ] && [ -f supporthub-api/migration/config/limits.json ]
 
-RESULT PASS  [c3] no document fixes the clip 3 gate count
+RESULT PASS  [c5] all six inventory categories exist
 
-$ grep -q "not started" plans/ExecPlan.md
+$ grep -q "__dirname" supporthub-api/migration/services/ticketService.js
 
-RESULT PASS  [c3] ExecPlan progress log is empty
+RESULT PASS  [c5] __dirname used in legacy service
 
-$ [ "$(sed -n "/## Intended changes/,/## Behavior contracts/p" plans/ExecPlan.md | grep -cE "^[0-9]+\.")" -eq 4 ]
+$ node "${ROOT}/scripts/check.mjs" c5-prompts-skill-free
 
-RESULT PASS  [c3] ExecPlan names four intended changes
+RESULT PASS  [c5] no clip 5 prompt references the framework skill
+
+$ [ "$(grep -c "^### Milestone" plans/migration-plan.md)" -eq 1 ]
+
+RESULT PASS  [c5] migration plan opens on exactly one milestone
+
+$ node "${ROOT}/scripts/check.mjs" milestone-batched
+
+RESULT PASS  [c5] that milestone batches code with a dependency upgrade
+
+$ grep -q "Not yet reviewed" plans/migration-plan.md
+
+RESULT PASS  [c5] that milestone is unreviewed
