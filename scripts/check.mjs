@@ -406,6 +406,43 @@ const CHECKS = {
   },
 
   /**
+   * The legacy service's route surface must match what clip 5 step 1 expects.
+   *
+   * The expected result named three routes behind API-key auth and omitted
+   * GET /health -- which is the one route with no auth, and therefore the
+   * evidence for the step's own Highlight that auth is applied per route rather
+   * than globally. A walk inventoried four and the runbook said three.
+   *
+   * Counted from app.js and routes/tickets.js rather than trusted, because this
+   * is the same defect clip 2 shipped: a number an author reads aloud that
+   * nothing measured.
+   */
+  'c5-route-surface': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const app = read('supporthub-api/migration/app.js');
+    const routes = read('supporthub-api/migration/routes/tickets.js');
+    let ok = true;
+
+    if (!/app\.get\('\/health'/.test(app)) {
+      ok = reject('app.js no longer serves GET /health — step 1 expects it as the unauthenticated route') && ok;
+    }
+    if (/app\.use\(requireApiKey\)|app\.use\([^)]*apiKey/i.test(app)) {
+      ok = reject('app.js applies auth globally — step 1 highlights that auth is per route') && ok;
+    }
+
+    const guarded = [...routes.matchAll(/router\.(get|post|patch|put|delete)\('([^']+)',\s*requireApiKey/g)]
+      .map((m) => `${m[1].toUpperCase()} ${m[2]}`);
+    const want = ['GET /tickets/:id', 'POST /tickets', 'PATCH /tickets/:id/status'];
+    if (guarded.join(',') !== want.join(',')) {
+      ok = reject(`authenticated routes are [${guarded.join(', ')}], expected [${want.join(', ')}]`) && ok;
+    }
+
+    const all = [...routes.matchAll(/router\.(get|post|patch|put|delete)\(/g)].length + 1; // + /health
+    if (all !== 4) ok = reject(`the legacy service exposes ${all} routes, and step 1 expects four`) && ok;
+    return ok;
+  },
+
+  /**
    * Clip 5's milestone prompt may not impose the rule clip 5 step 4 audits.
    *
    * Step 4 asks Codex which milestones both change application code and upgrade

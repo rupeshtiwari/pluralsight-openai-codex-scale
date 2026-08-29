@@ -210,9 +210,9 @@ For each category, state what changes when this service moves to ESM TypeScript
 on Express 5, and what stays the same.
 ```
 
-**Expected result.** Six labelled sections. Routes: `GET /tickets/:id`, `POST /tickets`,
-`PATCH /tickets/:id/status`, each behind API-key auth. Models: four statuses with a transition
-table. Auth: `x-api-key` header, 401 when missing, 403 when invalid. Build tooling: `node server.js`
+**Expected result.** Six labelled sections. Routes: **four** — `GET /health` with no auth, then
+`GET /tickets/:id`, `POST /tickets` and `PATCH /tickets/:id/status`, each behind API-key auth.
+Models: four statuses with a transition table. Auth: `x-api-key` header, 401 when missing, 403 when invalid. Build tooling: `node server.js`
 to run, with `tsc` build and typecheck scripts already present. Tests: Node's built-in runner,
 8 tests, with vitest also configured. External contracts: paths, status codes, and response field
 names.
@@ -220,6 +220,17 @@ names.
 Codex will report the `tsc` scripts and the second test runner, because both are in `package.json`.
 That is correct — the migration tooling was added ahead of the migration. Findings beyond this list
 are a pass, not a failure.
+
+**`/health` is the evidence for the Highlight below, not a stray fourth route.** It is the one route
+without `requireApiKey`, which is what makes "auth is per route, not global" a measurement rather
+than an assertion. An earlier version of this table listed three routes and left out the one that
+proves the point.
+
+**Findings beyond this list are a pass.** A thorough inventory reports more than the six headings
+ask for, and two are worth hearing if they come: `maxOpenTicketsPerAccount` is defined in
+`config/limits.json` and never read anywhere, and the modern workspace's ticket routes carry no auth
+middleware at all — so preserving the legacy `x-api-key` contract is a deliberate act, not something
+the migration inherits.
 
 **Highlight.** Two findings that will shape the plan: auth is applied **per route**, not globally,
 and `services/ticketService.js` reads its configuration through `__dirname` **at module load** — a
