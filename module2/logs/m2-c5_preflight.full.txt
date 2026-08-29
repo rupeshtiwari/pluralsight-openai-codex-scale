@@ -17,7 +17,10 @@ SCOPE
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT PASS  [all] working tree clean
+RESULT FAIL  [all] working tree clean
+WHY IT MATTERS  The review demos seed changes with a patch; leftover edits make the diff unreadable.
+HOW TO FIX      ./module2/scripts/demo_reset.sh
+CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
 
 $ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
 

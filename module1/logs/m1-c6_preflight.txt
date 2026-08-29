@@ -5,40 +5,33 @@ Demo: Migrate one Express route to TypeScript with framework guidance (6 minutes
 
 RUNBOOK      module1/m1-c6-migrate-one-express-route.md
 OBJECTIVES   TO2, EO2c, EO2d
-READINESS    NOT READY - 1 of 24 checks failed
+READINESS    READY
 
 STEPS
 -----
 
-Step 1  BLOCKED
+Step 1  READY
   Apply an equivalent Node.js and TypeScript framework skill to migrate one Express route slice from JavaScript to TypeScript
   gated by 5 check(s): 5 pass, 0 fail
 
-Step 2  BLOCKED
+Step 2  READY
   Run ESLint, TypeScript type-checking, build validation, and focused Vitest tests immediately after the route migration
   gated by 2 check(s): 2 pass, 0 fail
 
-Step 3  BLOCKED
+Step 3  READY
   Inspect the diff and verify the CommonJS-to-ESM compatibility contract before accepting the route change
   gated by 2 check(s): 2 pass, 0 fail
 
-Step 4  BLOCKED
+Step 4  READY
   Record the checkpoint so the Express 5 migration can continue or roll back from a known state
   gated by 1 check(s): 1 pass, 0 fail
 
-SHARED GATES  14 of 15 pass
+SHARED GATES  15 of 15 pass
 
   These gate every step above. A failure here blocks the whole clip.
-    FAIL  working tree clean
 
-WHAT TO FIX
------------
-
-working tree clean   [all]
-  why  Every demo starts from a clean tree; leftover edits change what the diff shows.
-  fix  ./module1/scripts/demo_reset.sh
-  ask  Show me every uncommitted change in this repository and what produced it.
+Every gate is green. This clip can be recorded.
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 
-VERDICT  NOT READY - 1 check(s) failed above.
+VERDICT  READY - this clip can be recorded.

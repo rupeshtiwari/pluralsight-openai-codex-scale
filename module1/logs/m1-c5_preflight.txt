@@ -5,40 +5,33 @@ Demo: Inventory a legacy Express 4 service with Codex (6 minutes)
 
 RUNBOOK      module1/m1-c5-inventory-legacy-express4.md
 OBJECTIVES   TO2, EO2a, EO2b
-READINESS    NOT READY - 1 of 24 checks failed
+READINESS    READY
 
 STEPS
 -----
 
-Step 1  BLOCKED
+Step 1  READY
   Direct Codex to inventory the legacy CommonJS JavaScript Express 4 service across Express routes, data models, auth, build tooling, tests, and external contracts
   gated by 5 check(s): 5 pass, 0 fail
 
-Step 2  BLOCKED
+Step 2  READY
   Review the generated migration plan for the CommonJS-to-ESM compatibility layer, explicit behavioral exceptions, and rollback visibility
   gated by 2 check(s): 2 pass, 0 fail
 
-Step 3  BLOCKED
+Step 3  READY
   Split the ESM TypeScript Express 5 migration into incremental milestones that can be validated independently
   gated by 2 check(s): 2 pass, 0 fail
 
-Step 4  BLOCKED
+Step 4  READY
   Reject the milestone that batches route migration with dependency upgrades and have Codex split it into two checkpoints
   gated by 4 check(s): 4 pass, 0 fail
 
-SHARED GATES  14 of 15 pass
+SHARED GATES  15 of 15 pass
 
   These gate every step above. A failure here blocks the whole clip.
-    FAIL  working tree clean
 
-WHAT TO FIX
------------
-
-working tree clean   [all]
-  why  Every demo starts from a clean tree; leftover edits change what the diff shows.
-  fix  ./module1/scripts/demo_reset.sh
-  ask  Show me every uncommitted change in this repository and what produced it.
+Every gate is green. This clip can be recorded.
 
 Full command output for this run: module1/logs/m1-c5_preflight.full.txt
 
-VERDICT  NOT READY - 1 check(s) failed above.
+VERDICT  READY - this clip can be recorded.
