@@ -263,8 +263,8 @@ The plan must state explicitly:
 2. Any behavior that will deliberately differ after migration, and why that is
    acceptable
 3. The rollback point for each step, as a commit you could return to
-4. The checkpoint at which each compatibility shim is removed, or a statement
-   that it is permanent and why
+4. For each compat module you named in 1, the milestone at which it is deleted
+   - or, if it is permanent, say so and say why
 
 Base the compatibility layer on code that already exists in this repository.
 Do not read or apply any framework skill, migration playbook, or external
@@ -311,10 +311,23 @@ at runtime rather than at compile time.
 
 **Decision produced.** The plan is now reviewable against concrete criteria.
 
-**Verification.** PASS if the compat layer names both real files by path — from either workspace —
-behavioral exceptions are listed, each step has a rollback point, and every shim carries a removal checkpoint or a stated
-reason it is permanent. FAIL if compatibility is described only in prose, or if a shim is proposed
-with no end date and no reason it has none.
+**Verification.** Read the plan for four things, in this order, saying each out loud as you find it:
+
+| Look for | Fails if |
+|---|---|
+| both compat modules named by path, from either workspace | compatibility is described only in prose |
+| behavioral exceptions listed | differences are implied rather than named |
+| a rollback point per step | any step has none |
+| a removal milestone per shim, **or** a stated reason it is permanent | the plan is silent about it |
+
+The last row is the one to check deliberately. A measured walk produced a plan that said nothing
+about shim removal at all, and a plan that is silent reads at a glance like a plan that answered —
+which is how temporary bridging code becomes permanent architecture. If it is missing, ask:
+
+```text
+For each compat module you named, which milestone deletes it? If one is
+permanent, say which and why.
+```
 
 **Recovery.** Ask: `Which file in this repository implements the __dirname replacement?` Two files
 do; either answer is right.
@@ -336,9 +349,8 @@ recoverable rather than a commitment.
 ```text
 Break the migration into incremental milestones.
 
-Each milestone must:
-- change one thing, not several
-- be provable on its own by a single named command
+Keep it to between three and five. Each milestone must:
+- be validated on its own by a named command
 - be undoable on its own, to a named commit
 
 List them in order. For each, give the files it touches, the command that
@@ -348,18 +360,40 @@ Do not implement anything. Read-only inspection is fine; do not run tests,
 builds, or installs.
 ```
 
-**Expected result.** A short ordered list, typically three to five milestones, covering the route
-slice, the framework upgrade, the build tooling, and the test runner.
+**Expected result.** Three to five milestones in order, covering the route slice, the framework
+upgrade, the build tooling, and the test runner — and **at least one of them combining a route
+migration with the Express 4 to 5 upgrade**, carried through from the plan Step 2 produced. A
+measured walk had it as *"Migrate Routes to TS/ESM on Express 5"*.
+
+**That batch is the point of Step 4, so this prompt must not dissolve it.** The prompt used to open
+with *"change one thing, not several"*, which is exactly the rule Step 4 asks Codex to find broken.
+A walk produced thirteen tidy single-concern milestones and Step 4 had nothing to flag: *"None of
+the milestones are both application-code changes and dependency upgrades."* Decomposition is what
+Step 4 teaches; giving it away here leaves Step 4 auditing a list that already complies.
+
+The count is bounded for two reasons. Thirteen rows do not read at recording font size — measured
+walks gave thirteen and ten. And coarser milestones are more likely to carry a combined concern
+forward, so the bound and the batch pull the same way.
 
 **Highlight.** The validation command beside each milestone. A milestone without one cannot be
-checked, and a milestone with two is doing two jobs.
+checked. Do not comment yet on what any milestone combines — that is Step 4's finding.
 
 **Decision produced.** The migration now has units small enough to accept or reject one at a time.
 
-**Verification.** PASS if every milestone names one command and one rollback commit. FAIL if any
-milestone has no validation command.
+**Verification.** PASS if the list holds three to five milestones and every one names a command and
+a rollback commit. FAIL if any milestone has no validation command.
 
-**Recovery.** Ask: `Which single command proves milestone 1 worked?`
+**If no milestone combines code with a dependency upgrade,** Step 4 has nothing to reject. Say so
+and ask:
+
+```text
+Which milestone changes application code and upgrades a dependency in the same
+step? If none do, combine the route migration and the Express 5 upgrade into
+one milestone, since that is how this migration was scoped before it was
+broken up.
+```
+
+**Recovery.** Ask: `Which command proves milestone 1 worked?`
 
 ---
 

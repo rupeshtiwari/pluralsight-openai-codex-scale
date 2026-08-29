@@ -18,7 +18,10 @@ SCOPE
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT PASS  [all] working tree clean
+RESULT FAIL  [all] working tree clean
+WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
+HOW TO FIX      ./module1/scripts/demo_reset.sh
+CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
 
 $ node "${ROOT}/scripts/check.mjs" eslint-tsconfigrootdir-set
 
@@ -113,6 +116,10 @@ RESULT PASS  [c5] all six inventory categories exist
 $ grep -q "__dirname" supporthub-api/migration/services/ticketService.js
 
 RESULT PASS  [c5] __dirname used in legacy service
+
+$ node "${ROOT}/scripts/check.mjs" c5-step3-does-not-decompose
+
+RESULT PASS  [c5] clip 5's milestone prompt does not impose what step 4 audits
 
 $ node "${ROOT}/scripts/check.mjs" c5-prompts-skill-free
 
