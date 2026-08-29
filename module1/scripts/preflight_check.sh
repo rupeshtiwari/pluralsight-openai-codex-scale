@@ -350,6 +350,12 @@ check "c5" "migration tests pass (expect 8)" \
   "npm install then npm run test:migration" \
   "npm run test:migration does not report 8 passing tests. Show the failure."
 
+check "c5" "both services seed the same tickets" \
+  'node "${ROOT}/scripts/check.mjs" seed-parity-across-services' \
+  "Clip 6 migrates a route slice from the legacy service into the modern one, and clip 5 lists seeded data among the caller-visible contracts. Legacy seeded two tickets and modern three, while both set nextId to 1004, so the legacy service skipped an id that never existed." \
+  "Align the seed arrays in both ticketService files, and set nextId to one past the highest seeded id." \
+  "Which tickets does each service seed, and where does each start generating ids?"
+
 check "c5" "legacy route surface matches step 1's expected result" \
   'node "${ROOT}/scripts/check.mjs" c5-route-surface' \
   "Step 1 expects four routes: GET /health with no auth, and three ticket routes behind requireApiKey. /health is the evidence for the Highlight that auth is per route, not global. The expected result named three and left it out." \
