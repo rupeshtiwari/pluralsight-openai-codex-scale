@@ -482,6 +482,40 @@ const CHECKS = {
   },
 
   /**
+   * Clip 5 step 4 must audit the plan of record, not the conversation.
+   *
+   * The batched milestone is seeded in plans/migration-plan.md, where
+   * milestone-batched, migration-plan-single-milestone and the unreviewed marker
+   * all assert it, and where step 4's own second prompt writes the split back.
+   * The audit prompt opened "For each milestone" with no referent, so Codex
+   * evaluated the milestone list it had produced in conversation moments
+   * earlier. That list is well-decomposed, because a competent agent plans a
+   * migration incrementally, so the honest answer was "none" -- twice, in two
+   * measured walks, once with ten milestones and once with seven.
+   *
+   * Two fixes were tried before this one and both moved the cause rather than
+   * removing it: dropping the skill reference from step 2, then dropping the
+   * atomicity rule from step 3. Both were real defects. Neither was this one.
+   * The batch never had to be produced at all -- it ships in the repository, and
+   * the prompt simply never pointed at it.
+   */
+  'c5-step4-audits-the-plan-file': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const t = read('module1/m1-c5-inventory-legacy-express4.md');
+    const prompts = [...t.matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
+    // Matched on the phrase that identifies the audit, with whitespace collapsed
+    // first -- the prompt is hard-wrapped, so a pattern written against the
+    // sentence as read does not match the sentence as stored.
+    const flat = (b) => b.replace(/\s+/g, ' ');
+    const audit = prompts.find((b) => /changes application code, upgrades a dependency, or both/i.test(flat(b)));
+    if (!audit) return reject('m1-c5: no milestone-audit prompt found — the runbook shape changed');
+    if (!/plans\/migration-plan\.md/.test(audit)) {
+      return reject('m1-c5 step 4 audits "each milestone" without naming plans/migration-plan.md — Codex will audit its own conversational list, which is decomposed, and find nothing');
+    }
+    return true;
+  },
+
+  /**
    * Clip 5's milestone prompt may not impose the rule clip 5 step 4 audits.
    *
    * Step 4 asks Codex which milestones both change application code and upgrade

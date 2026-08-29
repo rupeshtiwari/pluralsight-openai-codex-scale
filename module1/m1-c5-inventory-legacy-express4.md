@@ -390,6 +390,9 @@ forward, so the bound and the batch pull the same way.
 **Highlight.** The validation command beside each milestone. A milestone without one cannot be
 checked. Do not comment yet on what any milestone combines — that is Step 4's finding.
 
+This list is the exploration. `plans/migration-plan.md` holds the plan of record, still carrying the
+single unreviewed milestone from the initial pass, and that is the file Step 4 opens.
+
 **Decision produced.** The migration now has units small enough to accept or reject one at a time.
 
 **Verification.** PASS if the list holds three to five milestones and every one names a command and
@@ -423,14 +426,31 @@ planning stage must end with the code untouched.
 **Prompt.**
 
 ```text
-For each milestone, state whether it changes application code, upgrades a
-dependency, or both. Flag any that answers "both".
+Open plans/migration-plan.md and read its Milestones section. That file is the
+plan of record from the initial planning pass; the list you produced in this
+conversation was the exploration.
+
+For each milestone recorded there, state whether it changes application code,
+upgrades a dependency, or both. Flag any that answers "both".
 
 Read-only inspection is fine; do not run tests, builds, or installs.
 ```
 
-**Expected result.** At least one milestone combines migrating a route with upgrading Express 4 to
-Express 5.
+**Expected result.** Codex flags **Milestone 1**, *Migrate `GET /tickets/:id` to TypeScript on
+Express 5*, whose scope reads *"`routes/tickets.js` to `routes/tickets.ts`; `express` 4.x to 5.x"*.
+It is the only milestone in the file, it is marked **Not yet reviewed**, and it is both.
+
+**The prompt names the file, and that is the whole fix.** It used to open *"For each milestone"*
+with no referent, so Codex audited the list it had just produced in conversation — which is
+well-decomposed, because a competent agent plans a migration incrementally. A measured walk answered
+correctly and uselessly: *"None of the milestones are both application-code changes and dependency
+upgrades. The dependency upgrade is isolated in milestone 10."* The batch was never in the chat. It
+ships in `plans/migration-plan.md`, where three preflight checks assert it, and Step 4's second
+prompt already writes back to that same file.
+
+**Say the framing out loud.** The conversational plan was exploration; the file is what is under
+review. That is how the artifact describes itself — *"Produced by the initial planning pass. Not yet
+reviewed."* — and it is how plans actually get reviewed.
 
 **Operator action.** **Reject that milestone.** Say why out loud: a route migration is verified by
 focused route tests; a framework upgrade changes behavior across every route at once and needs the
