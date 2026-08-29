@@ -5,40 +5,33 @@ Demo: Trace a failed Codex automation and recover safely (6 minutes)
 
 RUNBOOK      module2/m2-c6-recover-failed-automation.md
 OBJECTIVES   TO4, EO4a
-READINESS    NOT READY - 1 of 8 checks failed
+READINESS    READY
 
 STEPS
 -----
 
-Step 1  BLOCKED
+Step 1  READY
   Start from a failed automation result and trace the source evidence, generated change, and validation outcome
   gated by 2 check(s): 2 pass, 0 fail
 
-Step 2  BLOCKED
+Step 2  READY
   Use the review pane to isolate the incorrect hunk instead of discarding the entire run
   gated by 1 check(s): 1 pass, 0 fail
 
-Step 3  BLOCKED
+Step 3  READY
   Revert the bad change, preserve valid work, and rerun with corrected context
   gated by 2 check(s): 2 pass, 0 fail
 
-Step 4  BLOCKED
+Step 4  READY
   Verify the recovered run produces a clean reviewable diff before acceptance
   gated by 2 check(s): 2 pass, 0 fail
 
-SHARED GATES  2 of 3 pass
+SHARED GATES  3 of 3 pass
 
   These gate every step above. A failure here blocks the whole clip.
-    FAIL  working tree clean
 
-WHAT TO FIX
------------
-
-working tree clean   [all]
-  why  The review demos seed changes with a patch; leftover edits make the diff unreadable.
-  fix  ./module2/scripts/demo_reset.sh
-  ask  Show me every uncommitted change in this repository and what produced it.
+Every gate is green. This clip can be recorded.
 
 Full command output for this run: module2/logs/m2-c6_preflight.full.txt
 
-VERDICT  NOT READY - 1 check(s) failed above.
+VERDICT  READY - this clip can be recorded.
