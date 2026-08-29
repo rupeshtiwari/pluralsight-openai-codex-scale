@@ -12,25 +12,39 @@ STEPS
 
 Step 1  READY
   Open an automation run that produced uncommitted changes and inspect the diff in the Codex review pane
-  gated by 1 check(s): 1 pass, 0 fail
+  EO4a       inspect uncommitted diffs from an automation run in the review pane
+
+  pass  run-3001 patch applies
+        $ git apply --check automation/runs/run-3001.patch
 
 Step 2  READY
   Review changed files and hunks against the triage evidence that caused the automation to act
-  gated by 1 check(s): 1 pass, 0 fail
+  EO4a       review hunks against the evidence that caused the run
+
+  pass  run-3001 touches exactly two files
+        $ [ "$(grep -c "^diff --git" automation/runs/run-3001.patch)" -eq 2 ]
 
 Step 3  READY
   Use source control to stage valid hunks individually and revert an unrelated or incorrect hunk
-  gated by 1 check(s): 1 pass, 0 fail
+  EO4a       per-hunk staging and revert controls
+
+  pass  run-3001 declares one valid and one invalid hunk
+        $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3001.json one-of-each)" -eq 1 ]
 
 Step 4  READY
   Confirm only approved changes remain before the repository is committed
-  gated by 1 check(s): 1 pass, 0 fail
+  TO4        only approved changes remain
+
+  pass  run-3001 declares one valid and one invalid hunk
+        $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3001.json one-of-each)" -eq 1 ]
 
 SHARED GATES  3 of 3 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
+
+PASS: 6   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c5_preflight.full.txt
 

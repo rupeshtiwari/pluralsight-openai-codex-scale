@@ -38,10 +38,7 @@ LEARNING OBJECTIVES
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT FAIL  [all] working tree clean
-WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
-HOW TO FIX      ./module1/scripts/demo_reset.sh
-CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+RESULT PASS  [all] working tree clean
 
 $ node "${ROOT}/scripts/check.mjs" eslint-tsconfigrootdir-set
 
@@ -117,6 +114,54 @@ $ node "${ROOT}/scripts/check.mjs" contract-tests-pass
 
 RESULT PASS  [all] contract tests (expect 25)
 
+$ node "${ROOT}/scripts/check.mjs" c2-seed-shape
+
+RESULT PASS  [c2] clip 2 seed matches the runbook's expected values
+
+$ [ "$(grep -rn "from '.*utils/legacy" supporthub-api/modern/src supporthub-api/modern/tests | wc -l | tr -d " ")" -eq 0 ]
+
+RESULT PASS  [c2] dead helper has no importers
+
+$ node "${ROOT}/scripts/check.mjs" load-bearing-function
+
+RESULT PASS  [c2] one load-bearing function carries all four responsibilities
+
+$ [ "$(grep -c "value === 'p0'" supporthub-api/modern/src/routes/tickets.ts)" -eq 0 ]
+
+RESULT PASS  [c2] the route does not normalize priority
+
+$ node "${ROOT}/scripts/check.mjs" c2-refs-identical
+
+RESULT PASS  [c2] start and captured checkpoints are the same commit
+
+$ [ -f plans/prompts/m1-c2-map-codebase.md ]
+
+RESULT PASS  [c2] prompt file present
+
+$ [ -f plans/ExecPlan.md ]
+
+RESULT PASS  [c3] refactor ExecPlan present
+
+$ node "${ROOT}/scripts/check.mjs" execplan-starts-unwritten
+
+RESULT PASS  [c3] ExecPlan sections Step 1 fills are unwritten
+
+$ node "${ROOT}/scripts/check.mjs" c3-prompt-does-not-preempt-removal
+
+RESULT PASS  [c3] clip 3's prompt does not forbid the drift step 4 removes
+
+$ node "${ROOT}/scripts/check.mjs" c3-gates-not-hardcoded
+
+RESULT PASS  [c3] no document fixes the clip 3 gate count
+
+$ grep -q "not started" plans/ExecPlan.md
+
+RESULT PASS  [c3] ExecPlan progress log is empty
+
+$ [ "$(sed -n "/## Intended changes/,/## Behavior contracts/p" plans/ExecPlan.md | grep -cE "^[0-9]+\.")" -eq 4 ]
+
+RESULT PASS  [c3] ExecPlan names four intended changes
+
 $ [ -f supporthub-api/migration/app.js ]
 
 RESULT PASS  [c5] legacy service present
@@ -153,6 +198,57 @@ $ grep -q "Not yet reviewed" plans/migration-plan.md
 
 RESULT PASS  [c5] that milestone is unreviewed
 
+$ [ -f framework-skill/node-express-migration/SKILL.md ]
+
+RESULT PASS  [c6] framework skill present
+
+$ node "${ROOT}/scripts/check.mjs" skill-tells-unique
+
+RESULT PASS  [c6] skill-off tells still unique to the skill
+
+$ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
+
+RESULT PASS  [c6] Run A prompt saved and matching the runbook
+
+$ node "${ROOT}/scripts/check.mjs" skill-not-ambient
+
+RESULT PASS  [c6] skill is opt-in, not ambient
+
+$ grep -q "ESLint" framework-skill/node-express-migration/SKILL.md && grep -q "type-check" framework-skill/node-express-migration/SKILL.md && grep -q "build validation" framework-skill/node-express-migration/SKILL.md && grep -q "Vitest" framework-skill/node-express-migration/SKILL.md
+
+RESULT PASS  [c6] skill names all four validation gates
+
+$ [ -f supporthub-api/modern/src/compat/dirname.ts ] && [ -f supporthub-api/modern/src/compat/legacyRequire.ts ]
+
+RESULT PASS  [c6] compat modules present
+
+$ npm run test:route
+
+> supporthub@1.0.0 test:route
+> npm run test:route --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 test:route
+> vitest run tests/contracts/*route*.contract.test.ts
+
+
+ RUN  v4.1.11 ./supporthub-api/modern
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  <time>
+   Duration  <ms> (transform <ms>, setup <ms>, import <ms>, tests <ms>, environment <ms>)
+RESULT PASS  [c6] focused route tests pass
+
+$ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
+
+RESULT PASS  [c6] express 5 in modern workspace
+
+$ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/migration\"]})).version" | cut -d. -f1)" = "4" ]
+
+RESULT PASS  [c6] express 4 in migration workspace
+
 STEP TO OBJECTIVE COVERAGE
   Clip 2 step 1-2  EO1a  map modules, identify dead code
   Clip 2 step 3-4  EO1d  Plan mode before implementation
@@ -164,12 +260,9 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 2-4  EO2c  validation after the milestone
 
 PER-CLIP TRANSCRIPTS
-  m1-c5  NOT READY (1)  logs/m1-c5_preflight.txt
+  m1-c2  READY  logs/m1-c2_preflight.txt
+  m1-c3  READY  logs/m1-c3_preflight.txt
+  m1-c5  READY  logs/m1-c5_preflight.txt
+  m1-c6  READY  logs/m1-c6_preflight.txt
 
-FAILED CHECKS
-  [all] working tree clean
-    why it matters : Every demo starts from a clean tree; leftover edits change what the diff shows.
-    how to fix     : ./module1/scripts/demo_reset.sh
-    codex prompt   : Show me every uncommitted change in this repository and what produced it.
-
-VERDICT  NOT READY - 1 check(s) failed.
+VERDICT  READY - Module 1 can be run.

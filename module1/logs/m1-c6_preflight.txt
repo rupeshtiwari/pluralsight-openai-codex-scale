@@ -12,25 +12,51 @@ STEPS
 
 Step 1  READY
   Apply an equivalent Node.js and TypeScript framework skill to migrate one Express route slice from JavaScript to TypeScript
-  gated by 5 check(s): 5 pass, 0 fail
+  EO2d       equivalent framework skill applies platform-specific guidance
+
+  pass  framework skill present
+        $ [ -f framework-skill/node-express-migration/SKILL.md ]
+  pass  Run A prompt saved and matching the runbook
+        $ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
+  pass  skill is opt-in, not ambient
+        $ node "${ROOT}/scripts/check.mjs" skill-not-ambient
+  pass  skill-off tells still unique to the skill
+        $ node "${ROOT}/scripts/check.mjs" skill-tells-unique
+  pass  express 4 in migration workspace
+        $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/migration\"]})).version" | cut -d. -f1)" = "4" ]
 
 Step 2  READY
   Run ESLint, TypeScript type-checking, build validation, and focused Vitest tests immediately after the route migration
-  gated by 2 check(s): 2 pass, 0 fail
+  EO2c       lint, type-check, and focused tests after the milestone
+
+  pass  skill names all four validation gates
+        $ grep -q "ESLint" framework-skill/node-express-migration/SKILL.md && grep -q "type-check" framework-skill/node-express-migration/SKILL.md && grep -q "build validation" framework-skill/node-express-migration/SKILL.md && grep -q "Vitest" framework-skill/node-express-migration/SKILL.md
+  pass  focused route tests pass
+        $ npm run test:route
 
 Step 3  READY
   Inspect the diff and verify the CommonJS-to-ESM compatibility contract before accepting the route change
-  gated by 2 check(s): 2 pass, 0 fail
+  EO2c       validation after each milestone rather than batching cleanup
+
+  pass  compat modules present
+        $ [ -f supporthub-api/modern/src/compat/dirname.ts ] && [ -f supporthub-api/modern/src/compat/legacyRequire.ts ]
+  pass  express 5 in modern workspace
+        $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
 
 Step 4  READY
   Record the checkpoint so the Express 5 migration can continue or roll back from a known state
-  gated by 1 check(s): 1 pass, 0 fail
+  TO2        incremental checkpoints with rollback
+
+  pass  express 5 in modern workspace
+        $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
 
 SHARED GATES  15 of 15 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
+
+PASS: 24   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 
