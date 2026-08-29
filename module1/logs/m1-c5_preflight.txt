@@ -1,0 +1,132 @@
+M1-C5 PREFLIGHT
+===============
+
+Demo: Inventory a legacy Express 4 service with Codex (6 minutes)
+
+RUNBOOK
+  module1/m1-c5-inventory-legacy-express4.md
+
+LEARNING OBJECTIVES
+  TO2   Demonstrate how to orchestrate a legacy-to-modern stack migration with Codex using incremental checkpoints.
+  EO2a  Direct Codex to inventory a legacy system's routing, data models, auth, build tooling, tests, and external contracts before proposing a migration plan
+  EO2b  Evaluate a Codex-generated migration plan for compatibility layers, explicit behavioral exceptions, and rollback visibility
+
+SCOPE
+  Checks tagged [all] gate every clip in this module.
+  Checks tagged [c5] gate this clip only.
+  Both must pass before this clip is recorded.
+
+$ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
+
+RESULT FAIL  [all] working tree clean
+WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
+HOW TO FIX      ./module1/scripts/demo_reset.sh
+CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+
+$ node "${ROOT}/scripts/check.mjs" eslint-tsconfigrootdir-set
+
+RESULT PASS  [all] ESLint parser root pinned in both workspaces
+
+$ node "${ROOT}/scripts/check.mjs" oncamera-markdown-lint-silent
+
+RESULT PASS  [all] no on-camera markdown shows a lint badge
+
+$ node "${ROOT}/scripts/check.mjs" workspace-lint-silent
+
+RESULT PASS  [all] no workspace shows a lint badge
+
+$ node "${ROOT}/scripts/check.mjs" prompts-allow-read-only-inspection
+
+RESULT PASS  [all] no prompt bans commands outright
+
+$ node "${ROOT}/scripts/check.mjs" c2-prompts-saved
+
+RESULT PASS  [all] saved clip 2 prompts match the runbook
+
+$ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
+
+RESULT PASS  [all] runbooks match the approved outline
+
+$ node "${ROOT}/scripts/check.mjs" demo-checkout-refs-exist
+
+RESULT PASS  [all] no runnable block checks out a missing branch
+
+$ node "${ROOT}/scripts/check.mjs" doc-links-resolve
+
+RESULT PASS  [all] runbook links resolve
+
+$ [ -d node_modules ]
+
+RESULT PASS  [all] dependencies installed
+
+$ npm run lint
+
+> supporthub@1.0.0 lint
+> npm run lint --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 lint
+> eslint src tests
+RESULT PASS  [all] ESLint
+
+$ npm run typecheck
+
+> supporthub@1.0.0 typecheck
+> npm run typecheck --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 typecheck
+> tsc -p tsconfig.json --noEmit
+RESULT PASS  [all] TypeScript type-check
+
+$ npm run build
+
+> supporthub@1.0.0 build
+> npm run build --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 build
+> tsc -p tsconfig.json
+RESULT PASS  [all] build
+
+$ node "${ROOT}/scripts/check.mjs" contract-tests-pass
+
+RESULT PASS  [all] contract tests (expect 25)
+
+$ [ -f supporthub-api/migration/app.js ]
+
+RESULT PASS  [c5] legacy service present
+
+$ ! grep -q "\"type\": \"module\"" supporthub-api/migration/package.json
+
+RESULT PASS  [c5] legacy is CommonJS, not ESM
+
+$ node "${ROOT}/scripts/check.mjs" migration-tests-pass
+
+RESULT PASS  [c5] migration tests pass (expect 8)
+
+$ [ -f supporthub-api/migration/routes/tickets.js ] && [ -f supporthub-api/migration/models/ticket.js ] && [ -f supporthub-api/migration/auth/apiKey.js ] && [ -f supporthub-api/migration/package.json ] && [ -f supporthub-api/migration/tests/tickets.test.js ] && [ -f supporthub-api/migration/config/limits.json ]
+
+RESULT PASS  [c5] all six inventory categories exist
+
+$ grep -q "__dirname" supporthub-api/migration/services/ticketService.js
+
+RESULT PASS  [c5] __dirname used in legacy service
+
+$ node "${ROOT}/scripts/check.mjs" c5-prompts-skill-free
+
+RESULT PASS  [c5] no clip 5 prompt references the framework skill
+
+$ [ "$(grep -c "^### Milestone" plans/migration-plan.md)" -eq 1 ]
+
+RESULT PASS  [c5] migration plan opens on exactly one milestone
+
+$ node "${ROOT}/scripts/check.mjs" milestone-batched
+
+RESULT PASS  [c5] that milestone batches code with a dependency upgrade
+
+$ grep -q "Not yet reviewed" plans/migration-plan.md
+
+RESULT PASS  [c5] that milestone is unreviewed
+
+VERDICT  NOT READY - 1 check(s) failed above.

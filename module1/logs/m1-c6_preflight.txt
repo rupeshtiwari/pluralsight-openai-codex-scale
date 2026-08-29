@@ -1,0 +1,147 @@
+M1-C6 PREFLIGHT
+===============
+
+Demo: Migrate one Express route to TypeScript with framework guidance (6 minutes)
+
+RUNBOOK
+  module1/m1-c6-migrate-one-express-route.md
+
+LEARNING OBJECTIVES
+  TO2   Demonstrate how to orchestrate a legacy-to-modern stack migration with Codex using incremental checkpoints.
+  EO2c  Apply validation checks (lint, type-check, focused tests) after each migration milestone rather than batching cleanup
+  EO2d  Use the ASP.NET Core skill or equivalent framework skill to apply platform-specific migration guidance
+
+SCOPE
+  Checks tagged [all] gate every clip in this module.
+  Checks tagged [c6] gate this clip only.
+  Both must pass before this clip is recorded.
+
+$ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
+
+RESULT FAIL  [all] working tree clean
+WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
+HOW TO FIX      ./module1/scripts/demo_reset.sh
+CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+
+$ node "${ROOT}/scripts/check.mjs" eslint-tsconfigrootdir-set
+
+RESULT PASS  [all] ESLint parser root pinned in both workspaces
+
+$ node "${ROOT}/scripts/check.mjs" oncamera-markdown-lint-silent
+
+RESULT PASS  [all] no on-camera markdown shows a lint badge
+
+$ node "${ROOT}/scripts/check.mjs" workspace-lint-silent
+
+RESULT PASS  [all] no workspace shows a lint badge
+
+$ node "${ROOT}/scripts/check.mjs" prompts-allow-read-only-inspection
+
+RESULT PASS  [all] no prompt bans commands outright
+
+$ node "${ROOT}/scripts/check.mjs" c2-prompts-saved
+
+RESULT PASS  [all] saved clip 2 prompts match the runbook
+
+$ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
+
+RESULT PASS  [all] runbooks match the approved outline
+
+$ node "${ROOT}/scripts/check.mjs" demo-checkout-refs-exist
+
+RESULT PASS  [all] no runnable block checks out a missing branch
+
+$ node "${ROOT}/scripts/check.mjs" doc-links-resolve
+
+RESULT PASS  [all] runbook links resolve
+
+$ [ -d node_modules ]
+
+RESULT PASS  [all] dependencies installed
+
+$ npm run lint
+
+> supporthub@1.0.0 lint
+> npm run lint --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 lint
+> eslint src tests
+RESULT PASS  [all] ESLint
+
+$ npm run typecheck
+
+> supporthub@1.0.0 typecheck
+> npm run typecheck --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 typecheck
+> tsc -p tsconfig.json --noEmit
+RESULT PASS  [all] TypeScript type-check
+
+$ npm run build
+
+> supporthub@1.0.0 build
+> npm run build --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 build
+> tsc -p tsconfig.json
+RESULT PASS  [all] build
+
+$ node "${ROOT}/scripts/check.mjs" contract-tests-pass
+
+RESULT PASS  [all] contract tests (expect 25)
+
+$ [ -f framework-skill/node-express-migration/SKILL.md ]
+
+RESULT PASS  [c6] framework skill present
+
+$ node "${ROOT}/scripts/check.mjs" skill-tells-unique
+
+RESULT PASS  [c6] skill-off tells still unique to the skill
+
+$ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
+
+RESULT PASS  [c6] Run A prompt saved and matching the runbook
+
+$ node "${ROOT}/scripts/check.mjs" skill-not-ambient
+
+RESULT PASS  [c6] skill is opt-in, not ambient
+
+$ grep -q "ESLint" framework-skill/node-express-migration/SKILL.md && grep -q "type-check" framework-skill/node-express-migration/SKILL.md && grep -q "build validation" framework-skill/node-express-migration/SKILL.md && grep -q "Vitest" framework-skill/node-express-migration/SKILL.md
+
+RESULT PASS  [c6] skill names all four validation gates
+
+$ [ -f supporthub-api/modern/src/compat/dirname.ts ] && [ -f supporthub-api/modern/src/compat/legacyRequire.ts ]
+
+RESULT PASS  [c6] compat modules present
+
+$ npm run test:route
+
+> supporthub@1.0.0 test:route
+> npm run test:route --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 test:route
+> vitest run tests/contracts/*route*.contract.test.ts
+
+
+ RUN  v4.1.11 ./supporthub-api/modern
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  <time>
+   Duration  <ms> (transform <ms>, setup <ms>, import <ms>, tests <ms>, environment <ms>)
+RESULT PASS  [c6] focused route tests pass
+
+$ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
+
+RESULT PASS  [c6] express 5 in modern workspace
+
+$ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/migration\"]})).version" | cut -d. -f1)" = "4" ]
+
+RESULT PASS  [c6] express 4 in migration workspace
+
+VERDICT  NOT READY - 1 check(s) failed above.
