@@ -467,6 +467,64 @@ const CHECKS = {
   },
 
   /**
+   * Every preflight check must be mapped to the steps it gates.
+   *
+   * The per-clip transcripts group results by the clip's four steps, so an
+   * author can read one file and see which step is blocked without a
+   * screenshot. That grouping is only as good as docs/preflight-step-map.json,
+   * and a map keyed by human-readable check names drifts the moment a check is
+   * added, renamed or removed -- silently, because an unmapped check would just
+   * quietly stop appearing under any step.
+   *
+   * So both directions are asserted: every scoped check in both preflight
+   * scripts has an entry, and every entry names a check that still exists.
+   * Checks tagged [all] gate every step of every clip and are deliberately
+   * absent from the map.
+   */
+  'preflight-step-map-complete': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const map = JSON.parse(read('docs/preflight-step-map.json'));
+    const outline = JSON.parse(read('docs/outline-clip-map.json'));
+    let ok = true;
+
+    for (const [mod, prefix] of [['1', 'm1'], ['2', 'm2']]) {
+      const src = read(`module${mod}/scripts/preflight_check.sh`);
+      const found = {};
+      for (const m of src.matchAll(/check "([a-z0-9]+)" "([^"]+)"/g)) {
+        if (m[1] === 'all') continue;
+        (found[`${prefix}-${m[1]}`] ||= []).push(m[2]);
+      }
+      for (const [clip, names] of Object.entries(found)) {
+        const entry = map[clip];
+        if (!entry) { ok = reject(`docs/preflight-step-map.json has no entry for ${clip}`) && ok; continue; }
+        const steps = (outline.clips[clip] || {}).bullets || [];
+        for (const n of names) {
+          if (!(n in entry)) {
+            ok = reject(`${clip}: check "${n}" is not mapped to any step — it would vanish from the per-clip transcript`) && ok;
+            continue;
+          }
+          for (const st of entry[n]) {
+            if (!Number.isInteger(st) || st < 1 || st > steps.length) {
+              ok = reject(`${clip}: check "${n}" maps to step ${st}, but the outline gives this clip ${steps.length} steps`) && ok;
+            }
+          }
+        }
+        for (const n of Object.keys(entry)) {
+          if (!names.includes(n)) {
+            ok = reject(`${clip}: the map names "${n}", which is not a check in the preflight any more`) && ok;
+          }
+        }
+      }
+    }
+
+    for (const clip of Object.keys(map)) {
+      if (clip.startsWith('_')) continue;
+      if (!outline.clips[clip]) ok = reject(`the map names ${clip}, which the outline does not`) && ok;
+    }
+    return ok;
+  },
+
+  /**
    * Nothing may state how many validation gates clip 3 runs.
    *
    * Step 1's prompt asks Codex for "the exact commands that will prove those

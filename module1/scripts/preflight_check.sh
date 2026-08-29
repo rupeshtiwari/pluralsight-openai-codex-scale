@@ -10,6 +10,18 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 FMT="node ${ROOT}/scripts/fmt.mjs"
 LOG="${ROOT}/module1/logs/module1_preflight.txt"
 cd "$ROOT"
+
+# Optional clip argument. "preflight_check.sh c3" runs only the checks that gate
+# clip 3 -- the ones tagged [all], which gate every clip, plus [c3]. With no
+# argument every clip runs, which is what you want once per recording session.
+ONLY=""
+if [ $# -gt 0 ]; then
+  case "$1" in
+    c2|c3|c5|c6) ONLY="$1" ;;
+    *) echo "usage: $(basename "$0") [c2|c3|c5|c6]" >&2; exit 2 ;;
+  esac
+fi
+
 mkdir -p "$(dirname "$LOG")"
 : > "$LOG"
 
@@ -20,11 +32,13 @@ mkdir -p "$(dirname "$LOG")"
 # docs/outline-clip-map.json so a clip's title and objectives cannot drift from
 # the approved outline.
 CLIPS="c2 c3 c5 c6"
+[ -n "$ONLY" ] && CLIPS="$ONLY"
 CLIPDIR="${ROOT}/module1/logs"
-node -e '
+PREFLIGHT_ONLY="$ONLY" node -e '
   const fs = require("fs");
   const map = JSON.parse(fs.readFileSync("docs/outline-clip-map.json", "utf8"));
-  for (const c of ["c2", "c3", "c5", "c6"]) {
+  const only = process.env.PREFLIGHT_ONLY;
+  for (const c of (only ? [only] : ["c2", "c3", "c5", "c6"])) {
     const key = "m1-" + c;
     const e = map.clips[key] || {};
     const objs = (e.objectives || []).map((o) => "  " + o.padEnd(6) + (map.objectives[o] || ""));
@@ -59,10 +73,20 @@ norm(){
       -e 's#Start at  [0-9][0-9]:[0-9][0-9]:[0-9][0-9]#Start at  <time>#'
 }
 
+# sect <demo> <title> -- a clip heading that disappears from a scoped run,
+# so "preflight_check.sh c3" does not print empty headings for c5 and c6.
+sect(){
+  if [ -n "$ONLY" ] && [ "$1" != "all" ] && [ "$1" != "$ONLY" ]; then return 0; fi
+  $FMT section "$2"
+}
+
 # check <demo> <name> <command> <why-it-matters> <how-to-fix> <codex-prompt>
 check(){
   local demo="$1" name="$2" cmd="$3" why="$4" fix="$5" prompt="$6"
   local out rc
+  # A scoped run still executes every [all] check, because those gate the clip
+  # as surely as its own do.
+  if [ -n "$ONLY" ] && [ "$demo" != "all" ] && [ "$demo" != "$ONLY" ]; then return 0; fi
   log ""; log "\$ $cmd"
   out="$(eval "$cmd" 2>&1)"; rc=$?
   log "$(printf '%s\n' "$out" | norm)"
@@ -178,6 +202,12 @@ check "all" "saved clip 2 prompts match the runbook" \
   "Copy the runbook prompt blocks over the saved ones; the runbook is the source." \
   "Which saved clip 2 prompt differs from the runbook?"
 
+check "all" "every check is mapped to a demo step" \
+  'node "${ROOT}/scripts/check.mjs" preflight-step-map-complete' \
+  "The per-clip transcripts group results by the clip's four steps. A check with no entry in docs/preflight-step-map.json runs but appears under no step, so the report silently understates what gates a clip." \
+  "Add the check to docs/preflight-step-map.json under its clip, naming the step numbers it gates." \
+  "Which preflight check has no entry in docs/preflight-step-map.json?"
+
 check "all" "runbooks match the approved outline" \
   'node "${ROOT}/scripts/check.mjs" clip-outline-alignment' \
   "The outline is the contract Curriculum approved. A step heading shortened for readability reads fine on its own while dropping scope the outline promised -- two did, and one of those carried EO2d's framework-skill substitution." \
@@ -226,7 +256,7 @@ check "all" "contract tests (expect 25)" \
   "npm test does not report 25 passing tests. Show which test changed and why."
 
 # ------------------------------------------------------------------- clip 2
-$FMT section "clip 2 - map noisy modules"
+sect c2 "clip 2 - map noisy modules"
 check "c2" "clip 2 seed matches the runbook's expected values" \
   'node "${ROOT}/scripts/check.mjs" c2-seed-shape' \
   "The author reads three quantities off the Expected values table on camera: three priority-normalization sites, five unreferenced exports, and two dead private helpers. Every one of them was wrong until a live walk measured it -- this check counted files while claiming to count sites." \
@@ -265,7 +295,7 @@ check "c2" "prompt file present" '[ -f plans/prompts/m1-c2-map-codebase.md ]' \
   "plans/prompts/m1-c2-map-codebase.md is missing. Restore it from git history."
 
 # ------------------------------------------------------------------- clip 3
-$FMT section "clip 3 - execute refactor with ExecPlan"
+sect c3 "clip 3 - execute refactor with ExecPlan"
 check "c3" "refactor ExecPlan present" '[ -f plans/ExecPlan.md ]' \
   "Clip 3 reads this file in its first step." \
   "git checkout -- plans/ExecPlan.md" \
@@ -302,7 +332,7 @@ check "c3" "ExecPlan names four intended changes" \
   "The Intended changes list should contain four numbered items. Show what it contains."
 
 # ------------------------------------------------------------------- clip 5
-$FMT section "clip 5 - inventory legacy service"
+sect c5 "clip 5 - inventory legacy service"
 check "c5" "legacy service present" '[ -f supporthub-api/migration/app.js ]' \
   "There is nothing to inventory without it." \
   "git checkout -- supporthub-api/migration" \
@@ -357,7 +387,7 @@ check "c5" "that milestone is unreviewed" \
   "The proposed milestones must be marked as not yet reviewed."
 
 # ------------------------------------------------------------------- clip 6
-$FMT section "clip 6 - migrate one route"
+sect c6 "clip 6 - migrate one route"
 check "c6" "framework skill present" \
   '[ -f framework-skill/node-express-migration/SKILL.md ]' \
   "EO2d requires the equivalent framework skill to be available in the repository." \
@@ -427,11 +457,17 @@ log ""
 log "PER-CLIP TRANSCRIPTS"
 # Per-clip verdicts, counted from each clip's own transcript rather than tracked
 # in a parallel counter that could disagree with the file an author opens.
+# Rewrite each clip transcript as a step-grouped report before verdicts are
+# appended. The raw run is kept beside it as <clip>_preflight.full.txt.
+for c in $CLIPS; do
+  node "${ROOT}/scripts/clip-report.mjs" "m1-$c" "${CLIPDIR}/m1-${c}_preflight.txt"
+done
+
 $FMT section "per-clip readiness"
 for c in $CLIPS; do
   f="${CLIPDIR}/m1-${c}_preflight.txt"
   [ -f "$f" ] || continue
-  n="$(grep -c '^RESULT FAIL' "$f" 2>/dev/null || true)"
+  n="$(grep -c '^    FAIL  ' "$f" 2>/dev/null || true)"
   n="${n:-0}"
   if [ "$n" -eq 0 ]; then
     printf '\nVERDICT  READY - this clip can be recorded.\n' >> "$f"
