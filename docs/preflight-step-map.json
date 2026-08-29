@@ -78,6 +78,9 @@
     "clip 5's milestone prompt does not impose what step 4 audits": [
       3,
       4
+    ],
+    "legacy route surface matches step 1's expected result": [
+      1
     ]
   },
   "m1-c6": {

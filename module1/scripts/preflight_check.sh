@@ -350,6 +350,12 @@ check "c5" "migration tests pass (expect 8)" \
   "npm install then npm run test:migration" \
   "npm run test:migration does not report 8 passing tests. Show the failure."
 
+check "c5" "legacy route surface matches step 1's expected result" \
+  'node "${ROOT}/scripts/check.mjs" c5-route-surface' \
+  "Step 1 expects four routes: GET /health with no auth, and three ticket routes behind requireApiKey. /health is the evidence for the Highlight that auth is per route, not global. The expected result named three and left it out." \
+  "Correct the expected result, or restore the route the service is missing." \
+  "How many routes does supporthub-api/migration expose, and which of them has no auth?"
+
 check "c5" "all six inventory categories exist" \
   '[ -f supporthub-api/migration/routes/tickets.js ] && [ -f supporthub-api/migration/models/ticket.js ] && [ -f supporthub-api/migration/auth/apiKey.js ] && [ -f supporthub-api/migration/package.json ] && [ -f supporthub-api/migration/tests/tickets.test.js ] && [ -f supporthub-api/migration/config/limits.json ]' \
   "EO2a requires routes, models, auth, build tooling, tests, and external contracts to all be present." \
