@@ -10,6 +10,18 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 FMT="node ${ROOT}/scripts/fmt.mjs"
 LOG="${ROOT}/module2/logs/module2_preflight.txt"
 cd "$ROOT"
+
+# Optional clip argument. "preflight_check.sh c3" runs only the checks that gate
+# clip 3 -- the ones tagged [all], which gate every clip, plus [c3]. With no
+# argument every clip runs, which is what you want once per recording session.
+ONLY=""
+if [ $# -gt 0 ]; then
+  case "$1" in
+    c2|c3|c5|c6) ONLY="$1" ;;
+    *) echo "usage: $(basename "$0") [c2|c3|c5|c6]" >&2; exit 2 ;;
+  esac
+fi
+
 mkdir -p "$(dirname "$LOG")"
 : > "$LOG"
 
@@ -20,11 +32,13 @@ mkdir -p "$(dirname "$LOG")"
 # docs/outline-clip-map.json so a clip's title and objectives cannot drift from
 # the approved outline.
 CLIPS="c2 c3 c5 c6"
+[ -n "$ONLY" ] && CLIPS="$ONLY"
 CLIPDIR="${ROOT}/module2/logs"
-node -e '
+PREFLIGHT_ONLY="$ONLY" node -e '
   const fs = require("fs");
   const map = JSON.parse(fs.readFileSync("docs/outline-clip-map.json", "utf8"));
-  for (const c of ["c2", "c3", "c5", "c6"]) {
+  const only = process.env.PREFLIGHT_ONLY;
+  for (const c of (only ? [only] : ["c2", "c3", "c5", "c6"])) {
     const key = "m2-" + c;
     const e = map.clips[key] || {};
     const objs = (e.objectives || []).map((o) => "  " + o.padEnd(6) + (map.objectives[o] || ""));
@@ -58,9 +72,19 @@ norm(){
       -e 's#Start at  [0-9][0-9]:[0-9][0-9]:[0-9][0-9]#Start at  <time>#'
 }
 
+# sect <demo> <title> -- a clip heading that disappears from a scoped run,
+# so "preflight_check.sh c3" does not print empty headings for c5 and c6.
+sect(){
+  if [ -n "$ONLY" ] && [ "$1" != "all" ] && [ "$1" != "$ONLY" ]; then return 0; fi
+  $FMT section "$2"
+}
+
 check(){
   local demo="$1" name="$2" cmd="$3" why="$4" fix="$5" prompt="$6"
   local out rc
+  # A scoped run still executes every [all] check, because those gate the clip
+  # as surely as its own do.
+  if [ -n "$ONLY" ] && [ "$demo" != "all" ] && [ "$demo" != "$ONLY" ]; then return 0; fi
   log ""; log "\$ $cmd"
   out="$(eval "$cmd" 2>&1)"; rc=$?
   log "$(printf '%s\n' "$out" | norm)"
@@ -143,7 +167,7 @@ check "all" "nothing left staged" '[ -z "$(git diff --cached --name-only)" ]' \
   "git reset" \
   "git diff --cached shows staged changes. Show me what they are."
 
-$FMT section "clip 2 - manual triage sweep"
+sect c2 "clip 2 - manual triage sweep"
 check "c2" "sentry fixtures valid" 'node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json' \
   "The whole sweep reads this file; malformed JSON stops the demo." \
   "git checkout -- automation/sentry-fixtures/issues.json" \
@@ -173,7 +197,7 @@ check "c2" "rubric P1 threshold is 100" \
   "git checkout -- docs/triage-rubric.md" \
   "The P1 row in docs/triage-rubric.md must read 100 or more. Show what it reads."
 
-$FMT section "clip 3 - schedule and route"
+sect c3 "clip 3 - schedule and route"
 check "c3" "triage baseline present" 'node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json' \
   "The scheduled run is compared against this baseline." \
   "git checkout -- automation/triage/" \
@@ -203,7 +227,7 @@ check "c3" "no draft is pre-approved" \
   "git checkout -- automation/slack-drafts automation/linear-drafts" \
   "Every draft must have approvedBy null. Show any that do not."
 
-$FMT section "clip 5 - inspect automation diffs"
+sect c5 "clip 5 - inspect automation diffs"
 check "c5" "run-3001 patch applies" 'git apply --check automation/runs/run-3001.patch' \
   "The clip seeds its uncommitted changes with this patch; if it will not apply there is nothing to review." \
   "./module2/scripts/demo_reset.sh then re-run this check" \
@@ -221,7 +245,7 @@ check "c5" "run-3001 declares one valid and one invalid hunk" \
   "git checkout -- automation/runs/run-3001.json" \
   "run-3001.json must declare one valid and one invalid hunk. Show its hunks."
 
-$FMT section "clip 6 - trace and recover"
+sect c6 "clip 6 - trace and recover"
 check "c6" "run-3002 patch applies" 'git apply --check automation/runs/run-3002.patch' \
   "The recovery clip seeds the failed run with this patch." \
   "./module2/scripts/demo_reset.sh then re-run this check" \
@@ -264,11 +288,17 @@ log ""
 log "PER-CLIP TRANSCRIPTS"
 # Per-clip verdicts, counted from each clip's own transcript rather than tracked
 # in a parallel counter that could disagree with the file an author opens.
+# Rewrite each clip transcript as a step-grouped report before verdicts are
+# appended. The raw run is kept beside it as <clip>_preflight.full.txt.
+for c in $CLIPS; do
+  node "${ROOT}/scripts/clip-report.mjs" "m2-$c" "${CLIPDIR}/m2-${c}_preflight.txt"
+done
+
 $FMT section "per-clip readiness"
 for c in $CLIPS; do
   f="${CLIPDIR}/m2-${c}_preflight.txt"
   [ -f "$f" ] || continue
-  n="$(grep -c '^RESULT FAIL' "$f" 2>/dev/null || true)"
+  n="$(grep -c '^    FAIL  ' "$f" 2>/dev/null || true)"
   n="${n:-0}"
   if [ "$n" -eq 0 ]; then
     printf '\nVERDICT  READY - this clip can be recorded.\n' >> "$f"
