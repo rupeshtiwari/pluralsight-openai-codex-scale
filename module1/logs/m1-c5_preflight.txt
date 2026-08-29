@@ -5,33 +5,73 @@ Demo: Inventory a legacy Express 4 service with Codex (6 minutes)
 
 RUNBOOK      module1/m1-c5-inventory-legacy-express4.md
 OBJECTIVES   TO2, EO2a, EO2b
-READINESS    READY
+READINESS    NOT READY - 1 of 24 checks failed
 
 STEPS
 -----
 
-Step 1  READY
+Step 1  BLOCKED
   Direct Codex to inventory the legacy CommonJS JavaScript Express 4 service across Express routes, data models, auth, build tooling, tests, and external contracts
-  gated by 5 check(s): 5 pass, 0 fail
+  EO2a       inventory routing, models, auth, build tooling, tests, external contracts
 
-Step 2  READY
+  pass  legacy service present
+        $ [ -f supporthub-api/migration/app.js ]
+  pass  legacy is CommonJS, not ESM
+        $ ! grep -q "\"type\": \"module\"" supporthub-api/migration/package.json
+  pass  migration tests pass (expect 8)
+        $ node "${ROOT}/scripts/check.mjs" migration-tests-pass
+  pass  all six inventory categories exist
+        $ [ -f supporthub-api/migration/routes/tickets.js ] && [ -f supporthub-api/migration/models/ticket.js ] && [ -f supporthub-api/migration/auth/apiKey.js ] && [ -f supporthub-api/migration/package.json ] && [ -f supporthub-api/migration/tests/tickets.test.js ] && [ -f supporthub-api/migration/config/limits.json ]
+  pass  __dirname used in legacy service
+        $ grep -q "__dirname" supporthub-api/migration/services/ticketService.js
+
+Step 2  BLOCKED
   Review the generated migration plan for the CommonJS-to-ESM compatibility layer, explicit behavioral exceptions, and rollback visibility
-  gated by 2 check(s): 2 pass, 0 fail
+  EO2b       compatibility layers and explicit behavioral exceptions
+  EO2b       rollback visibility
 
-Step 3  READY
+  pass  __dirname used in legacy service
+        $ grep -q "__dirname" supporthub-api/migration/services/ticketService.js
+  pass  no clip 5 prompt references the framework skill
+        $ node "${ROOT}/scripts/check.mjs" c5-prompts-skill-free
+
+Step 3  BLOCKED
   Split the ESM TypeScript Express 5 migration into incremental milestones that can be validated independently
-  gated by 2 check(s): 2 pass, 0 fail
+  EO2b       milestones validated independently
 
-Step 4  READY
+  pass  no clip 5 prompt references the framework skill
+        $ node "${ROOT}/scripts/check.mjs" c5-prompts-skill-free
+  pass  migration plan opens on exactly one milestone
+        $ [ "$(grep -c "^### Milestone" plans/migration-plan.md)" -eq 1 ]
+
+Step 4  BLOCKED
   Reject the milestone that batches route migration with dependency upgrades and have Codex split it into two checkpoints
-  gated by 4 check(s): 4 pass, 0 fail
+  TO2, EO2b  incremental checkpoints; batched milestone rejected
 
-SHARED GATES  15 of 15 pass
+  pass  no clip 5 prompt references the framework skill
+        $ node "${ROOT}/scripts/check.mjs" c5-prompts-skill-free
+  pass  migration plan opens on exactly one milestone
+        $ [ "$(grep -c "^### Milestone" plans/migration-plan.md)" -eq 1 ]
+  pass  that milestone batches code with a dependency upgrade
+        $ node "${ROOT}/scripts/check.mjs" milestone-batched
+  pass  that milestone is unreviewed
+        $ grep -q "Not yet reviewed" plans/migration-plan.md
+
+SHARED GATES  14 of 15 pass
 
   These gate every step above. A failure here blocks the whole clip.
+    FAIL  working tree clean
 
-Every gate is green. This clip can be recorded.
+WHAT TO FIX
+-----------
+
+working tree clean   [all]
+  why  Every demo starts from a clean tree; leftover edits change what the diff shows.
+  fix  ./module1/scripts/demo_reset.sh
+  ask  Show me every uncommitted change in this repository and what produced it.
+
+PASS: 23   FAIL: 1
 
 Full command output for this run: module1/logs/m1-c5_preflight.full.txt
 
-VERDICT  READY - this clip can be recorded.
+VERDICT  NOT READY - 1 check(s) failed above.

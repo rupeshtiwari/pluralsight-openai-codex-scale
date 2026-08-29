@@ -27,13 +27,28 @@ const meta = outline.clips[clip] || {};
 const steps = meta.bullets || [];
 const gates = stepMap[clip] || {};
 
+// Step -> objective, read from the runbook's own Coverage table so the log maps
+// each step to the LO it serves without a second copy of that mapping.
+const coverage = {};
+try {
+  const rb = readFileSync(meta.runbook, 'utf8');
+  const sec = rb.slice(rb.indexOf('## Coverage'));
+  for (const m of sec.matchAll(/^\|\s*(\d)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|/gm)) {
+    (coverage[m[1]] ||= []).push({ lo: m[2], element: m[3] });
+  }
+} catch { /* a runbook without a Coverage table simply gets no LO line */ }
+
 // Parse the transcript the preflight just wrote.
 const lines = readFileSync(file, 'utf8').split('\n');
 const results = [];
+let lastCmd = '';
+let lastOut = [];
 for (let i = 0; i < lines.length; i += 1) {
+  if (lines[i].startsWith('$ ')) { lastCmd = lines[i].slice(2); lastOut = []; continue; }
   const m = lines[i].match(/^RESULT (PASS|FAIL)\s+\[([a-z0-9]+)\]\s+(.*)$/);
-  if (!m) continue;
-  const entry = { state: m[1], scope: m[2], name: m[3], why: '', fix: '', prompt: '' };
+  if (!m) { if (lastCmd) lastOut.push(lines[i]); continue; }
+  const entry = { state: m[1], scope: m[2], name: m[3], cmd: lastCmd, out: lastOut.join('\n').trim(), why: '', fix: '', prompt: '' };
+  lastCmd = ''; lastOut = [];
   for (let j = i + 1; j < i + 5 && j < lines.length; j += 1) {
     const w = lines[j].match(/^WHY IT MATTERS\s+(.*)$/); if (w) entry.why = w[1];
     const f = lines[j].match(/^HOW TO FIX\s+(.*)$/); if (f) entry.fix = f[1];
@@ -68,12 +83,19 @@ steps.forEach((title, i) => {
   const state = bad.length || sharedBad.length ? 'BLOCKED' : 'READY';
   out.push(`Step ${n}  ${state}`);
   out.push(`  ${title}`);
+  for (const c of coverage[String(n)] || []) out.push(`  ${c.lo.padEnd(10)} ${c.element}`);
   if (own.length) {
-    out.push(`  gated by ${own.length} check(s): ${own.filter((r) => r.state === 'PASS').length} pass, ${bad.length} fail`);
+    out.push('');
+    for (const r of own) {
+      out.push(`  ${r.state === 'PASS' ? 'pass' : 'FAIL'}  ${r.name}`);
+      if (r.cmd) out.push(`        $ ${r.cmd}`);
+      if (r.state === 'FAIL' && r.out) {
+        for (const l of r.out.split('\n').filter(Boolean).slice(0, 3)) out.push(`        ${l}`);
+      }
+    }
   } else {
-    out.push('  gated only by the checks shared across this module');
+    out.push('', '  no check of its own — gated by the shared checks below');
   }
-  for (const r of bad) out.push(`    FAIL  ${r.name}`);
   out.push('');
 });
 
@@ -99,6 +121,7 @@ if (failed.length) {
 // absolute path makes them differ on every machine -- which leaves the tree
 // dirty and breaks clip 2 step 4's empty Source Control view.
 const rel = file.replace(`${process.cwd()}/`, '').replace(/\.txt$/, '.full.txt');
+out.push(`PASS: ${results.filter((r) => r.state === 'PASS').length}   FAIL: ${failed.length}`, '');
 out.push(`Full command output for this run: ${rel}`, '');
 writeFileSync(file.replace(/\.txt$/, '.full.txt'), readFileSync(file, 'utf8'));
 writeFileSync(file, out.join('\n'));

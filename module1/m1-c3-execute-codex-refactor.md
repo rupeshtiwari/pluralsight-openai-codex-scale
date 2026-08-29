@@ -87,13 +87,14 @@ files would be overwritten by merge"*. Run the reset, then pull. Never the other
 **Run this clip's preflight before recording it.**
 
 ```bash
-module1/scripts/preflight_check.sh c3
+bash module1/scripts/m1-c3-execute-codex-refactor.preflight.sh
 ```
 
 It runs the checks tagged `[all]`, which gate every clip in the module, plus the ones tagged
-`[c3]`, and rewrites this clip's transcript. It must end `PASS: m1-c3 is ready.` If any check
-fails it names the check, why it matters, and the command that fixes it. Do not record against a
-failing preflight.
+`[c3]`, and must end `PASS: m1-c3 is ready.` If any check fails it names the check, why it
+matters, and the command that fixes it. Do not record against a failing preflight.
+
+`module1/scripts/preflight_check.sh c3` is the same run, if you prefer the argument form.
 
 Once per recording session, run it with no argument to validate all four demos in one pass:
 
@@ -101,11 +102,12 @@ Once per recording session, run it with no argument to validate all four demos i
 module1/scripts/preflight_check.sh
 ```
 
-Either form writes `module1/logs/m1-c3_preflight.txt`: a one-page report grouped by this
-clip's four steps, marking each step READY or BLOCKED, ending with its own verdict. Read that
-rather than the module log — a failure elsewhere in the module does not necessarily block this
-clip, and the per-step verdict is what says so. The full command output for the same run sits
-beside it as `m1-c3_preflight.full.txt`.
+It writes `module1/logs/m1-c3_preflight.txt`: a one-page report grouped by this clip's four
+steps, each step marked READY or BLOCKED and mapped to the objective it serves, each gating check
+listed with the command that ran it, and a closing `PASS: n  FAIL: n`. Read that rather than the
+module log — a failure elsewhere in the module does not necessarily block this clip, and the
+per-step verdict is what says so. Full command output for the same run sits beside it as
+`m1-c3_preflight.full.txt`.
 
 Run these outside the recording, not in the integrated terminal.
 
