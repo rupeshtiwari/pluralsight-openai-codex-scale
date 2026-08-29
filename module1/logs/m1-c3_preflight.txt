@@ -12,25 +12,48 @@ STEPS
 
 Step 1  READY
   Create an ExecPlan that records intended changes, behavior contracts, validation checks, and progress across the refactor
-  gated by 5 check(s): 5 pass, 0 fail
+  EO1b       ExecPlan records intended changes, contracts, validation checks
+
+  pass  refactor ExecPlan present
+        $ [ -f plans/ExecPlan.md ]
+  pass  ExecPlan sections Step 1 fills are unwritten
+        $ node "${ROOT}/scripts/check.mjs" execplan-starts-unwritten
+  pass  ExecPlan progress log is empty
+        $ grep -q "not started" plans/ExecPlan.md
+  pass  ExecPlan names four intended changes
+        $ [ "$(sed -n "/## Intended changes/,/## Behavior contracts/p" plans/ExecPlan.md | grep -cE "^[0-9]+\.")" -eq 4 ]
+  pass  no document fixes the clip 3 gate count
+        $ node "${ROOT}/scripts/check.mjs" c3-gates-not-hardcoded
 
 Step 2  READY
   Let Codex implement one bounded cleanup pass and run Vitest plus TypeScript validation
-  gated by 2 check(s): 2 pass, 0 fail
+  EO1b       running log maintained across the refactor
+
+  pass  no document fixes the clip 3 gate count
+        $ node "${ROOT}/scripts/check.mjs" c3-gates-not-hardcoded
+  pass  clip 3's prompt does not forbid the drift step 4 removes
+        $ node "${ROOT}/scripts/check.mjs" c3-prompt-does-not-preempt-removal
 
 Step 3  READY
   Inspect the generated diff and confirm public behavior is preserved
-  gated only by the checks shared across this module
+  EO1c       evaluate the diff for preserved public behavior
+
+  no check of its own — gated by the shared checks below
 
 Step 4  READY
   Remove the architecture migration Codex bundled into the cleanup diff and log it as a separate ExecPlan task
-  gated by 1 check(s): 1 pass, 0 fail
+  EO1c, TO1  architecture migrations separated into discrete tasks
+
+  pass  clip 3's prompt does not forbid the drift step 4 removes
+        $ node "${ROOT}/scripts/check.mjs" c3-prompt-does-not-preempt-removal
 
 SHARED GATES  15 of 15 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
+
+PASS: 21   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c3_preflight.full.txt
 

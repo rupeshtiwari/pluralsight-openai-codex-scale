@@ -12,25 +12,45 @@ STEPS
 
 Step 1  READY
   Start from a failed automation result and trace the source evidence, generated change, and validation outcome
-  gated by 2 check(s): 2 pass, 0 fail
+  EO4a       inspect an automation run's uncommitted diff and its inputs
+
+  pass  run-3002 patch applies
+        $ git apply --check automation/runs/run-3002.patch
+  pass  run-3002 records a bad source assumption
+        $ grep -q "bad source assumption" automation/runs/run-3002.json
 
 Step 2  READY
   Use the review pane to isolate the incorrect hunk instead of discarding the entire run
-  gated by 1 check(s): 1 pass, 0 fail
+  EO4a       review hunks against the evidence that caused the run
+
+  pass  run-3002 carries work worth preserving
+        $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3002.json has-valid-hunk)" -ge 1 ]
 
 Step 3  READY
   Revert the bad change, preserve valid work, and rerun with corrected context
-  gated by 2 check(s): 2 pass, 0 fail
+  EO4a       per-hunk revert keeps valid work; rerun on corrected context
+
+  pass  run-3002 carries work worth preserving
+        $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3002.json has-valid-hunk)" -ge 1 ]
+  pass  run-3003 is the corrected rerun
+        $ grep -q "\"chose\": \"a1b2c3d\"" automation/runs/run-3003.json
 
 Step 4  READY
   Verify the recovered run produces a clean reviewable diff before acceptance
-  gated by 2 check(s): 2 pass, 0 fail
+  TO4        trace and debug to a clean reviewable diff
+
+  pass  run-3003 is the corrected rerun
+        $ grep -q "\"chose\": \"a1b2c3d\"" automation/runs/run-3003.json
+  pass  baseline gates green before seeding a failure
+        $ [ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]
 
 SHARED GATES  3 of 3 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
+
+PASS: 8   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c6_preflight.full.txt
 

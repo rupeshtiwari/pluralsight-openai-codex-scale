@@ -12,25 +12,47 @@ STEPS
 
 Step 1  READY
   Configure Sentry and GitHub evidence sources, connect Slack and Linear routing destinations, and define the triage time window
-  gated by 2 check(s): 2 pass, 0 fail
+  EO3a       configure Sentry, GitHub, Slack, Linear over a defined time window
+
+  pass  sentry fixtures valid
+        $ node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json
+  pass  five sentry issues in window
+        $ [ "$(node "${ROOT}/scripts/json.mjs" count automation/sentry-fixtures/issues.json issues)" -eq 5 ]
 
 Step 2  READY
   Run the sweep manually so the same thread context captures source evidence before scheduling
-  gated by 1 check(s): 1 pass, 0 fail
+  EO3a       sweep run manually so the thread captures source evidence
+
+  pass  five sentry issues in window
+        $ [ "$(node "${ROOT}/scripts/json.mjs" count automation/sentry-fixtures/issues.json issues)" -eq 5 ]
 
 Step 3  READY
   Inspect the report for P0–P3 priority, deduplicated bugs, and evidence-backed recommendations
-  gated by 3 check(s): 3 pass, 0 fail
+  EO3b       evaluate for deduplication and evidence-backed recommendations
+
+  pass  duplicate pair shares a stack frame
+        $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/sentry-fixtures/issues.json shared-frame)" -ge 1 ]
+  pass  misleading commit is nearer in time than the real cause
+        $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/github-seed/commits.json misleading-newer)" -eq 1 ]
+  pass  rubric P1 threshold is 100
+        $ grep -qF "| **P1** | Core workflow degraded or failing for many users | 100 or more |" docs/triage-rubric.md
 
 Step 4  READY
   Correct weak prioritization or duplicate entries before automation is promoted
-  gated by 2 check(s): 2 pass, 0 fail
+  EO3b, TO3  evaluate for correct P0–P3 prioritization
+
+  pass  misleading commit is nearer in time than the real cause
+        $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/github-seed/commits.json misleading-newer)" -eq 1 ]
+  pass  rubric P1 threshold is 100
+        $ grep -qF "| **P1** | Core workflow degraded or failing for many users | 100 or more |" docs/triage-rubric.md
 
 SHARED GATES  3 of 3 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
+
+PASS: 8   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c2_preflight.full.txt
 

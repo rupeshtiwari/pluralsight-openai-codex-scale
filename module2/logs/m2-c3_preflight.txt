@@ -12,25 +12,45 @@ STEPS
 
 Step 1  READY
   Convert the tested manual sweep into a scheduled Codex automation using the same thread context
-  gated by 1 check(s): 1 pass, 0 fail
+  EO3c       convert a tested manual sweep into a scheduled automation
+
+  pass  triage baseline present
+        $ node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json
 
 Step 2  READY
   Run the scheduled workflow and compare its report with the validated manual pattern
-  gated by 2 check(s): 2 pass, 0 fail
+  EO3c       using the same thread context
+
+  pass  triage baseline present
+        $ node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json
+  pass  baseline has four findings
+        $ [ "$(node "${ROOT}/scripts/json.mjs" count automation/triage/baseline-manual-sweep.json findings)" -eq 4 ]
 
 Step 3  READY
   Approve selected findings before drafting Slack updates or Linear issues
-  gated by 2 check(s): 2 pass, 0 fail
+  EO3d       routing workflow follows triage approval
+
+  pass  exactly two findings are routable
+        $ [ "$(node "${ROOT}/scripts/json.mjs" rows automation/triage/baseline-manual-sweep.json findings route | grep -c "route=true")" -eq 2 ]
+  pass  no draft is pre-approved
+        $ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-drafts/*.json | grep -cv "null")" -eq 0 ]
 
 Step 4  READY
   Verify Slack and Linear drafts preserve the evidence and priority from the triage decision
-  gated by 2 check(s): 2 pass, 0 fail
+  EO3d, TO3  drafts preserve evidence and priority
+
+  pass  all routing payloads are drafts
+        $ [ "$(grep -l "\"status\": \"draft\"" automation/slack-drafts/*.json automation/linear-drafts/*.json | wc -l | tr -d " ")" -eq 3 ]
+  pass  no draft is pre-approved
+        $ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-drafts/*.json | grep -cv "null")" -eq 0 ]
 
 SHARED GATES  3 of 3 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
+
+PASS: 8   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c3_preflight.full.txt
 
