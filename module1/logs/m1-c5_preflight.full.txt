@@ -106,6 +106,10 @@ $ node "${ROOT}/scripts/check.mjs" migration-tests-pass
 
 RESULT PASS  [c5] migration tests pass (expect 8)
 
+$ node "${ROOT}/scripts/check.mjs" seed-parity-across-services
+
+RESULT PASS  [c5] both services seed the same tickets
+
 $ node "${ROOT}/scripts/check.mjs" c5-route-surface
 
 RESULT PASS  [c5] legacy route surface matches step 1's expected result

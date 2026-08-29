@@ -26,6 +26,8 @@ Step 1  READY
         $ grep -q "__dirname" supporthub-api/migration/services/ticketService.js
   pass  legacy route surface matches step 1's expected result
         $ node "${ROOT}/scripts/check.mjs" c5-route-surface
+  pass  both services seed the same tickets
+        $ node "${ROOT}/scripts/check.mjs" seed-parity-across-services
 
 Step 2  READY
   Review the generated migration plan for the CommonJS-to-ESM compatibility layer, explicit behavioral exceptions, and rollback visibility
@@ -69,7 +71,7 @@ SHARED GATES  15 of 15 pass
 
 Every gate is green. This clip can be recorded.
 
-PASS: 26   FAIL: 0
+PASS: 27   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c5_preflight.full.txt
 
