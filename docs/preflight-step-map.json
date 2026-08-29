@@ -84,6 +84,9 @@
     ],
     "both services seed the same tickets": [
       1
+    ],
+    "step 4 audits the plan file, not the conversation": [
+      4
     ]
   },
   "m1-c6": {

@@ -392,6 +392,12 @@ check "c5" "migration plan opens on exactly one milestone" \
   "git checkout -- plans/migration-plan.md" \
   "plans/migration-plan.md must contain exactly one proposed milestone. Show how many it contains."
 
+check "c5" "step 4 audits the plan file, not the conversation" \
+  'node "${ROOT}/scripts/check.mjs" c5-step4-audits-the-plan-file' \
+  "The batched milestone is seeded in plans/migration-plan.md, not produced in the chat. Step 4 asked about 'each milestone' with no referent, so two walks graded the well-decomposed list Codex had just written and correctly answered 'none'." \
+  "Name plans/migration-plan.md in the step 4 audit prompt." \
+  "Which milestone list does the clip 5 step 4 prompt actually point at?"
+
 check "c5" "that milestone batches code with a dependency upgrade" \
   'node "${ROOT}/scripts/check.mjs" milestone-batched' \
   "If the milestone does not combine a route migration with a dependency upgrade, there is nothing objectionable to reject." \
