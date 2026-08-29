@@ -92,22 +92,28 @@ dirties tracked files — `plans/ExecPlan.md`, `plans/migration-plan.md`, anythi
 `supporthub-api/`. A pull straight after a run aborts with *"Your local changes to the following
 files would be overwritten by merge"*. Run the reset, then pull. Never the other way round.
 
-**Run the module preflight once per recording session, not per clip.** It validates the
-preconditions for all four Module 1 demos in a single pass, so it does not need repeating
-between clips.
+**Run this clip's preflight before recording it.**
+
+```bash
+module1/scripts/preflight_check.sh c6
+```
+
+It runs the checks tagged `[all]`, which gate every clip in the module, plus the ones tagged
+`[c6]`, and rewrites this clip's transcript. It must end `PASS: m1-c6 is ready.` If any check
+fails it names the check, why it matters, and the command that fixes it. Do not record against a
+failing preflight.
+
+Once per recording session, run it with no argument to validate all four demos in one pass:
 
 ```bash
 module1/scripts/preflight_check.sh
 ```
 
-It must end `PASS: Module 1 is ready.` If any check fails it names the check, why it matters,
-and the command that fixes it. Do not record against a failing preflight.
-
-**This clip's own transcript is `module1/logs/m1-c6_preflight.txt`.** It carries the checks
-tagged `[all]`, which gate every clip in the module, plus the ones tagged for this clip, and
-ends with its own READY / NOT READY verdict. Read that file rather than the module log when
-you are about to record this clip — a failure elsewhere in the module does not necessarily
-block you, and the per-clip verdict is what says so.
+Either form writes `module1/logs/m1-c6_preflight.txt`: a one-page report grouped by this
+clip's four steps, marking each step READY or BLOCKED, ending with its own verdict. Read that
+rather than the module log — a failure elsewhere in the module does not necessarily block this
+clip, and the per-step verdict is what says so. The full command output for the same run sits
+beside it as `m1-c6_preflight.full.txt`.
 
 Run these outside the recording, not in the integrated terminal.
 
