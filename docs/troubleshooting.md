@@ -72,11 +72,10 @@ eslint-tsconfigrootdir-set`; it names which config lost the setting. Reload the 
 pulling a config change: Command Palette, `ESLint: Restart ESLint Server`.
 
 **`git pull` aborts: "Your local changes to the following files would be overwritten by merge."**
-Reset before pulling, not after:
+Use `./scripts/sync.sh`. It resets both modules, then pulls:
 
 ```bash
-./module1/scripts/demo_reset.sh    # or module2/scripts/demo_reset.sh
-git pull
+./scripts/sync.sh
 ```
 
 The demo surface is all tracked files — `supporthub-api/`, `plans/`, `automation/`, both
@@ -84,8 +83,9 @@ The demo surface is all tracked files — `supporthub-api/`, `plans/`, `automati
 places a pull wants to touch. Git refuses, correctly, and nothing is lost; the pull simply did not
 happen. Reset discards the demo's edits and the pull then fast-forwards.
 
-This has cost three cycles in this repository, always the same way: pull first out of habit, read
-the abort, run the reset, pull again. The order is reset, then pull.
+This cost four cycles in this repository, always identically: pull out of habit, read the abort,
+reset, pull again. Writing the order down did not stop it, because the abort lands before anyone
+reads the paragraph explaining it — hence the script.
 
 **Codex's test run fails with `listen EPERM`, then passes when rerun.**
 Not a flake, and not a broken test. The contract tests drive the app through supertest, which binds
