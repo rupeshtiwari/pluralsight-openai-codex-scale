@@ -1,3 +1,8 @@
+<!-- markdownlint-disable -->
+<!-- Codex rewrites this file on camera and its shape differs every run.
+     Bare directive only: any text after the command is parsed as rule
+     names, which silently disables nothing. -->
+
 # ExecPlan — Centralize duplicate ticket-priority normalization
 
 A running record of one bounded refactor: what is intended, what must not change,

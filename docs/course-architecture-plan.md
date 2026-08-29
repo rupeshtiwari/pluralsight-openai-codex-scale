@@ -436,9 +436,27 @@ badge sources have bitten so far and they behave differently:
 - **The VS Code ESLint extension** resolved configuration differently from the CLI, so the CLI could
   not see the badge at all. Fixed by pinning `tsconfigRootDir`; the preflight now asserts the pin
   and the silence, but the badge itself stays unmeasurable.
-- **markdownlint** reads the same `.markdownlint.json` as its CLI, so the badge *is* measurable.
-  `scripts/check.mjs oncamera-markdown-lint-silent` runs it over the files that appear on camera and
-  fails on any finding.
+- **markdownlint** reads the same `.markdownlint.json` as its CLI — but sharing a config file is not
+  the same as agreeing. The extension validates that config against a schema and, when it fails
+  validation, falls back to defaults without saying so. Five `"//"` comment keys holding strings did
+  exactly that: the CLI reported nothing and the editor reported 590 errors on the same bytes.
+
+**Two rules came out of that, and both are the same rule.**
+
+**Check the artifact as filmed, not as shipped.** The first version of this check linted
+`plans/ExecPlan.md` in its reset state, which is the only state the preflight can see. The badge
+appears after clip 3 step 1, on tables Codex writes at record time — 518 problems one run, 590 the
+next, on the same step of the same demo. A check that inspects the pristine file can never see it.
+Where an artifact is generated on camera, test the *shape* of what the generator produces, not the
+copy in the repository.
+
+**Assert the effect, never the presence.** Because that shape varies per run, the two on-camera
+plans suppress linting inline rather than relying on a config fitted to any one run. The first
+directive written for them was `<!-- markdownlint-disable -- Codex rewrites this file... -->`, and it
+suppressed nothing: text after the command is parsed as rule names. A check that grepped for the
+directive would have passed forever while the editor stayed red. `oncamera-markdown-lint-silent`
+now copies each file's real opening lines into a probe, appends markdown that should raise findings,
+and requires silence — so it is the suppression being measured, not the string.
 
 The lesson is not "editors cannot be checked". It is **ask whether the extension and a CLI share a
 config, and if they do, run the CLI in the preflight.** Assuming they could not is what left
