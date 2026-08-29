@@ -33,6 +33,17 @@ var SEED = [
     incidentId: null,
     createdAt: '2025-03-03T10:40:00.000Z',
     updatedAt: '2025-03-04T08:05:00.000Z'
+  },
+  {
+    id: 'ticket-1003',
+    subject: 'Password reset email delayed by several hours',
+    status: 'resolved',
+    priority: 'low',
+    assignee: 'agent-02',
+    accountId: 'acct-4390',
+    incidentId: null,
+    createdAt: '2025-03-02T14:22:00.000Z',
+    updatedAt: '2025-03-04T11:47:00.000Z'
   }
 ];
 

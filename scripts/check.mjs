@@ -406,6 +406,45 @@ const CHECKS = {
   },
 
   /**
+   * The two services must seed the same tickets and the same next id.
+   *
+   * They did not. Modern seeded ticket-1001 through ticket-1003 and legacy
+   * seeded only 1001 and 1002 -- while both set nextId to 1004, so the legacy
+   * service skipped an id that had never existed. A clip 5 inventory reported it
+   * plainly: "seeded tickets ticket-1001 and ticket-1002, with next created id
+   * starting at ticket-1004", and there was no answer to why.
+   *
+   * It matters because clip 6 migrates a route slice from one service into the
+   * other, and clip 5 lists seeded data among the caller-visible contracts. Two
+   * fixtures that disagree make "the external contract is unchanged" untestable
+   * at exactly the boundary the module crosses.
+   */
+  'seed-parity-across-services': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const ids = (src) => [...src.matchAll(/id: '(ticket-\d+)'/g)].map((m) => m[1]);
+    const next = (src) => (src.match(/nextId = (\d+)/) || [])[1];
+
+    const legacy = read('supporthub-api/migration/services/ticketService.js');
+    const modern = read('supporthub-api/modern/src/services/ticketService.ts');
+    const l = ids(legacy);
+    const m = ids(modern);
+    let ok = true;
+
+    if (l.join(',') !== m.join(',')) {
+      ok = reject(`seeded ids differ — legacy [${l.join(', ')}], modern [${m.join(', ')}]`) && ok;
+    }
+    if (next(legacy) !== next(modern)) {
+      ok = reject(`nextId differs — legacy ${next(legacy)}, modern ${next(modern)}`) && ok;
+    }
+    // The generated id must continue the seeds rather than skip a number.
+    const highest = Math.max(...l.map((x) => Number(x.split('-')[1])), 0);
+    if (Number(next(legacy)) !== highest + 1) {
+      ok = reject(`nextId is ${next(legacy)} but the highest seeded id is ${highest} — the first created ticket would skip an id that never existed`) && ok;
+    }
+    return ok;
+  },
+
+  /**
    * The legacy service's route surface must match what clip 5 step 1 expects.
    *
    * The expected result named three routes behind API-key auth and omitted

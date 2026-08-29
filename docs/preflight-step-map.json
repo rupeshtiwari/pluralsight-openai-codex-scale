@@ -81,6 +81,9 @@
     ],
     "legacy route surface matches step 1's expected result": [
       1
+    ],
+    "both services seed the same tickets": [
+      1
     ]
   },
   "m1-c6": {
