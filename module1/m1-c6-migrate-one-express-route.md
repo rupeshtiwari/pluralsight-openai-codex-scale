@@ -98,24 +98,11 @@ files would be overwritten by merge"*. Run the reset, then pull. Never the other
 bash module1/scripts/m1-c6-migrate-one-express-route.preflight.sh
 ```
 
-It runs the checks tagged `[all]`, which gate every clip in the module, plus the ones tagged
-`[c6]`, and must end `PASS: m1-c6 is ready.` If any check fails it names the check, why it
-matters, and the command that fixes it. Do not record against a failing preflight.
+It must end `PASS: m1-c6 is ready.` Anything else names the check, why it matters, and the
+command that fixes it — fix that before recording.
 
-`module1/scripts/preflight_check.sh c6` is the same run, if you prefer the argument form.
-
-Once per recording session, run it with no argument to validate all four demos in one pass:
-
-```bash
-module1/scripts/preflight_check.sh
-```
-
-It writes `module1/logs/m1-c6_preflight.txt`: a one-page report grouped by this clip's four
-steps, each step marked READY or BLOCKED and mapped to the objective it serves, each gating check
-listed with the command that ran it, and a closing `PASS: n  FAIL: n`. Read that rather than the
-module log — a failure elsewhere in the module does not necessarily block this clip, and the
-per-step verdict is what says so. Full command output for the same run sits beside it as
-`m1-c6_preflight.full.txt`.
+The report lands in `module1/logs/m1-c6_preflight.txt`, one page grouped by this clip's four
+steps.
 
 Run these outside the recording, not in the integrated terminal.
 
