@@ -1,11 +1,14 @@
 # Walking C5 and C6, and cutting the four remaining branches
 
-Four Module 1 checkpoints do not exist yet, because their content is produced by walking the demos
-rather than authored ahead of them:
+Three Module 1 checkpoints could not be authored ahead of the demos, because their content is
+produced by walking them. Two now exist:
 
-    demo/m1-c5-captured   the two-checkpoint split C5 produces
-    demo/m1-c6-start      branched from m1-c5-captured
-    demo/m1-c6-captured   the migrated route C6 produces
+    demo/m1-c5-captured   the two-checkpoint split C5 produces          cut 2026-08-31
+    demo/m1-c6-start      branched from m1-c5-captured                  cut 2026-08-31
+    demo/m1-c6-captured   the migrated route C6 produces                still to come
+
+Steps 1 to 6 below are done. The procedure is kept because it is what a re-walk follows, and because
+step 2b and the guard above it are the parts that were learned the expensive way.
 
 This document is the procedure for producing them. **It is not a runbook.** The on-camera scripts
 are `m1-c5-inventory-legacy-express4.md` and `m1-c6-migrate-one-express-route.md`; this covers what

@@ -460,6 +460,12 @@ check "c6" "compat modules present" \
   "git checkout -- supporthub-api/migration/compat" \
   "The compat modules under supporthub-api/migration/compat are missing. Restore them."
 
+check "c6" "the runbook's plan greps resolve on the start branch" \
+  'node "${ROOT}/scripts/check.mjs" runbook-plan-greps-resolve' \
+  "A verification an author runs on camera has to return what the runbook says it returns. The C6 prepare block grepped '^### Checkpoint' while the plan uses '^### Milestone', so it printed 0 beside an expected 2." \
+  "Match the heading and the count to the plan as it stands on the branch the clip starts from." \
+  "Which heading does plans/migration-plan.md actually use on demo/m1-c6-start, and how many are there?"
+
 check "c6" "the route migrates in place" \
   'node "${ROOT}/scripts/check.mjs" c6-migrates-in-place' \
   "The prompt decides which workspace the work lands in. An earlier C6 prompt named supporthub-api/modern as the target, so Codex created a route, a contract test and an app.ts edit there — correct work, wrong service, and it collided with the clean tree clip 2 films." \
