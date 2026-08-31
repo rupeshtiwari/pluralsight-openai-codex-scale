@@ -166,7 +166,7 @@ catches it too, since `package.json` appearing in `git status` fails that step.
 | Source Control shows changes before Step 1 | previous run not reset | `./module1/scripts/demo_reset.sh` |
 | Codex describes files or a dirty tree that `git status` does not show | its workspace view predates your reset — a fresh *thread* does not refresh it | close and reopen the Codex session, confirm `git status --short supporthub-api/` is empty, then repeat Step 1 |
 | Codex reports files created and gates green, but `ls` cannot find the files | the summary is a claim, not the work | repeat Step 1; never proceed to Step 2 on the summary alone |
-| That happens twice in a row, and the reply keeps describing a pre-reset working tree | the session is not looking at this checkout — a stale snapshot, or a different clone | confirm the directory Codex has open is this repository at this branch, then reopen the session; if the third run still reports work that is not on disk, stop and diagnose the environment rather than re-running |
+| That happens twice in a row, and the reply keeps describing a pre-reset working tree | the editor's workspace view is stale; a new Codex thread does not clear it | **quit VS Code entirely and reopen it.** That fixed it on the measured occurrence — two failed attempts, then a clean Step 1 on the third. If a run after the restart still reports work that is not on disk, stop: a third identical attempt diagnoses nothing |
 
 ---
 
@@ -328,13 +328,21 @@ service behaved. This step compares the two directly, before anything is accepte
 
 ```bash
 git status --short supporthub-api/
-grep -c "expect(res.status)" supporthub-api/migration/tests/contracts/ticket-read.route.test.mts
+grep -oE '\b(200|401|403|404)\b' \
+  supporthub-api/migration/tests/contracts/ticket-read.route.test.mts | sort -u | wc -l
 npm run test:migration
 ```
 
-Expect two new files and nothing modified; `4` — one assertion per status code: 200, 401, 403,
-404; and the legacy node:test suite still reporting **8 pass, 0 fail**, because the CommonJS
-service was not touched.
+Expect two new files and nothing modified; `4`; and the legacy node:test suite still reporting
+**8 pass, 0 fail**, because the CommonJS service was not touched.
+
+**That grep counts the four status codes, not the way they are asserted.** It used to read
+`grep -c "expect(res.status)"` and returned `0` on a run that was entirely correct — Codex had named
+the variable `response`. The four codes come from the behavioral contract and appear in the prompt;
+`res` was the agent's coin flip, and so was `toBe` against `toEqual`, and `.status` against
+`.statusCode`. Never assert on a name the agent chose. Step 2 already proved the four tests run and
+pass, so what is left to establish here is that all four codes are covered, which is what this
+counts.
 
 **Prompt.**
 

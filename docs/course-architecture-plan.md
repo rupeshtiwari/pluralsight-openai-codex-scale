@@ -496,6 +496,7 @@ gave a wrong answer the first time a real Codex run phrased the same thing diffe
 | `splitPlanHolds` required row | the literal `Scope` row label | a `Kind` row plus a `Files touched` row | rejected a correct split |
 | `splitPlanHolds` upgrade test | `/express.{0,4}4\.x to 5\.x/i` | *"Upgrade Express 4 to Express 5"* | **silently could not detect its own condition** |
 | C6 prepare block | `grep -c '^### Checkpoint'` | `### Milestone` | printed `0` beside its own expected `2` |
+| C6 step 3 verification | `grep -c "expect(res.status)"` | `expect(response.status)` | printed `0` on a correct run, on camera |
 
 The second is the dangerous shape. A check that rejects a correct artifact is loud and gets fixed
 in minutes; a check that cannot see the state it exists to catch stays green and is believed. Both
@@ -512,7 +513,27 @@ PREP table declares as its starting checkpoint — not against the working tree,
 gives a different and equally correct answer. That is what makes an expected count assertable at
 all.
 
-**And this is why the negative case is not optional.** Reading any of the three would not have
+### Who writes the file decides what you may assert about it
+
+The fourth instance is the one worth generalizing from, because it was in a step verification an author
+runs on camera rather than in a check. All four status codes were asserted, one each, exactly as the
+runbook said — and the grep returned `0`, because Codex had named the variable `response`.
+
+Five of the six greps in these runbooks target `plans/` files **this repository** authors, where a
+heading is a fixed shape. Only the ones aimed at what an **agent** produces are coin flips, and only
+there did an identifier get into the pattern.
+
+| In a file the repo writes | In a file the agent writes |
+|---|---|
+| headings, section names, seeded row labels | status codes, response field names, error strings, route paths |
+| — | **never**: variable names, matcher choice, `.status` against `.statusCode`, import style, quote style |
+
+Everything in the right-hand column is in the prompt and the behavioral contract. Everything
+excluded is a choice the agent makes freshly each run, and asserting on it is asserting on a coin
+flip. `agent-file-greps-assert-contract-values` fails any on-camera grep that aims a
+receiver-property pattern at either artifact C6 creates.
+
+**And this is why the negative case is not optional.** Reading any of the four would not have
 revealed the defect; only writing down the condition each exists to detect, and watching it go red,
 does. See `scripts/check-negatives.mjs`.
 
@@ -729,11 +750,15 @@ preflight's *route contract suite starts empty* both require their absence, and 
 makes the step's before-and-after real. A check that runs before the work can only assert that the
 runbook will look for the work.
 
-**A fresh thread does not refresh a stale workspace view.** When an agent describes state that
-predates your reset, the fix is a new session, not a new conversation — and the tell is a
-description that was true one run ago. **After two such runs, stop re-running and check the
-environment:** a session describing a working tree you no longer have is not looking at your
-checkout, and a third attempt tests nothing. Both are troubleshooting rows in the C6 runbook.
+**The fix is to quit and reopen the editor.** Two consecutive C6 Run A attempts reported both files
+created and all five gates green while neither file reached disk, and both described a working tree
+that had stopped existing at `reset --hard`. A new Codex *thread* did not clear it. Quitting VS Code
+entirely and reopening did: the third attempt worked, and Step 1 has been correct since.
+
+So the escalation ladder is short and worth following in order — new thread, then quit and reopen
+the editor, then stop. **A third identical run diagnoses nothing.** An agent describing a working
+tree you no longer have is not reading your checkout, and no prompt fixes that. Both rungs are
+troubleshooting rows in the C6 runbook.
 
 **Related, and the reason this section is short.** Three rules elsewhere are the same instinct
 applied to other subjects: the working tree is not evidence, so branch state is verified from a
