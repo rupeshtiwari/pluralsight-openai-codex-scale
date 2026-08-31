@@ -134,6 +134,10 @@ $ node "${ROOT}/scripts/check.mjs" c6-step1-proves-its-files-exist
 
 RESULT PASS  [c6] step 1 proves its two files exist
 
+$ node "${ROOT}/scripts/check.mjs" agent-file-greps-assert-contract-values
+
+RESULT PASS  [c6] verifications grep agent files for contract values
+
 $ node "${ROOT}/scripts/check.mjs" c6-migrates-in-place
 
 RESULT PASS  [c6] the route migrates in place

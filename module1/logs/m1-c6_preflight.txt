@@ -50,6 +50,8 @@ Step 3  READY
   Inspect the diff and verify the CommonJS-to-ESM compatibility contract before accepting the route change
   EO2c       validation after each milestone rather than batching cleanup
 
+  pass  verifications grep agent files for contract values
+        $ node "${ROOT}/scripts/check.mjs" agent-file-greps-assert-contract-values
   pass  the route migrates in place
         $ node "${ROOT}/scripts/check.mjs" c6-migrates-in-place
   pass  compat modules present
@@ -72,7 +74,7 @@ SHARED GATES  16 of 16 pass
 
 Every gate is green. This clip can be recorded.
 
-PASS: 29   FAIL: 0
+PASS: 30   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 
