@@ -180,8 +180,8 @@ check "all" "ESLint parser root pinned in both workspaces" \
 
 check "all" "no on-camera markdown shows a lint badge" \
   'node "${ROOT}/scripts/check.mjs" oncamera-markdown-lint-silent' \
-  "plans/ExecPlan.md is on screen for all four clip 3 steps and Codex rewrites its tables in step 1. A measured run put 518 markdownlint problems on it, 494 of them errors, while the command line said nothing because nothing on the command line was running markdownlint." \
-  "npm run lint:md, then fix what it names or configure the rule in .markdownlint.json if it is a house-style disagreement rather than a defect." \
+  "plans/ExecPlan.md is on screen for all four clip 3 steps and Codex rewrites its tables in step 1. Two editor extensions have put an error badge on it: markdownlint with 518 problems, then a spell checker with 491. Both are invisible to the command line unless the command line runs them." \
+  "npm run lint:md, then fix what it names, or add the word to cspell.json / the rule to .markdownlint.json when it is a house-style disagreement rather than a defect." \
   "Which rule is firing, and is it a real defect or a style default this repository does not follow?"
 
 check "all" "no workspace shows a lint badge" \

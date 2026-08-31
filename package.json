@@ -21,9 +21,10 @@
     "build:migration": "npm run build --workspace=supporthub-api/migration",
     "test:migration": "npm run test --workspace=supporthub-api/migration",
     "check:negatives": "node scripts/check-negatives.mjs",
-    "lint:md": "markdownlint-cli2 plans/ExecPlan.md plans/migration-plan.md"
+    "lint:md": "markdownlint-cli2 plans/ExecPlan.md plans/migration-plan.md && cspell --no-progress --no-summary plans/ExecPlan.md plans/migration-plan.md"
   },
   "devDependencies": {
-    "markdownlint-cli2": "^0.18.1"
+    "markdownlint-cli2": "^0.18.1",
+    "cspell": "^10.1.1"
   }
 }

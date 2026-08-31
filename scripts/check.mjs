@@ -799,27 +799,41 @@ const CHECKS = {
     //    the directive would have passed on that file forever while the editor
     //    stayed red. So each file's real opening bytes are copied into a probe,
     //    known-bad markdown is appended, and the probe must lint silent.
-    const HEAD_LINES = 6;
+    const HEAD_LINES = 7;
     for (const f of FILES) {
       const head = read(f).split('\n').slice(0, HEAD_LINES).join('\n');
       const dir2 = resolve(ROOT, '.md-directive-probe');
       let hits = [];
+      let spell = [];
       try {
         mkdirSync(dir2, { recursive: true });
         writeFileSync(join(dir2, '.markdownlint.json'), JSON.stringify(cfg));
-        writeFileSync(join(dir2, 'probe.md'), `${head}\n\n# H\n\n|a|b|\n|--|--|\n|1|2|\n\tTAB\n\n\n\n`);
+        // Known-bad markdown, plus words no dictionary contains. Both tools are
+        // run over the same probe, because both put an error badge on the same
+        // tab and neither is visible to the other.
+        writeFileSync(join(dir2, 'probe.md'), `${head}\n\n# H\n\nzzqqxx wibblefrotz\n\n|a|b|\n|--|--|\n|1|2|\n\tTAB\n\n\n\n`);
         let out = '';
         try {
           execSync('npx markdownlint-cli2 probe.md', { cwd: dir2, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
         } catch (err) { out = `${err.stdout || ''}${err.stderr || ''}`; }
         hits = out.split('\n').filter((l) => /probe\.md:\d+/.test(l));
+
+        let sout = '';
+        try {
+          sout = execSync('npx cspell --no-progress --no-summary probe.md', { cwd: dir2, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+        } catch (err) { sout = `${err.stdout || ''}${err.stderr || ''}`; }
+        spell = sout.split('\n').filter((l) => /probe\.md:\d+/.test(l));
       } finally {
         try { rmSync(dir2, { recursive: true, force: true }); } catch { /* nothing to clean up */ }
       }
       if (hits.length) {
-        ok = reject(`${f} does not actually suppress linting - markdown that should raise ${hits.length} finding(s) still raises them under this file's opening lines`) && ok;
+        ok = reject(`${f} does not actually suppress markdownlint - markdown that should raise ${hits.length} finding(s) still raises them under this file's opening lines`) && ok;
         process.stderr.write(`    first: ${(hits[0] || '').trim()}\n`);
         process.stderr.write('    the directive must be a bare <!-- markdownlint-disable -->; any text after the command is read as rule names\n');
+      }
+      if (spell.length) {
+        ok = reject(`${f} does not actually suppress spell-checking - ${spell.length} unknown word(s) still flagged under this file's opening lines`) && ok;
+        process.stderr.write('    add <!-- cspell:disable --> beside the markdownlint directive\n');
       }
     }
 
