@@ -238,7 +238,7 @@ dependency on `config/limits.json` that no import statement reveals, pinned by a
 
 That second one is worth pointing at. An import graph shows `ticketService` depending on
 `models/ticket` and stops; the config read lives in the function body, so only reading the code
-finds it. It is also why `compat/dirname.ts` exists, which makes Step 2 a consequence rather than a
+finds it. It is also why `compat/dirname.mts` exists, which makes Step 2 a consequence rather than a
 lookup.
 
 Do not claim the service has no build step. It has one — `npm run build` runs
@@ -293,16 +293,16 @@ giving every compatibility shim either a removal checkpoint or a stated reason i
 exists twice — in `supporthub-api/migration/compat/` and in `supporthub-api/modern/src/compat/`.
 Accept either, and expect the migration path, because that is the one this repository's own plan
 uses: the compatibility table in `plans/migration-plan.md` cites
-`supporthub-api/migration/compat/dirname.ts` and `supporthub-api/migration/compat/legacyRequire.ts`
+`supporthub-api/migration/compat/dirname.mts` and `supporthub-api/migration/compat/legacyRequire.mts`
 by path.
 
 They are not the same file. The two copies share their implementation and differ in their doc
 comments, and the migration copy is written for this demo:
 
-- `migration/compat/dirname.ts` opens on the service's own problem — *"This service reads its
+- `migration/compat/dirname.mts` opens on the service's own problem — *"This service reads its
   configuration relative to the module's own location"* — which is the `__dirname` dependency Step 1
   highlighted, so the inventory leads straight to it.
-- `migration/compat/legacyRequire.ts` carries the export-shape table this step's Highlight teaches,
+- `migration/compat/legacyRequire.mts` carries the export-shape table this step's Highlight teaches,
   `module.exports = createApp` against `module.exports = { get, create }`, and states the removal
   rule outright: *"Every use of this bridge is migration debt. It is removed when the module it
   reaches for has itself migrated."*
@@ -437,7 +437,7 @@ Read-only inspection is fine; do not run tests, builds, or installs.
 ```
 
 **Expected result.** Codex flags **Milestone 1**, *Migrate `GET /tickets/:id` to TypeScript on
-Express 5*, whose scope reads *"`routes/tickets.js` to `routes/tickets.ts`; `express` 4.x to 5.x"*.
+Express 5*, whose scope reads *"`routes/tickets.js` to `routes/tickets.mts`; `express` 4.x to 5.x"*.
 It is the only milestone in the file, it is marked **Not yet reviewed**, and it is both.
 
 **The prompt names the file, and that is the whole fix.** It used to open *"For each milestone"*

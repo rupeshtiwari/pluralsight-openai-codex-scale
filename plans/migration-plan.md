@@ -62,13 +62,15 @@ Concrete boundary code, not description. Full detail in
 
 | Concern | Module | Replaces |
 |---|---|---|
-| `__dirname` is undefined in ESM | `supporthub-api/migration/compat/dirname.ts` | `path.join(__dirname, ...)` |
-| ESM cannot `require()` a CommonJS module | `supporthub-api/migration/compat/legacyRequire.ts` | direct `require()` |
+| `__dirname` is undefined in ESM | `supporthub-api/migration/compat/dirname.mts` | `path.join(__dirname, ...)` |
+| ESM cannot `require()` a CommonJS module | `supporthub-api/migration/compat/legacyRequire.mts` | direct `require()` |
 
-Also in scope: `require()` becomes `import` with an explicit `.js` extension on relative paths, and
-the two `module.exports` shapes convert differently — `module.exports = fn` to a default export,
-`module.exports = { a, b }` to named exports. They are not interchangeable, and mixing them fails at
-runtime rather than at compile time.
+Also in scope: the package cannot declare `"type": "module"` while any `.js` file remains, so
+migrated sources are `.mts` and carry ESM in the extension; `require()` becomes `import` with an
+explicit `.mjs` extension on relative paths; and the two `module.exports` shapes convert
+differently — `module.exports = fn` to a default export, `module.exports = { a, b }` to named
+exports. They are not interchangeable, and mixing them fails at runtime rather than at compile
+time.
 
 ## Behavioral exceptions
 
@@ -99,7 +101,7 @@ its final target rather than being rewritten twice.
 
 | | |
 |---|---|
-| Scope | `routes/tickets.js` to `routes/tickets.ts`; `express` 4.x to 5.x; `path-to-regexp` route-syntax adjustments |
+| Scope | `routes/tickets.js` to `routes/tickets.mts`; `express` 4.x to 5.x; `path-to-regexp` route-syntax adjustments |
 | Validation | `npm run lint && npm run typecheck && npm run build && npm run test:route && npm test` |
 | Rollback point | the commit before this milestone |
 

@@ -26,7 +26,7 @@ global auth is a platform concern and belongs in the platform checkpoint.
 **Build tooling.** Does the target need a build step the source did not have? TypeScript does.
 That build is a new failure mode and needs its own validation gate.
 
-Expect the inventory to find `tsconfig.json`, `eslint.config.js`, `vitest.config.ts` and a
+Expect the inventory to find `tsconfig.json`, `eslint.config.js`, `vitest.config.mts` and a
 `compat/` directory already present. That is tooling and compatibility infrastructure staged ahead
 of the work, not evidence that the migration has begun. Confirm it by counting migrated routes:
 `ls routes/*.ts` returns nothing until the first route moves.

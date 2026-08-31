@@ -20,6 +20,7 @@
     "typecheck:migration": "npm run typecheck --workspace=supporthub-api/migration",
     "build:migration": "npm run build --workspace=supporthub-api/migration",
     "test:migration": "npm run test --workspace=supporthub-api/migration",
+    "test:route:migration": "npm run test:route --workspace=supporthub-api/migration",
     "check:negatives": "node scripts/check-negatives.mjs",
     "lint:md": "markdownlint-cli2 \"module1/*.md\" \"module2/*.md\" \"docs/*.md\" \"plans/*.md\" README.md && cspell --no-progress --no-summary \"module1/*.md\" \"module2/*.md\" \"docs/*.md\" README.md"
   },

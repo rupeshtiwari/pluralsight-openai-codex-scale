@@ -18,11 +18,12 @@ var service = require('../services/ticketService');
 ```ts
 // ESM — the extension is required, even from TypeScript
 import express from 'express';
-import * as service from '../services/ticketService.js';
+import * as service from '../services/ticketService.mjs';
 ```
 
-ESM requires the file extension on relative imports. TypeScript sources write `.js` because the
-extension names the emitted file, not the source.
+ESM requires the file extension on relative imports, and the extension names the emitted file
+rather than the source. A `.mts` source emits `.mjs`, so that is what its importers write. See
+[the package `type` field](#the-package-type-field) below for why the sources are `.mts`.
 
 ### 2. `module.exports` has two shapes, and they are not interchangeable
 
@@ -62,35 +63,53 @@ var LIMITS = JSON.parse(
 ```
 
 ```ts
-import { moduleDir } from '../compat/dirname.js';
+import { moduleDir } from '../compat/dirname.mjs';
 
 const here = moduleDir(import.meta.url);
 const LIMITS = JSON.parse(readFileSync(join(here, '..', 'config', 'limits.json'), 'utf8'));
 ```
 
-Implemented in `supporthub-api/migration/compat/dirname.ts`.
+Implemented in `supporthub-api/migration/compat/dirname.mts`.
 
 ### 4. ESM cannot `require()` an unmigrated module
 
 While both module systems coexist, migrated code still needs to reach unmigrated code:
 
 ```ts
-import { requireFromEsm } from '../compat/legacyRequire.js';
+import { requireFromEsm } from '../compat/legacyRequire.mjs';
 
-const require = requireFromEsm(import.meta.url);
-const service = require('../services/ticketService');
+const legacyRequire = requireFromEsm(import.meta.url);
+const service = legacyRequire('../services/ticketService');
 ```
 
-Implemented in `supporthub-api/migration/compat/legacyRequire.ts`.
+Implemented in `supporthub-api/migration/compat/legacyRequire.mts`. Bind it to a name other than
+`require`: shadowing the CommonJS global hides the bridge from review, and the whole point of the
+bridge is to be countable.
 
 Every use of this bridge is migration debt. It is removed when the module it reaches for has itself
 migrated. Count the uses: that number should only ever fall.
 
 ## The package `type` field
 
-The target declares `"type": "module"`. The source must not, or every remaining `.js` file breaks at
-once. Flipping that field is a platform change affecting the whole workspace, so it belongs in the
-platform checkpoint rather than in any route migration.
+Source and target are the same package here, so the field cannot simply be flipped: it is read
+package-wide, and setting it converts every remaining `.js` file at once. That is a platform
+change, and it belongs in the platform checkpoint rather than in any route migration.
+
+Migrated code carries ESM in its **file extension** instead. A `.mts` source is ESM whatever the
+package field says, and emits `.mjs`:
+
+| Package field | Extension | Module system |
+|---|---|---|
+| absent | `.js` | CommonJS |
+| absent | `.mts` -> `.mjs` | ESM |
+
+This is what makes the migration incremental. Each converted file opts itself in, one at a time,
+and nothing that has not moved yet is affected.
+
+It has one consequence worth planning for. A CommonJS `app.js` cannot mount an ESM router through
+a normal `require()`, so a migrated route is verified against the contract **on its own** — mounted
+on a bare Express app inside its test — before anything wires it into the running service. Wiring
+happens in the platform checkpoint, once the field flips and there is no CommonJS left to break.
 
 ## What the toolchain already allows
 

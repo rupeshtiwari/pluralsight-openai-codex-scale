@@ -9,26 +9,30 @@ a second difference creeping in, which would make the comparison meaningless.
 ```text
 Read framework-skill/node-express-migration/SKILL.md and follow its guidance.
 
-Migrate ONLY the GET /tickets/:id route from supporthub-api/migration to the modern
-service in supporthub-api/modern.
+Migrate ONLY the GET /tickets/:id route inside supporthub-api/migration. This
+service migrates in place, so the migrated file belongs in that same workspace.
 
 Before editing, state the exact conversions the skill requires for this slice:
 each require() and what it becomes, each module.exports shape and what it
-becomes, every __dirname use and what replaces it, and what changes about route
-params under Express 5.
+becomes, every __dirname use and what replaces it, and what the skill says about
+route params and handler return values.
 
-Then create supporthub-api/modern/src/routes/legacyTickets.ts as ESM TypeScript for Express 5,
-and mount it in supporthub-api/modern/src/app.ts under the path prefix /v1.
+Then create supporthub-api/migration/routes/ticketRead.mts as ESM TypeScript,
+reaching the CommonJS service and auth modules through the compat layer already
+present in supporthub-api/migration/compat.
 
 It must preserve the legacy behavior exactly:
 - x-api-key auth, 401 when the header is missing, 403 when the key is invalid
 - 200 with the same nine response fields on success
 - 404 with error ticket_not_found for an unknown id
 
-Also create supporthub-api/modern/tests/contracts/legacy-route.contract.test.ts covering all
-four of those cases.
+Also create supporthub-api/migration/tests/contracts/ticket-read.route.test.mts
+covering all four of those cases, mounting the migrated router on an Express app
+built inside the test.
 
 Do not migrate POST /tickets or PATCH /tickets/:id/status.
 Do not upgrade or change any dependency.
-Do not modify supporthub-api/migration.
+Do not add a "type" field to any package.json.
+Do not modify app.js or routes/tickets.js.
+Do not create or modify any file under supporthub-api/modern.
 ```

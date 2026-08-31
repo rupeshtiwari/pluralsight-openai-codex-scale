@@ -251,7 +251,7 @@ check "all" "TypeScript type-check" "npm run typecheck" \
   "npm run typecheck fails. Show each error and the minimal fix."
 
 check "all" "build" "npm run build" \
-  "Clip 6 uses build as a validation gate; it must be green beforehand." \
+  "Clip 6 uses build as a validation gate, against the migration workspace; this one guards the modern workspace clips 2 and 3 film." \
   "Resolve the tsc emit errors" \
   "npm run build fails but typecheck passes. Explain the difference and fix it."
 
@@ -358,7 +358,7 @@ check "c5" "migration tests pass (expect 8)" \
 
 check "c5" "both services seed the same tickets" \
   'node "${ROOT}/scripts/check.mjs" seed-parity-across-services' \
-  "Clip 6 migrates a route slice from the legacy service into the modern one, and clip 5 lists seeded data among the caller-visible contracts. Legacy seeded two tickets and modern three, while both set nextId to 1004, so the legacy service skipped an id that never existed." \
+  "Clip 6 migrates a route slice in place inside the legacy service, and clip 5 lists seeded data among the caller-visible contracts. Legacy seeded two tickets and modern three, while both set nextId to 1004, so the legacy service skipped an id that never existed." \
   "Align the seed arrays in both ticketService files, and set nextId to one past the highest seeded id." \
   "Which tickets does each service seed, and where does each start generating ids?"
 
@@ -455,21 +455,28 @@ check "c6" "skill names all four validation gates" \
   "The migration skill must name ESLint, TypeScript type-check, build validation, and focused Vitest tests."
 
 check "c6" "compat modules present" \
-  '[ -f supporthub-api/modern/src/compat/dirname.ts ] && [ -f supporthub-api/modern/src/compat/legacyRequire.ts ]' \
-  "The compatibility layer must be real code, not a description." \
-  "git checkout -- supporthub-api/modern/src/compat" \
-  "The compat modules under supporthub-api/modern/src/compat are missing. Restore them."
+  '[ -f supporthub-api/migration/compat/dirname.mts ] && [ -f supporthub-api/migration/compat/legacyRequire.mts ]' \
+  "The compatibility layer must be real code, not a description, and it must live in the workspace the route migrates inside." \
+  "git checkout -- supporthub-api/migration/compat" \
+  "The compat modules under supporthub-api/migration/compat are missing. Restore them."
 
-check "c6" "focused route tests pass" "npm run test:route" \
-  "Clip 6 runs this as its fourth gate and expects it green before the migration." \
-  "npm test to see which contract broke" \
-  "npm run test:route fails. Show which route contract broke."
+check "c6" "the route migrates in place" \
+  'node "${ROOT}/scripts/check.mjs" c6-migrates-in-place' \
+  "The prompt decides which workspace the work lands in. An earlier C6 prompt named supporthub-api/modern as the target, so Codex created a route, a contract test and an app.ts edit there — correct work, wrong service, and it collided with the clean tree clip 2 films." \
+  "Point every C6 path at supporthub-api/migration and keep the constraint line that forbids writing under supporthub-api/modern." \
+  "Which workspace does the C6 prompt tell Codex to write into, and does the runbook check that the other one stayed untouched?"
 
-check "c6" "express 5 in modern workspace" \
-  '[ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]' \
-  "The migration target is Express 5; a different version invalidates the premise." \
-  "npm install" \
-  "The modern workspace should resolve express 5. Show what version is installed and why."
+check "c6" "migration gates green on the baseline" \
+  'npm run lint:migration && npm run typecheck:migration && npm run build:migration && npm run test:route:migration' \
+  "Clip 6 step 2 runs these four and reads a red result as caused by the migration. Any of them already failing turns that reading into a wrong diagnosis on camera." \
+  "Run each of the four :migration scripts and fix what it reports" \
+  "One of lint:migration, typecheck:migration, build:migration or test:route:migration fails on the baseline. Show which, and the minimal fix."
+
+check "c6" "route contract suite starts empty" \
+  '[ "$(npm run test:route:migration 2>&1 | grep -c "No test files found")" -eq 1 ]' \
+  "Step 2 narrates nothing-to-run becoming four passing tests. A route contract file left behind by an unreset run makes that before-and-after false." \
+  "./module1/scripts/demo_reset.sh" \
+  "supporthub-api/migration/tests contains a *.route.test.mts file before the demo starts. Show which, and where it came from."
 
 check "c6" "express 4 in migration workspace" \
   '[ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/migration\"]})).version" | cut -d. -f1)" = "4" ]' \
