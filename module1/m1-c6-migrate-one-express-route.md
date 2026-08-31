@@ -217,6 +217,7 @@ Do not migrate POST /tickets or PATCH /tickets/:id/status.
 Do not upgrade or change any dependency.
 Do not add a "type" field to any package.json.
 Do not modify app.js or routes/tickets.js.
+Do not modify plans/migration-plan.md.
 Do not create or modify any file under supporthub-api/modern.
 ```
 
@@ -240,7 +241,7 @@ hard to un-read once it is in your head.
 ```bash
 ls -l supporthub-api/migration/routes/ticketRead.mts \
       supporthub-api/migration/tests/contracts/ticket-read.route.test.mts
-git status --short supporthub-api/
+git status --short -- ':!plans/prompts'
 git status --porcelain supporthub-api/modern | wc -l    # must be 0
 ```
 
@@ -248,9 +249,11 @@ The first command is the one that decides the step. It names both files the prom
 prints `No such file or directory` for either that is missing, so *the work did not happen* looks
 nothing like *the work happened*. Nothing below it means anything until it lists two files.
 
-The two `git status` calls are scoped to the workspace on purpose. A bare `git status --short` also
-lists the three deleted entries from moving `plans/prompts` aside for the run, and counting those as
-the step's output is how a wrong reading starts.
+The pathspec excludes exactly one thing: the three deleted entries from moving `plans/prompts`
+aside for the run, which are apparatus and not this step's output. **Everything else stays visible,
+and that is deliberate.** An earlier version scoped to `supporthub-api/` instead, which was quiet
+about the run that also rewrote `plans/migration-plan.md` — a filter that removes noise by naming
+what to look at removes signal with it.
 
 PASS if `ls` lists both files, exactly two new paths appear under `supporthub-api/migration/`,
 nothing is shown as modified, and the last command prints `0`.
@@ -262,6 +265,10 @@ FAIL if:
   Step 1; do not go on.
 - nothing is listed by `git status` even though `ls` found the files — they exist but are ignored,
   which means the paths are wrong.
+- `plans/migration-plan.md` appears. Recording the checkpoint is **Step 4's** job, and a run that
+  narrows the plan here has done part of it early — Step 4 then documents a decision the operator
+  never made on camera. A measured run did exactly this, `+10 −7`, while reporting only the two
+  files.
 - `supporthub-api/modern/` or any `package.json` appears — either means the checkpoint scope was
   breached.
 
@@ -327,7 +334,7 @@ service behaved. This step compares the two directly, before anything is accepte
 **Commands.**
 
 ```bash
-git status --short supporthub-api/
+git status --short -- ':!plans/prompts'
 grep -oE '\b(200|401|403|404)\b' \
   supporthub-api/migration/tests/contracts/ticket-read.route.test.mts | sort -u | wc -l
 npm run test:migration

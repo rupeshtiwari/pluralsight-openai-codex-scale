@@ -34,5 +34,6 @@ Do not migrate POST /tickets or PATCH /tickets/:id/status.
 Do not upgrade or change any dependency.
 Do not add a "type" field to any package.json.
 Do not modify app.js or routes/tickets.js.
+Do not modify plans/migration-plan.md.
 Do not create or modify any file under supporthub-api/modern.
 ```
