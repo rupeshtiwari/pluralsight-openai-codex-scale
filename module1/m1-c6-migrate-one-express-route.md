@@ -440,28 +440,36 @@ by the checkpoint boundary rather than chosen, and it is now written down.
 **Verification.**
 
 ```bash
+git rev-parse --short HEAD
 awk '/^## /{p = /^## Behavioral exceptions/} p' plans/migration-plan.md
 awk '/^## /{p = /^## Behavioral exceptions/} p' plans/migration-plan.md | grep -c 'app\.js'
+awk '/^## /{p = /^## Milestones/} p' plans/migration-plan.md | grep -i 'rollback point'
+awk '/^## /{p = /^## Milestones/} p' plans/migration-plan.md | grep -c "$(git rev-parse --short HEAD)"
 grep -c "^## " plans/migration-plan.md   # unchanged: the split adds entries, not sections
-git rev-parse --short HEAD
 npm run lint:migration && npm run typecheck:migration && npm run build:migration && npm run test:route:migration
 ```
 
-**The first command prints the whole section, however long Codex writes it.** It used to be
-`grep -A4`, which showed the heading and the two intro lines and stopped — the recorded exception
-sits below line 4, so a correct run and an empty one looked identical. A fixed offset is a guess
-about how much an agent will write.
+**The section prints whole, however long Codex writes it.** It used to be `grep -A4`, which showed
+the heading and the two intro lines and stopped — the recorded exception sits below line 4, so a
+correct run and an empty one looked identical. A fixed offset is a guess about how much an agent
+will write.
 
-The second bounds a content check to that section: the exception has to name `app.js`, which is why
-the route cannot be served yet. `app.js` is a file name from the prompt, not a phrasing Codex
-chooses — it prints `1` once the exception is recorded and `0` before. `grep -c "^## "` is fine as
-it stands: the section count is a shape this repository controls.
+**The two counts are what decide the step, and each names a value from the prompt.** The exception
+has to mention `app.js`, which is why the route cannot be served yet. And the rollback point has to
+be *this* commit: the count greps the Milestones section for the SHA printed on the first line, so
+it prints `0` before Step 4 records it and `1` after. Checkpoint 2 currently carries a commit
+*message* where its rollback point should be, left there by C5's split — watch it become a real
+commit. The `grep -i 'rollback point'` line is display only; if Codex relabels the row it shows
+nothing and the SHA count still decides.
 
-PASS if the section prints the new exception with a reason, the content check prints at least `1`, a
-rollback commit is named inside checkpoint 2's entry, the top-level section count is unchanged, and
-all four gates still pass. FAIL if the exception table is unchanged, if the content check prints
-`0`, if a separate rollback section appeared, or if dependencies were changed — that belongs to
-checkpoint 2.
+`grep -c "^## "` is fine as it stands: the section count is a shape this repository controls, and it
+is what catches a separate rollback section being added.
+
+PASS if the exception prints with a reason, the `app.js` count is at least `1`, the SHA count is
+`1`, the top-level section count is unchanged, and all four gates still pass. FAIL if the exception
+table is unchanged, if either count prints `0` — the second means the rollback point was never
+recorded and the checkpoint cannot be returned to, which is what this step exists for — if a
+separate rollback section appeared, or if dependencies were changed, which belongs to checkpoint 2.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` returns to the starting state.
 
@@ -473,7 +481,7 @@ checkpoint 2.
 |---|---|---|---|
 | 1 | EO2d | equivalent framework skill applies platform-specific guidance | conversions named per file, one route migrated |
 | 2 | EO2c | lint, type-check, and focused tests after the milestone | four gates green, test:route:migration reports 4 |
-| 3 | EO2c | validation after each milestone rather than batching cleanup | four status codes and nine fields identical |
+| 3 | EO2c | validation after each milestone rather than batching cleanup | legacy-against-migrated diff on screen; four status codes and nine fields identical |
 | 4 | TO2 | incremental checkpoints with rollback | exception and rollback commit recorded |
 
 ## Final state
