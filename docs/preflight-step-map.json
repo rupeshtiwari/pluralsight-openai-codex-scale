@@ -103,6 +103,9 @@
     "step 1 proves its two files exist": [
       1
     ],
+    "verifications grep agent files for contract values": [
+      3
+    ],
     "the route migrates in place": [
       1,
       3
