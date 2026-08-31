@@ -96,6 +96,10 @@
     "Run A prompt saved and matching the runbook": [
       1
     ],
+    "the runbook's plan greps resolve on the start branch": [
+      1,
+      4
+    ],
     "the route migrates in place": [
       1,
       3

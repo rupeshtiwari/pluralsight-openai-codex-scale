@@ -1364,6 +1364,61 @@ const CHECKS = {
   },
 
   /**
+   * A runbook's `grep -c '^### X' <file>   # must be N` has to agree with the
+   * file, read from the branch that clip starts on.
+   *
+   * This is the third assertion in this repository to be written against the
+   * seeded plan's wording rather than its shape. The C6 prepare block grepped
+   * '^### Checkpoint' while the plan uses '^### Milestone', so it returned 0
+   * against its own expected 2 -- a verification an author would run on camera
+   * and have to explain. splitPlanHolds had the same defect twice over, in its
+   * required row label and in its Express-upgrade regex.
+   *
+   * A grep is only checkable against the state the clip actually opens on, so
+   * the expected count is evaluated on the clip's Starting checkpoint branch
+   * rather than on the working tree, where the same grep gives a different and
+   * equally correct answer.
+   *
+   * Proven red three ways: the heading renamed, the count changed, and the
+   * greppped file renamed.
+   */
+  'runbook-plan-greps-resolve': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const show = (ref, path) => {
+      for (const r of [ref, `origin/${ref}`]) {
+        try {
+          return execSync(`git show ${r}:${path}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+        } catch { /* try the next form */ }
+      }
+      return null;
+    };
+    const files = globSync('module*/m*-c*.md', { cwd: ROOT }).filter((f) => !f.includes('evidence'));
+    let ok = true;
+    let checked = 0;
+    for (const f of files) {
+      const src = read(f);
+      const row = src.split('\n').find((l) => /^\|\s*Starting checkpoint\s*\|/.test(l));
+      const ref = row && (row.match(/`(demo\/[A-Za-z0-9._/-]+)`/) || [])[1];
+      if (!ref) continue;
+      const greps = [...src.matchAll(/grep -c '\^(#+ [A-Za-z][A-Za-z ]*)'\s+(\S+)[^\n]*?#\s*(?:must be|unchanged:)?\s*(\d+)/g)];
+      for (const [line, heading, path, want] of greps) {
+        const body = show(ref, path);
+        if (body === null) {
+          ok = reject(`${f}: \`${line.trim()}\` greps ${path}, which does not exist on ${ref}`);
+          continue;
+        }
+        checked += 1;
+        const got = body.split('\n').filter((l) => l.startsWith(heading)).length;
+        if (got !== Number(want)) {
+          ok = reject(`${f}: \`${line.trim()}\` expects ${want} but ${path} on ${ref} has ${got} lines starting "${heading}"`);
+        }
+      }
+    }
+    if (checked === 0) return reject('no runbook grep with an expected count was found — the verification block shape changed');
+    return ok;
+  },
+
+  /**
    * Clip 6 migrates the route slice inside supporthub-api/migration, and leaves
    * supporthub-api/modern alone.
    *
