@@ -100,6 +100,9 @@
       1,
       4
     ],
+    "step 1 proves its two files exist": [
+      1
+    ],
     "the route migrates in place": [
       1,
       3
