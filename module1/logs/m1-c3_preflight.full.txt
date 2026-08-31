@@ -24,6 +24,10 @@ $ node "${ROOT}/scripts/check.mjs" eslint-tsconfigrootdir-set
 
 RESULT PASS  [all] ESLint parser root pinned in both workspaces
 
+$ node "${ROOT}/scripts/check.mjs" all-docs-lint-clean
+
+RESULT PASS  [all] every tracked document lints clean
+
 $ node "${ROOT}/scripts/check.mjs" oncamera-markdown-lint-silent
 
 RESULT PASS  [all] no on-camera markdown shows a lint badge

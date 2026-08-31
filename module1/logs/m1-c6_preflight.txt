@@ -50,13 +50,13 @@ Step 4  READY
   pass  express 5 in modern workspace
         $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
 
-SHARED GATES  15 of 15 pass
+SHARED GATES  16 of 16 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 24   FAIL: 0
+PASS: 25   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 
