@@ -226,6 +226,12 @@ check "all" "no runnable block checks out a missing branch" \
   "Show the commands as indented prose with the dependency named, instead of a runnable bash block." \
   "Which markdown bash blocks check out a demo branch that does not exist?"
 
+check "all" "no verification reads an agent-written file at a fixed offset" \
+  'node "${ROOT}/scripts/check.mjs" no-fixed-offsets-into-agent-files' \
+  "C6 step 4 ran grep -A4 against the plan Codex had just written, and the recorded exception sat below line 4 -- a correct run and an empty one printed the same thing. Sweeping found two more in C3 against plans/ExecPlan.md." \
+  "Print the whole section instead: awk '/^## /{p = /^## <heading>/} p' <file>." \
+  "Which on-camera verification reads a file this clip's own prompts ask Codex to write, and does it use a fixed -A, -B or -C offset?"
+
 check "all" "runbook links resolve" \
   'node "${ROOT}/scripts/check.mjs" doc-links-resolve' \
   "The module READMEs are how a learner finds a runbook. Every runbook link in both of them was once written without its opening paren, so markdown rendered it as text pointing nowhere." \

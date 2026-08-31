@@ -497,6 +497,8 @@ gave a wrong answer the first time a real Codex run phrased the same thing diffe
 | `splitPlanHolds` upgrade test | `/express.{0,4}4\.x to 5\.x/i` | *"Upgrade Express 4 to Express 5"* | **silently could not detect its own condition** |
 | C6 prepare block | `grep -c '^### Checkpoint'` | `### Milestone` | printed `0` beside its own expected `2` |
 | C6 step 3 verification | `grep -c "expect(res.status)"` | `expect(response.status)` | printed `0` on a correct run, on camera |
+| C6 step 4 verification | `grep -A4` past a heading | an exception recorded below line 4 | printed the intro and stopped, on camera |
+| C3 step 4 verification, twice | `grep -A6`, `grep -A3` into `plans/ExecPlan.md` | whatever Codex writes there | found by sweeping, before it cost a take |
 
 The second is the dangerous shape. A check that rejects a correct artifact is loud and gets fixed
 in minutes; a check that cannot see the state it exists to catch stays green and is believed. Both
@@ -532,6 +534,22 @@ Everything in the right-hand column is in the prompt and the behavioral contract
 excluded is a choice the agent makes freshly each run, and asserting on it is asserting on a coin
 flip. `agent-file-greps-assert-contract-values` fails any on-camera grep that aims a
 receiver-property pattern at either artifact C6 creates.
+
+**Length is one of those choices, and it is the easiest to miss.** `grep -A4 "## Behavioral
+exceptions"` printed the heading and two intro lines and stopped, because the exception Codex had
+just recorded sat below line 4 — a correct run and a run that recorded nothing looked identical on
+camera. `-A4` is the line-count equivalent of grepping for a variable name: a guess about how much
+an agent will write. Print the whole section instead, however long it turns out to be:
+
+```bash
+awk '/^## /{p = /^## Behavioral exceptions/} p' plans/migration-plan.md
+```
+
+Sweeping every runbook for the shape found two more, both in C3 against `plans/ExecPlan.md` —
+an ExecPlan recording five gates instead of four would have been truncated the same way.
+`no-fixed-offsets-into-agent-files` fails any on-camera `-A`, `-B` or `-C` offset aimed at a path
+that clip's own prompts ask Codex to write, which is how it tells an agent-written file from a
+seeded one without being told.
 
 **And this is why the negative case is not optional.** Reading any of the four would not have
 revealed the defect; only writing down the condition each exists to detect, and watching it go red,
