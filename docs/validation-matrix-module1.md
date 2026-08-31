@@ -24,8 +24,9 @@ starting state has drifted teaches nothing. But they prove the trap is set, not 
 watched it spring. Filed as `PASS`, that distinction disappears; filed as `SEEDED`, it survives.
 Every `SEEDED` bullet is confirmed the same way a `READY` one is — by walking the demo.
 
-**`SEEDED` is a pre-walkthrough state, not a permanent one.** Both rows are only `SEEDED` because
-the captured branch that would let the assertion span start *and* end does not exist yet. See
+**`SEEDED` is a pre-walkthrough state, not a permanent one.** A row is `SEEDED` only while the
+captured branch that would let the assertion span start *and* end is missing. C5 bullet 4 was
+promoted once `demo/m1-c5-captured` was cut; C2 bullet 3 is still open. See
 [Re-classify the SEEDED rows after the walkthroughs](#re-classify-the-seeded-rows-after-the-walkthroughs)
 — leaving them frozen here would misreport the repository once those branches are cut.
 
@@ -62,11 +63,11 @@ Objectives: **TO2, EO2a, EO2b** · Checkpoint: `demo/m1-c5-start`
 | 1 | Direct Codex to inventory the legacy service across routes, data models, auth, build tooling, tests, and external contracts | `supporthub-api/migration/`, `docs/migration-inventory-checklist.md` | Step 1 prompt | All six categories covered with file paths | READY |
 | 2 | Review the migration plan for the CommonJS-to-ESM compatibility layer, behavioral exceptions, and rollback visibility | `docs/commonjs-esm-compatibility.md`, `docs/behavioral-exceptions.md`, `compat/*.ts` | Step 2 prompt | Compat modules named as real files; the async-handler exception; rollback points | **PASS** |
 | 3 | Split the migration into incremental milestones that can be validated independently | `plans/migration-plan.md` | Step 3 prompt | Each milestone has one validation command and one rollback commit | READY |
-| 4 | Reject the milestone that batches route migration with dependency upgrades and have Codex split it into two checkpoints | `check.mjs milestone-batched` | `node scripts/check.mjs milestone-batched` | Seed: the plan opens on one unreviewed milestone whose single entry combines route + Express upgrade. The split into two is live | **SEEDED** |
+| 4 | Reject the milestone that batches route migration with dependency upgrades and have Codex split it into two checkpoints | `check.mjs milestone-batched`, `check.mjs c5-captured-opens-on-split`, `plans/captured/m1-c5-plan-*.md` | `milestone-batched` on `demo/m1-c5-start`; `c5-captured-opens-on-split` on `demo/m1-c5-captured` | One batched unreviewed milestone at the start, exactly two non-batched checkpoints at the end, both captured verbatim | **PASS** |
 
 ## M1 C6 — Migrate one Express route to TypeScript with framework guidance
 
-Objectives: **TO2, EO2c, EO2d** · Checkpoint: `demo/m1-c6-start` — **BLOCKED on `m1-c5-captured`**
+Objectives: **TO2, EO2c, EO2d** · Checkpoint: `demo/m1-c6-start`, branched from `demo/m1-c5-captured`
 
 | # | Demo bullet | Repo artifact | Command / prompt | Expected evidence | Status |
 |---|---|---|---|---|---|
@@ -81,13 +82,17 @@ Objectives: **TO2, EO2c, EO2d** · Checkpoint: `demo/m1-c6-start` — **BLOCKED 
 
 | Status | Count |
 |---|---|
-| **PASS** — assertion green now on the claimed outcome | **6 / 16** |
-| **SEEDED** — assertion green now on the starting state | **2 / 16** |
+| **PASS** — assertion green now on the claimed outcome | **7 / 16** |
+| **SEEDED** — assertion green now on the starting state | **1 / 16** |
 | **READY** — artifact and assertion exist; evidence is a live Codex response | **8 / 16** |
 | **BLOCKED** | **0 / 16** |
 
-Ten of the sixteen — `SEEDED` plus `READY` — are confirmed by walking the demo, not by a script.
-Two of those ten stop needing the walkthrough once it has happened once; see below.
+Nine of the sixteen — `SEEDED` plus `READY` — are confirmed by walking the demo, not by a script.
+
+C5 bullet 4 was promoted on 2026-08-31, when walking C5 produced `demo/m1-c5-captured`. The pair now
+spans both ends: `milestone-batched` holds on `demo/m1-c5-start`, `c5-captured-opens-on-split` holds
+on `demo/m1-c5-captured`, and both plan states are captured verbatim under `plans/captured/`. C2
+bullet 3 remains `SEEDED` and is decided at C2 walk time.
 
 ## Re-classify the SEEDED rows after the walkthroughs
 
@@ -125,13 +130,20 @@ Every bullet has an artifact and a checkpoint. Nothing is unbacked.
 The procedure for producing all four is [module1/walkthrough-c5-c6.md](../module1/walkthrough-c5-c6.md),
 including the guard for the one mis-cut that fails silently.
 
-**`demo/m1-c6-start` does not exist.** Its defining content is the two-checkpoint split that walking
-C5 produces, so it must be branched from `demo/m1-c5-captured`. The C6 rows are backed by artifacts
-but cannot be walked until that checkpoint exists.
+**`demo/m1-c5-captured` and `demo/m1-c6-start` exist as of 2026-08-31.** C5 was walked, its two plan
+states captured, and C6's checkpoint branched from the captured one. `demo/m1-c6-captured` is the
+remaining branch, produced by walking C6.
 
 ```text
 walk C5  →  m1-c5-captured  →  m1-c6-start  →  walk C6  →  m1-c6-captured
+   done          done            done          next
 ```
+
+**The C6 toggle pre-check passed on 2026-08-31.** Codex did not load the skill unasked, so Run A and
+Run B can form a control. The same run established that four other guidance sources reach both runs
+without being asked for; the floor is recorded in
+[m1-c6-framework-skill-evidence.md](../module1/m1-c6-framework-skill-evidence.md) and Run B must not
+be described as a no-guidance run.
 
 **Two measurements need Codex and are not scriptable.**
 

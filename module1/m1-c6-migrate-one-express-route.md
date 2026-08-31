@@ -72,20 +72,21 @@ was being built. Between takes the dirty files are demo artifacts and it proceed
 
 **Prepare before recording**
 
-**`demo/m1-c6-start` does not exist yet.** Its defining content is the two-checkpoint split that
-walking C5 produces, so it must be branched from `demo/m1-c5-captured`:
+`demo/m1-c6-start` carries the two-checkpoint split that walking C5 produces, and is branched from
+`demo/m1-c5-captured`:
 
     walk C5  →  m1-c5-captured  →  m1-c6-start  →  walk C6  →  m1-c6-captured
 
 Cutting it from anywhere else gives it the combined milestone, which is the inverse of the state
-this clip starts from. The commands below are shown rather than given as a runnable block, because
-the first of them fails today:
+this clip starts from.
 
-    git checkout demo/m1-c6-start
-    npm install                     # only on a fresh checkout
-    ./module1/scripts/demo_reset.sh
-    npm test                        # Tests  25 passed (25)
-    git status --short              # must print nothing at all
+```bash
+git checkout demo/m1-c6-start
+npm install                     # only on a fresh checkout
+./module1/scripts/demo_reset.sh
+npm test                        # Tests  25 passed (25)
+git status --short              # must print nothing at all
+```
 
 **Pulling? Use `./scripts/sync.sh`.** It resets both modules, then pulls. Plain `git pull` after a
 run aborts with *"Your local changes to the following files would be overwritten by merge"*, because
@@ -119,7 +120,7 @@ Verify before recording:
 ```bash
 git log --oneline -1 demo/m1-c5-captured
 git merge-base --is-ancestor demo/m1-c5-captured demo/m1-c6-start && echo "correctly branched"
-grep -c '^### Checkpoint' plans/migration-plan.md    # must be 2
+grep -c '^### Milestone' plans/migration-plan.md     # must be 2
 ```
 
 **Expected values**
@@ -136,11 +137,20 @@ grep -c '^### Checkpoint' plans/migration-plan.md    # must be 2
 | Dependency changes | 0 — the upgrade is a separate checkpoint |
 | Files changed under `supporthub-api/modern/` | 0 — the other workspace is out of scope |
 
+**`Do not upgrade or change any dependency` is load-bearing, not decoration.** A measured run of a
+looser prompt — one that said *"to TypeScript on Express 5"* and carried no dependency constraint —
+had Codex upgrade the migration workspace to `express` 5.2.1 and `@types/express` 5.0.6 without
+being asked and without flagging it. That is checkpoint 2's entire scope, performed inside
+checkpoint 1. It obeyed the prompt; the prompt was the problem. Send Step 1's prompt from
+`plans/prompts/m1-c6-migrate-route.md` rather than retyping a shorter version of it.
+
 **Recovery path**
 
 If a gate fails, reset and rerun the migration rather than patching by hand: the point is that one
 bounded milestone either passes its gates or is rolled back. If Codex changes a dependency, the
-checkpoint boundary was breached — reset and restate the constraint.
+checkpoint boundary was breached — reset and restate the constraint. `git diff
+supporthub-api/migration/package.json` is the fastest way to see it; the Step 1 verification below
+catches it too, since `package.json` appearing in `git status` fails that step.
 
 **Troubleshooting**
 

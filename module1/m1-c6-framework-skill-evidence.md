@@ -75,8 +75,8 @@ proves nothing *directs* Codex to the skill; it cannot prove Codex does not reac
 Only behavior shows that.
 
 Run it from **any clean Module 1 checkpoint** — `demo/m1-c5-start` is fine, and so is the build
-branch. It deliberately does not need `demo/m1-c6-start`, which does not exist yet; a pre-check that
-depended on the blocked branch could not do its job of deciding whether to unblock it.
+branch. It deliberately does not need `demo/m1-c6-start`; a pre-check that depended on the branch it
+exists to unblock could not do its job.
 
 Before investing in two full runs, start a **fresh Codex thread** and send a short migration prompt
 with **no** skill line. **This goes into the Codex panel, not a terminal:**
@@ -111,11 +111,14 @@ is a UI affordance that may change.
 
 | Question | Answer |
 |---|---|
-| Date | |
-| Fresh thread confirmed? | |
-| Did any tell above appear in the reply? | |
-| Did Codex claim to use the skill? (record separately — it may disagree with the tells) | |
-| If it loaded: what pulled it in? | |
+| Date | 2026-08-31 |
+| Fresh thread confirmed? | Yes |
+| Did any tell above appear in the reply? | No — none of the three |
+| Did Codex claim to use the skill? (record separately — it may disagree with the tells) | It stated the opposite: *"I did not load framework-skill/node-express-migration/SKILL.md, because this prompt did not explicitly ask me to read it."* Tells and self-report agree |
+| If it loaded: what pulled it in? | n/a — it did not load |
+
+**Result: PASS. The toggle works, so Run A and Run B can form a control.** What follows is the
+floor that measurement sits on, which the same run also established.
 
 ### If it loaded: three eliminations
 
@@ -141,10 +144,52 @@ it looks like evidence.
 
 If the skill does not load unasked, the toggle works and both runs below are worth the time.
 
+## What both runs inherit
+
+**The skill is not the only guidance in the repository, and the rest of it is ambient.** Asked what
+it had consulted, the pre-check run named five sources without being pointed at any of them:
+
+| Source | Reaches Run B how | What it carries |
+|---|---|---|
+| `AGENTS.md` | Codex reads it on every run by design | the migration direction, and *"Migrate one route slice at a time. Never migrate the whole application in one pass"* — the skill's checkpoint rule, stated as a conclusion |
+| `plans/migration-plan.md` | retrieval | the two checkpoints, their scopes, gates and rollback points |
+| `docs/commonjs-esm-compatibility.md` | retrieval | all four conversions, with code |
+| `docs/behavioral-exceptions.md` | retrieval | the accepted differences |
+| `plans/prompts/m1-c6-migrate-route.md` | retrieval | **the Run A prompt, skill line included, and an explanation of the toggle** |
+
+The first four are the floor. Run B is not a no-guidance run and must never be described as one: it
+is a run without *this file*, on a repository that already documents the conversions, the
+checkpoint split and the accepted exceptions. A small measured difference between A and B is
+therefore the expected result, not a finding that the skill adds little. What the comparison
+isolates is the skill's *reasoning* — why `build` follows `--noEmit`, why the gate order cannot be
+permuted, why a red batched test is unattributable — which is exactly what the three tells were
+chosen to detect, and exactly what none of the four ambient sources state.
+
+**The fifth is not a floor, it is a leak, and it has to be removed before either run.**
+`plans/prompts/m1-c6-migrate-route.md` opens on the skill line and then explains that Run B is that
+same prompt minus its first line. A Run B that retrieves it has been told both that a skill exists
+and that it is being withheld. Move the directory aside for the duration of **both** runs, so
+neither has a source the other lacks:
+
+```bash
+mv plans/prompts /tmp/prompts-aside     # before Run A
+# ... Run A, reset, Run B ...
+mv /tmp/prompts-aside plans/prompts     # after Run B, before any commit
+```
+
+Send each run's prompt from a copy held outside the repository. `c6-prompt-saved` fails while the
+directory is away, which is the reminder to put it back.
+
+This is not what the eliminations section forbids. Hiding `SKILL.md` would remove the thing
+under test. Removing the experiment's own scaffolding from the environment it runs in is what keeps
+the test honest — the saved prompt is apparatus, not guidance.
+
+**Record what each run says it consulted.** Both run blocks below ask for it. A Run B that names
+`plans/prompts/` or `framework-skill/` is contaminated: discard it and re-run both.
+
 ## Reproducing
 
-**`demo/m1-c6-start` does not exist yet, so the two runs below cannot be performed.** Its defining
-content is the two-checkpoint split that walking C5 produces, so it has to be branched from
+`demo/m1-c6-start` carries the two-checkpoint split that walking C5 produces, and is branched from
 `demo/m1-c5-captured`:
 
     walk C5  →  m1-c5-captured  →  m1-c6-start  →  walk C6  →  m1-c6-captured
@@ -156,7 +201,7 @@ The toggle pre-check above does **not** need that branch. That is the point of r
 is one prompt against any clean Module 1 checkpoint, and it decides whether these two runs are worth
 setting up at all.
 
-Once `demo/m1-c6-start` exists, each run starts from it in a fresh Codex thread:
+Each run starts from that branch in a fresh Codex thread:
 
     git checkout demo/m1-c6-start
     ./module1/scripts/demo_reset.sh
@@ -172,6 +217,9 @@ Do not edit either transcript.
 - Date:
 - Checkpoint: `demo/m1-c6-start`
 - Prompt: as above, **including** the skill line
+- `plans/prompts/` moved aside for this run?
+- Sources Codex says it consulted (ask it; a Run B naming `plans/prompts/` or
+  `framework-skill/` is contaminated — discard and re-run both):
 
 ```text
 [ paste the complete Codex output verbatim ]
@@ -182,6 +230,9 @@ Do not edit either transcript.
 - Date:
 - Checkpoint: `demo/m1-c6-start`
 - Prompt: as above, **excluding** the skill line
+- `plans/prompts/` moved aside for this run?
+- Sources Codex says it consulted (ask it; a Run B naming `plans/prompts/` or
+  `framework-skill/` is contaminated — discard and re-run both):
 
 ```text
 [ paste the complete Codex output verbatim ]

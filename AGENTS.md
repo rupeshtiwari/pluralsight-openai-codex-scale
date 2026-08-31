@@ -10,10 +10,11 @@ and none should be created. Two applications live here side by side on purpose:
 | Path | Stack | Role |
 |---|---|---|
 | `supporthub-api/modern` | ESM TypeScript, Express 5, Vitest | modern service — refactoring target |
-| `supporthub-api/migration` | CommonJS JavaScript, Express 4 | legacy service — migration source |
+| `supporthub-api/migration` | CommonJS JavaScript, Express 4 | legacy service — migrates in place |
 
-Both are intentionally retained. The legacy service is **not** dead code to be deleted; it is the
-source of an in-progress incremental migration.
+Both are intentionally retained. The legacy service is **not** dead code to be deleted, and it is
+**not** migrating into the modern one. It migrates where it stands: converted files land in
+`supporthub-api/migration/` beside the CommonJS ones they replace.
 
 ## Ground rules
 
@@ -24,8 +25,11 @@ source of an in-progress incremental migration.
 4. **Architecture migrations are separate tasks.** Introducing a repository layer, moving persistence
    boundaries, or reorganizing service architecture is out of scope for a cleanup. If such a change
    seems warranted, record it in the ExecPlan as deferred work instead of implementing it.
-5. **Validate with real commands**, not assertions in prose:
-   `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test`.
+5. **Validate with real commands**, not assertions in prose. Each workspace has its own set, and
+   the unscoped names are the modern one: `npm run lint`, `npm run typecheck`, `npm run build`,
+   `npm run test` for `supporthub-api/modern`; the same names suffixed `:migration`, plus
+   `npm run test:route:migration`, for `supporthub-api/migration`. Running the wrong set reports
+   green on a workspace you did not touch.
 6. **Never commit secrets.** `.env.local` is git-ignored. Use `.env.example` for shape only.
 
 ## ExecPlan pattern
@@ -43,8 +47,7 @@ as work proceeds; move out-of-scope discoveries into **Deferred work** rather th
 
 Platform-specific migration guidance is available in
 `framework-skill/node-express-migration/`, repo-local by design so the workflow does not depend on
-an external marketplace skill. It covers the Express 4 to 5 move, the CommonJS to ESM boundary,
-checkpoint separation, and the validation gates.
+an external marketplace skill.
 
 **Loading it is a deliberate act, not an ambient rule.** This file does not direct you to read it.
 Whoever is driving the work decides whether to load it, and that decision is visible in the prompt.
@@ -59,7 +62,11 @@ Migration direction is fixed:
 
 ```
 CommonJS JavaScript + Express 4   ->   ESM TypeScript + Express 5
+        (in supporthub-api/migration, in place)
 ```
+
+The package cannot declare `"type": "module"` while any CommonJS `.js` file remains, so migrated
+sources are `.mts` and carry ESM in the extension instead.
 
 Migrate **one route slice at a time**. Never migrate the whole application in one pass.
 
