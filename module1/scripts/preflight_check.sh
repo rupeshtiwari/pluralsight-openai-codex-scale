@@ -466,6 +466,12 @@ check "c6" "the runbook's plan greps resolve on the start branch" \
   "Match the heading and the count to the plan as it stands on the branch the clip starts from." \
   "Which heading does plans/migration-plan.md actually use on demo/m1-c6-start, and how many are there?"
 
+check "c6" "step 1 proves its two files exist" \
+  'node "${ROOT}/scripts/check.mjs" c6-step1-proves-its-files-exist' \
+  "Two measured runs reported both files created and all five gates green having written neither. A verification that lists only prohibitions cannot tell an author that nothing happened, and a reported gate pass is not a gate pass." \
+  "Put an ls naming both artifacts first in step 1's verification, ahead of git status." \
+  "Does step 1 prove its two files exist by name, before anything else in the block?"
+
 check "c6" "the route migrates in place" \
   'node "${ROOT}/scripts/check.mjs" c6-migrates-in-place' \
   "The prompt decides which workspace the work lands in. An earlier C6 prompt named supporthub-api/modern as the target, so Codex created a route, a contract test and an app.ts edit there — correct work, wrong service, and it collided with the clean tree clip 2 films." \

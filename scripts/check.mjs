@@ -1419,6 +1419,56 @@ const CHECKS = {
   },
 
   /**
+   * Clip 6 step 1 proves its two files exist, by name, before anything else.
+   *
+   * Two measured runs reported both files created and all five migration gates
+   * green having written neither, and described a working tree that had been
+   * true of an earlier run. A reported gate pass is not a gate pass: nothing can
+   * have linted, type-checked, built and tested files that are not on disk.
+   *
+   * The step's verification used to enumerate only prohibitions -- wrong
+   * workspace, wrong scope -- so the state that actually occurred, nothing at
+   * all, was not in the list an author skims for what to worry about.
+   *
+   * What is assertable here is narrow, and worth being explicit about: this
+   * check CANNOT assert the two files exist. Before the demo they must not --
+   * no-route-migrated and the preflight's "route contract suite starts empty"
+   * both require their absence, and that absence is what makes the step's
+   * before-and-after real. So what is asserted is that the runbook's step 1
+   * verification contains a positive existence test naming both artifacts, and
+   * that it comes first in the block, since the ordering is the fix.
+   *
+   * Proven red three ways: the existence test removed, one of the two paths
+   * dropped from it, and the test demoted below git status.
+   */
+  'c6-step1-proves-its-files-exist': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const RUNBOOK = 'module1/m1-c6-migrate-one-express-route.md';
+    const ARTIFACTS = [
+      'supporthub-api/migration/routes/ticketRead.mts',
+      'supporthub-api/migration/tests/contracts/ticket-read.route.test.mts',
+    ];
+    const s = read(RUNBOOK);
+    const step1 = s.slice(s.indexOf('## Step 1 '), s.indexOf('## Step 2 '));
+    if (!step1) return reject(`${RUNBOOK}: step 1 not found -- the runbook shape changed`);
+    const i = step1.indexOf('**Verification');
+    if (i < 0) return reject(`${RUNBOOK}: step 1 has no Verification block`);
+    const m = step1.slice(i).match(/```bash\n([\s\S]*?)\n```/);
+    if (!m) return reject(`${RUNBOOK}: step 1's verification has no command block`);
+    const cmds = m[1];
+    const missing = ARTIFACTS.filter((a) => !cmds.includes(a));
+    if (missing.length) {
+      return reject(`${RUNBOOK}: step 1's verification never names ${missing.join(' or ')} -- it can only report a scope breach, not a run that wrote nothing`);
+    }
+    const firstArtifact = Math.min(...ARTIFACTS.map((a) => cmds.indexOf(a)));
+    const firstStatus = cmds.indexOf('git status');
+    if (firstStatus >= 0 && firstStatus < firstArtifact) {
+      return reject(`${RUNBOOK}: step 1's verification runs git status before it proves the two files exist -- the existence test has to be the first thing on screen, ahead of the reply`);
+    }
+    return true;
+  },
+
+  /**
    * Clip 6 migrates the route slice inside supporthub-api/migration, and leaves
    * supporthub-api/modern alone.
    *
