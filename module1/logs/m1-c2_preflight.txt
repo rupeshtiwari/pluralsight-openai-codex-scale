@@ -5,12 +5,12 @@ Demo: Map noisy TypeScript modules with Codex before editing (6 minutes)
 
 RUNBOOK      module1/m1-c2-map-noisy-typescript-modules.md
 OBJECTIVES   TO1, EO1a, EO1d
-READINESS    READY
+READINESS    NOT READY - 1 of 22 checks failed
 
 STEPS
 -----
 
-Step 1  READY
+Step 1  BLOCKED
   Open the TypeScript service in Codex and ask it to map modules, dependencies, public behavior, and dead-code candidates
   EO1a       map noisy modules, identify dead code
 
@@ -23,35 +23,42 @@ Step 1  READY
   pass  prompt file present
         $ [ -f plans/prompts/m1-c2-map-codebase.md ]
 
-Step 2  READY
+Step 2  BLOCKED
   Constrain Codex to propose one cleanup theme before editing any files
   EO1a       propose one cleanup theme at a time before editing
 
   pass  one load-bearing function carries all four responsibilities
         $ node "${ROOT}/scripts/check.mjs" load-bearing-function
 
-Step 3  READY
+Step 3  BLOCKED
   Inspect repository evidence and reject unrelated architectural changes before implementation
   TO1        reviewable passes: unrelated work separated
 
   pass  one load-bearing function carries all four responsibilities
         $ node "${ROOT}/scripts/check.mjs" load-bearing-function
 
-Step 4  READY
+Step 4  BLOCKED
   Confirm Plan mode produces a bounded, reviewable first pass
   EO1d, TO1  Plan mode used before committing to implementation
 
   pass  start and captured checkpoints are the same commit
         $ node "${ROOT}/scripts/check.mjs" c2-refs-identical
 
-SHARED GATES  16 of 16 pass
+SHARED GATES  15 of 16 pass
 
   These gate every step above. A failure here blocks the whole clip.
+    FAIL  working tree clean
 
-Every gate is green. This clip can be recorded.
+WHAT TO FIX
+-----------
 
-PASS: 22   FAIL: 0
+working tree clean   [all]
+  why  Every demo starts from a clean tree; leftover edits change what the diff shows.
+  fix  ./module1/scripts/demo_reset.sh
+  ask  Show me every uncommitted change in this repository and what produced it.
+
+PASS: 21   FAIL: 1
 
 Full command output for this run: module1/logs/m1-c2_preflight.full.txt
 
-VERDICT  READY - this clip can be recorded.
+VERDICT  NOT READY - 1 check(s) failed above.
