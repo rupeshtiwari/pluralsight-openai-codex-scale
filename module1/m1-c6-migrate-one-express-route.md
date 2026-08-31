@@ -6,8 +6,8 @@ Module 1 · Clip 6 · Demo · 6 minutes
 
 ## The problem this demo solves
 
-One migration checkpoint is ready: move a single route from the legacy CommonJS JavaScript service
-onto the modern ESM TypeScript stack. One route, not the whole application.
+One migration checkpoint is ready: convert a single route in the legacy CommonJS JavaScript
+service to ESM TypeScript, in place. One route, not the whole application.
 
 The risk is not that it fails to compile. The risk is that it compiles, looks right, and quietly
 changes something a caller depends on — a status code, a field name, an auth response.
@@ -129,9 +129,12 @@ grep -c '^### Checkpoint' plans/migration-plan.md    # must be 2
 | Framework skill | `express-typescript-migration`, in `framework-skill/node-express-migration/` |
 | Migrated routes before | 0 |
 | Migrated routes after | 1 |
-| Validation gates | lint, typecheck, build, focused route tests |
+| Route contract tests before | no test files found |
+| Route contract tests after | 1 file, 4 tests |
+| Validation gates | lint, typecheck, build, focused route tests — all `:migration` scoped |
 | Status codes preserved | 200, 401, 403, 404 |
 | Dependency changes | 0 — the upgrade is a separate checkpoint |
+| Files changed under `supporthub-api/modern/` | 0 — the other workspace is out of scope |
 
 **Recovery path**
 
@@ -171,34 +174,41 @@ this, so Run B can be it minus its first line and nothing else.
 ```text
 Read framework-skill/node-express-migration/SKILL.md and follow its guidance.
 
-Migrate ONLY the GET /tickets/:id route from supporthub-api/migration to the modern
-service in supporthub-api/modern.
+Migrate ONLY the GET /tickets/:id route inside supporthub-api/migration. This
+service migrates in place, so the migrated file belongs in that same workspace.
 
 Before editing, state the exact conversions the skill requires for this slice:
 each require() and what it becomes, each module.exports shape and what it
-becomes, every __dirname use and what replaces it, and what changes about route
-params under Express 5.
+becomes, every __dirname use and what replaces it, and what the skill says about
+route params and handler return values.
 
-Then create supporthub-api/modern/src/routes/legacyTickets.ts as ESM TypeScript for Express 5,
-and mount it in supporthub-api/modern/src/app.ts under the path prefix /v1.
+Then create supporthub-api/migration/routes/ticketRead.mts as ESM TypeScript,
+reaching the CommonJS service and auth modules through the compat layer already
+present in supporthub-api/migration/compat.
 
 It must preserve the legacy behavior exactly:
 - x-api-key auth, 401 when the header is missing, 403 when the key is invalid
 - 200 with the same nine response fields on success
 - 404 with error ticket_not_found for an unknown id
 
-Also create supporthub-api/modern/tests/contracts/legacy-route.contract.test.ts covering all
-four of those cases.
+Also create supporthub-api/migration/tests/contracts/ticket-read.route.test.mts
+covering all four of those cases, mounting the migrated router on an Express app
+built inside the test.
 
 Do not migrate POST /tickets or PATCH /tickets/:id/status.
 Do not upgrade or change any dependency.
-Do not modify supporthub-api/migration.
+Do not add a "type" field to any package.json.
+Do not modify app.js or routes/tickets.js.
+Do not create or modify any file under supporthub-api/modern.
 ```
 
-**Expected result.** A stated conversion list, then two new files plus a small edit to `app.ts`.
-The conversions should distinguish `module.exports = router` (a default export) from
-`module.exports = { get, create }` (named exports), and replace `__dirname` with
-`moduleDir(import.meta.url)`.
+**Expected result.** A stated conversion list, then exactly two new files and nothing modified.
+The conversions should distinguish `module.exports = requireApiKey` (a single value) from
+`module.exports = { get, create }` (a named bag), because both arrive through the same
+`legacyRequire` bridge and neither can be imported as the other shape.
+
+On `__dirname` the honest answer for this slice is *none in the route*. The one that matters lives
+in `services/ticketService.js`, which stays CommonJS behind the bridge until its own checkpoint.
 
 **Highlight.** The two different `module.exports` shapes in the same service. They convert
 differently, and getting it wrong produces `undefined` at runtime with no compile error.
@@ -209,10 +219,12 @@ differently, and getting it wrong produces `undefined` at runtime with no compil
 
 ```bash
 git status --short
+git status --porcelain supporthub-api/modern | wc -l    # must be 0
 ```
 
-PASS if only `supporthub-api/modern/` files are listed. FAIL if `supporthub-api/migration/` or `package.json`
-appears — that would mean the checkpoint scope was breached.
+PASS if exactly two new paths are listed, both under `supporthub-api/migration/`, nothing shown as
+modified, and the second command prints `0`. FAIL if `supporthub-api/modern/` or any `package.json`
+appears — either would mean the checkpoint scope was breached.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` and repeat with the constraint restated.
 
@@ -232,24 +244,28 @@ batching cleanup to the end.
 **Commands.** Run in this order and read each result before the next.
 
 ```bash
-npm run lint
-npm run typecheck
-npm run build
-npm run test:route
+npm run lint:migration
+npm run typecheck:migration
+npm run build:migration
+npm run test:route:migration
 ```
 
-**Expected result.** All four pass. `test:route` now reports **8 tests across 2 files** — the
-original four plus the four new ones — because it matches every route contract file.
+**Expected result.** All four pass. `test:route:migration` reports **Test Files 1 passed (1)** and
+**Tests 4 passed (4)**. On the baseline that same command printed *No test files found* — the
+config has always matched `tests/**/*.route.test.mts`, and until now there was nothing to match.
 
-**Highlight.** The jump from 4 tests to 8. The migrated route arrived with its own contract, and
-the original route's contract still holds.
+**Highlight.** Nothing to run, then four passing contract tests. The migrated slice arrived with
+its own contract in the same checkpoint that produced it.
 
 **Decision produced.** The change is structurally sound.
 
-**Verification.** PASS if all four gates pass and `test:route` reports 8. FAIL if any gate fails.
+**Verification.** PASS if all four gates pass and `test:route:migration` reports 4. FAIL if any
+gate fails.
 
 A type error on `req.params` means the params shape was not declared. The fix is
-`(req: Request<{ id: string }>, res: Response)`, which is in the skill.
+`(req: Request<{ id: string }>, res: Response)`, which is in the skill. A handler that still writes
+`return res.status(404).json(...)` is the skill's other rule: send the response and return
+separately, so the handler stays `void` when the platform checkpoint moves it to Express 5.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` and repeat Step 1.
 
@@ -267,17 +283,20 @@ service behaved. This step compares the two directly, before anything is accepte
 **Commands.**
 
 ```bash
-git diff --stat
-grep -c "expect(res.status)" supporthub-api/modern/tests/contracts/legacy-route.contract.test.ts
+git status --short
+grep -c "expect(res.status)" supporthub-api/migration/tests/contracts/ticket-read.route.test.mts
+npm run test:migration
 ```
 
-Expect three changed files, and `4` — one assertion per status code: 200, 401, 403, 404.
+Expect two new files and nothing modified; `4` — one assertion per status code: 200, 401, 403,
+404; and the legacy node:test suite still reporting **8 pass, 0 fail**, because the CommonJS
+service was not touched.
 
 **Prompt.**
 
 ```text
-Compare the migrated route against the legacy original in
-supporthub-api/migration/routes/tickets.js.
+Compare supporthub-api/migration/routes/ticketRead.mts against the legacy
+original in supporthub-api/migration/routes/tickets.js.
 
 For each of these, state whether it is identical or different, and if different,
 exactly how:
@@ -289,11 +308,13 @@ Then confirm the ESM conversion is complete in the migrated file: no require(),
 no module.exports, no __dirname.
 ```
 
-**Expected result.** Field names and all four status codes identical; auth identical; the migrated
-file free of CommonJS constructs. The one difference is the path prefix.
+**Expected result.** Field names and all four status codes identical; auth identical; the route
+path identical; the migrated file free of CommonJS constructs. The one difference is that nothing
+serves the migrated route yet — `app.js` is CommonJS and cannot `require()` an ESM router, so the
+contract test mounts it on an Express app of its own.
 
 **Highlight.** Four status codes preserved, nine field names preserved, zero CommonJS constructs
-remaining.
+remaining — and the route not yet wired in, which is the checkpoint boundary showing itself.
 
 **Decision produced.** The compatibility contract holds, with one difference to account for.
 
@@ -318,9 +339,11 @@ the accepted state, the one deliberate difference, and the commit to roll back t
 ```text
 Record in plans/migration-plan.md:
 
-Under Behavioral exceptions: the migrated route is served at /v1/tickets/:id
-rather than /tickets/:id, because the modern service already serves /tickets/:id.
-State that the status codes, response fields, and auth behavior are unchanged.
+Under Behavioral exceptions: the migrated route is not mounted yet. app.js is
+CommonJS and cannot require() an ESM router, so the route is verified against
+the contract on its own until the platform checkpoint sets "type": "module".
+State that the route path, status codes, response fields, and auth behavior are
+unchanged.
 
 Under Milestones: mark checkpoint 1 complete, with the validation commands that
 passed, and record the current commit as the rollback point inside checkpoint 2's
@@ -330,8 +353,8 @@ a separate rollback section.
 Do not start checkpoint 2.
 ```
 
-**Operator action.** Accept the route. The path prefix is the only difference, it is deliberate,
-and it is now written down.
+**Operator action.** Accept the route. Not being mounted yet is the only difference, it is forced
+by the checkpoint boundary rather than chosen, and it is now written down.
 
 **Highlight.** One documented exception, one rollback commit, checkpoint 2 untouched.
 
@@ -341,7 +364,7 @@ and it is now written down.
 grep -A4 "## Behavioral exceptions" plans/migration-plan.md
 grep -c "^## " plans/migration-plan.md   # unchanged: the split adds entries, not sections
 git rev-parse --short HEAD
-npm run lint && npm run typecheck && npm run build && npm run test:route
+npm run lint:migration && npm run typecheck:migration && npm run build:migration && npm run test:route:migration
 ```
 
 PASS if the exception is recorded with a reason, a rollback commit is named inside checkpoint 2's
@@ -358,14 +381,15 @@ changed — that belongs to checkpoint 2.
 | Step | LO | Objective element | Proof |
 |---|---|---|---|
 | 1 | EO2d | equivalent framework skill applies platform-specific guidance | conversions named per file, one route migrated |
-| 2 | EO2c | lint, type-check, and focused tests after the milestone | four gates green, test:route reports 8 |
+| 2 | EO2c | lint, type-check, and focused tests after the milestone | four gates green, test:route:migration reports 4 |
 | 3 | EO2c | validation after each milestone rather than batching cleanup | four status codes and nine fields identical |
 | 4 | TO2 | incremental checkpoints with rollback | exception and rollback commit recorded |
 
 ## Final state
 
-- one route migrated to ESM TypeScript on Express 5
-- lint, type-check, build, and focused tests pass
-- four status codes and nine response fields preserved
-- the path prefix recorded as a deliberate behavioral exception
+- one route migrated to ESM TypeScript in place, still on Express 4
+- lint, type-check, build, and focused tests pass, all `:migration` scoped
+- four status codes, nine response fields, and the route path preserved
+- not being mounted yet recorded as a deliberate behavioral exception
+- nothing under `supporthub-api/modern/` touched
 - checkpoint 1 complete, rollback point recorded, checkpoint 2 untouched

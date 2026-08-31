@@ -82,7 +82,7 @@ Before investing in two full runs, start a **fresh Codex thread** and send a sho
 with **no** skill line. **This goes into the Codex panel, not a terminal:**
 
 ```text
-Migrate GET /tickets/:id in supporthub-api/migration to TypeScript on Express 5.
+Migrate GET /tickets/:id in supporthub-api/migration to ESM TypeScript.
 Tell me which guidance you used.
 ```
 

@@ -17,6 +17,12 @@
     "checkJs": false
   },
   "include": [
+    "compat/**/*.mts",
+    "routes/**/*.mts",
+    "services/**/*.mts",
+    "models/**/*.mts",
+    "auth/**/*.mts",
+    "tests/**/*.mts",
     "compat/**/*.ts",
     "routes/**/*.ts",
     "services/**/*.ts",

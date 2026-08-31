@@ -54,7 +54,7 @@ function splitPlanHolds() {
         return reject(`checkpoint ${n} is missing its ${field.replaceAll('|', '').trim()} row`);
       }
     }
-    const migratesRoute = /routes\/tickets\.js.*routes\/tickets\.ts/.test(e);
+    const migratesRoute = /routes\/tickets\.js.*routes\/tickets\.mts/.test(e);
     const upgradesDep = /express.{0,4}4\.x to 5\.x/i.test(e);
     if (migratesRoute && upgradesDep) {
       return reject(`checkpoint ${n} still combines the route migration with the Express upgrade`);
@@ -86,7 +86,7 @@ const CHECKS = {
     // split it exists to detect. '\n##' matches both '## ' and '### '.
     const j = t.indexOf('\n##', i + 1);
     const m = t.slice(i, j < 0 ? t.length : j);
-    return /routes\/tickets\.js.*routes\/tickets\.ts/.test(m) && /express.{0,4}4\.x to 5\.x/.test(m);
+    return /routes\/tickets\.js.*routes\/tickets\.mts/.test(m) && /express.{0,4}4\.x to 5\.x/.test(m);
   },
 
   /**
@@ -1335,11 +1335,80 @@ const CHECKS = {
   /**
    * No route has migrated yet, so the baseline is genuinely pure JavaScript.
    * Globs the real tree: ignores CHECK_ROOT. Proven by creating a throwaway
-   * routes/*.ts and watching this go red.
+   * routes/*.mts and watching this go red.
+   *
+   * Both extensions are listed. The migrated sources are .mts, because the
+   * package cannot declare "type": "module" while any .js file remains, but a
+   * .ts left behind by a run that ignored that would be just as much a dirty
+   * baseline and this check would have missed it.
    */
   'no-route-migrated': () => {
-    try { return execSync('ls supporthub-api/migration/routes/*.ts 2>/dev/null || true').toString().trim() === ''; }
-    catch { return true; }
+    try {
+      const out = execSync('ls supporthub-api/migration/routes/*.ts supporthub-api/migration/routes/*.mts 2>/dev/null || true');
+      return out.toString().trim() === '';
+    } catch { return true; }
+  },
+
+  /**
+   * Clip 6 migrates the route slice inside supporthub-api/migration, and leaves
+   * supporthub-api/modern alone.
+   *
+   * This is not a style preference, it is where the repository's own migration
+   * story lives: plans/migration-plan.md says the service migrates in place, the
+   * compat layer the route depends on is migration/compat, and migration's
+   * tsconfig and vitest config are the ones that pick the migrated files up.
+   *
+   * An earlier C6 prompt said the opposite -- "Migrate ONLY the GET /tickets/:id
+   * route from supporthub-api/migration to the modern service in
+   * supporthub-api/modern" -- and Codex obeyed it exactly, producing a route, a
+   * contract test and an app.ts edit under modern/. Nothing was wrong with the
+   * work; it was in the wrong service, and it dirtied the file clip 2 films and
+   * whose closing proof is an empty Source Control view.
+   *
+   * Three separate things have to hold, so all three are asserted here rather
+   * than trusting the prompt's opening sentence:
+   *   1. the prompt creates its files under supporthub-api/migration/
+   *   2. no supporthub-api/modern/ path appears in the prompt at all, except in
+   *      the line that forbids writing there
+   *   3. the runbook's own verification proves modern/ stayed untouched, so a run
+   *      that drifts is caught on camera and not two clips later
+   *
+   * Proven red on each: a modern/ path put back into the prompt, the constraint
+   * line deleted, and the verification's modern/ guard removed.
+   */
+  'c6-migrates-in-place': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const RUNBOOK = 'module1/m1-c6-migrate-one-express-route.md';
+    const SAVED = 'plans/prompts/m1-c6-migrate-route.md';
+    const FORBID = 'Do not create or modify any file under supporthub-api/modern.';
+    let ok = true;
+
+    for (const f of [RUNBOOK, SAVED]) {
+      const s = read(f);
+      const i = s.indexOf('Read framework-skill/node-express-migration/SKILL.md');
+      if (i < 0) { ok = reject(`${f}: no C6 prompt block found -- the shape changed`); continue; }
+      const j = s.indexOf('\n```', i);
+      const prompt = j < 0 ? s.slice(i) : s.slice(i, j);
+
+      if (!/supporthub-api\/migration\/routes\//.test(prompt)) {
+        ok = reject(`${f}: the C6 prompt never names a file under supporthub-api/migration/routes/ -- it has to say where the migrated route lands`);
+      }
+      if (!prompt.includes(FORBID)) {
+        ok = reject(`${f}: the C6 prompt is missing the constraint line "${FORBID}"`);
+      }
+      const strays = [...prompt.matchAll(/supporthub-api\/modern[A-Za-z0-9._/-]*/g)]
+        .map((m) => m[0])
+        .filter((path) => !FORBID.includes(path));
+      if (strays.length) {
+        ok = reject(`${f}: the C6 prompt points at ${[...new Set(strays)].join(', ')} -- clip 6 migrates in place and must not write into the modern workspace`);
+      }
+    }
+
+    const rb = read(RUNBOOK);
+    if (!/git status --porcelain supporthub-api\/modern/.test(rb)) {
+      ok = reject(`${RUNBOOK}: step 1's verification never proves supporthub-api/modern stayed untouched -- add "git status --porcelain supporthub-api/modern | wc -l" and require 0`);
+    }
+    return ok;
   },
 };
 

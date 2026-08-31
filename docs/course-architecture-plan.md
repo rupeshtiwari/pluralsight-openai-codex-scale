@@ -212,13 +212,13 @@ pluralsight-openai-codex-scale/
       src/compat/{dirname,legacyRequire}.ts
       src/app.ts  src/server.ts
       tests/contracts/                # public behavior lock — 25 tests
-    migration/                        # CommonJS · JavaScript · Express 4 — migration source
+    migration/                        # CommonJS · JavaScript · Express 4 — migrates in place
       app.js  server.js  routes/  services/  models/  auth/  config/  tests/
-      compat/{dirname,legacyRequire}.ts   # shims only — no route has migrated
+      compat/{dirname,legacyRequire}.mts  # ESM by extension — no route has migrated
       package.json                    # no "type": "module"
       eslint.config.js                # CommonJS: the package is CJS
       tsconfig.json                   # allowJs true, checkJs false
-      vitest.config.ts                # passWithNoTests true
+      vitest.config.mts               # passWithNoTests true
 
   automation/
     sentry-fixtures/  github-seed/  triage/
