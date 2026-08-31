@@ -695,6 +695,41 @@ remove the thing under test, and a control that requires disguising its input is
 Removing the experiment's own scaffolding from the environment it runs in is the opposite: the saved
 prompt is apparatus, not guidance. Ask which of the two a file is before moving it.
 
+## 15. An agent's account of its work is not the work
+
+A C6 Run A reported creating both migrated files and passing all five migration gates.
+`git status --short supporthub-api/` listed neither file. Nothing had been written. In the same
+reply it described the worktree as carrying modified `package.json`, `package-lock.json` and
+`plans/migration-plan.md` — true of the pre-check run an hour earlier, false after the reset the run
+actually started from.
+
+The step verification caught it, which is the only reason it cost one run instead of the clip. But
+the failure it caught is not the one it was written for: the PASS clause enumerated *wrong place*
+and *wrong scope*, and said nothing about *nothing at all*. A confident summary over an empty diff
+reads like success, and every later step assumes the files exist.
+
+**So every step that produces an artifact verifies the artifact, and its FAIL clause names the empty
+case explicitly.** "PASS if two files are listed" is not enough on its own; an author skimming for
+what to worry about needs to see *nothing is listed* written down as a failure, next to the others.
+
+**A fresh thread does not refresh a stale workspace view.** When an agent describes state that
+predates your reset, the fix is a new session, not a new conversation — and the tell is a
+description that was true one run ago. That is now a troubleshooting row in the C6 runbook.
+
+**Related, and the reason this section is short.** Three rules elsewhere are the same instinct
+applied to other subjects: the working tree is not evidence, so branch state is verified from a
+fresh clone; the tool's printed summary is not evidence, so counts come from `--format json`; and
+the skill-off run is never filled in from expectation. This adds the agent's own report to that
+list. The general form: **whatever claims the work happened is not what proves it.**
+
+### One consequence for the verification commands themselves
+
+Scope them. C6's step verifications say `git status --short supporthub-api/`, not `git status
+--short`, because §14 moves `plans/prompts` aside for both runs and a bare status then lists three
+deletions that have nothing to do with the migration. A PASS clause that counts listed paths would
+count those. `c6-migrates-in-place` asserts no on-camera `git status --short` is left unscoped; the
+prepare block's unscoped one is deliberate and runs before the move.
+
 ## Outstanding
 
 1. **Repository rename** — Author Notes declare `pluralsight-openai-codex-scale`; remote is still
