@@ -115,9 +115,9 @@ $ [ "$(grep -c "value === 'p0'" supporthub-api/modern/src/routes/tickets.ts)" -e
 RESULT PASS  [c2] the route does not normalize priority
 
 $ node "${ROOT}/scripts/check.mjs" c2-refs-identical
-  note: local demo/m1-c2-start is stale (6aeecef vs origin 8d34d78)
+  note: local demo/m1-c2-start is stale (6aeecef vs origin 334a094)
   note: git fetch origin && git branch -f demo/m1-c2-start origin/demo/m1-c2-start
-  note: local demo/m1-c2-captured is stale (6aeecef vs origin 8d34d78)
+  note: local demo/m1-c2-captured is stale (6aeecef vs origin 334a094)
   note: git fetch origin && git branch -f demo/m1-c2-captured origin/demo/m1-c2-captured
 RESULT PASS  [c2] start and captured checkpoints are the same commit
 
