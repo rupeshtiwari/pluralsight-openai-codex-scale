@@ -73,7 +73,7 @@ Objectives: **TO2, EO2c, EO2d** · Checkpoint: `demo/m1-c6-start`, branched from
 |---|---|---|---|---|---|
 | 1 | Apply an equivalent Node.js and TypeScript framework skill to migrate one Express route slice | `framework-skill/node-express-migration/SKILL.md`, `m1-c6-framework-skill-evidence.md` | Step 1 prompt with the skill line | Conversions named per file; one route migrated | READY |
 | 2 | Run ESLint, TypeScript type-checking, build validation, and focused Vitest tests immediately after | `supporthub-api/migration/{eslint.config.js,tsconfig.json,vitest.config.mts}` | `npm run lint:migration && typecheck:migration && build:migration && test:route:migration` | Four gates green on the baseline before migration | **PASS** |
-| 3 | Inspect the diff and verify the CommonJS-to-ESM compatibility contract before accepting | `docs/commonjs-esm-compatibility.md`, `supporthub-api/migration/compat/*.mts` | `git status --short`, contract comparison | Four status codes and nine fields identical; no CommonJS construct remains | READY |
+| 3 | Inspect the diff and verify the CommonJS-to-ESM compatibility contract before accepting | `docs/commonjs-esm-compatibility.md`, `supporthub-api/migration/compat/*.mts` | `git diff --no-index` legacy against migrated, contract comparison | Four status codes and nine fields identical; no CommonJS construct remains | READY |
 | 4 | Record the checkpoint so the migration can continue or roll back from a known state | `plans/migration-plan.md` | Step 4 prompt, `git rev-parse --short HEAD` | Behavioral exception recorded; rollback commit named | READY |
 
 ---
