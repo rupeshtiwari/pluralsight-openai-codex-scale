@@ -187,6 +187,33 @@ the test honest — the saved prompt is apparatus, not guidance.
 **Record what each run says it consulted.** Both run blocks below ask for it. A Run B that names
 `plans/prompts/` or `framework-skill/` is contaminated: discard it and re-run both.
 
+### A Run A with no reasoning in it is not a Run A
+
+The comparison is between two pieces of *reasoning*, not two sets of files. Step 1's prompt asks for
+the conversions before any editing, and a measured run produced both files correctly while opening
+on *"Implemented the GET /tickets/:id migration slice"* — no conversion list, and none of the three
+tells anywhere in the reply.
+
+Both halves of that are disqualifying, for the same reason:
+
+- **No stated conversions** — there is nothing for Run B to be compared against. The artifact would
+  be measuring two file sets, which the gates already prove identical.
+- **No tells, in the run that was told to read the skill** — the primary signal is absent from the
+  positive case, so its absence from Run B means nothing.
+
+**Discard and re-run both**, exactly as for a contaminated Run B. Re-running only Run A introduces a
+second difference between the two, which is the thing the control exists to avoid.
+
+### Capture before you sync or reset
+
+`./scripts/sync.sh` resets both modules **before** it pulls, and `demo_reset.sh` discards untracked
+files. A completed run lives in two places until you save it: the Codex thread, and two untracked
+`.mts` files. One measured run was lost to a sync between finishing and capturing.
+
+Save the transcript into its block below, and copy the two artifacts somewhere outside the
+repository, **before** any sync, pull, reset, or branch switch. The gates can be re-run from the
+saved files; the reply cannot be reconstructed.
+
 ## Reproducing
 
 `demo/m1-c6-start` carries the two-checkpoint split that walking C5 produces, and is branched from
@@ -218,6 +245,9 @@ Do not edit either transcript.
 - Checkpoint: `demo/m1-c6-start`
 - Prompt: as above, **including** the skill line
 - `plans/prompts/` moved aside for this run?
+- Conversions stated before the code, per the prompt? (a run that opens on *"Implemented the …
+  slice"* with no conversions named is **not usable** — see below)
+- Which of the three tells appeared:
 - Sources Codex says it consulted (ask it; a Run B naming `plans/prompts/` or
   `framework-skill/` is contaminated — discard and re-run both):
 
@@ -231,6 +261,9 @@ Do not edit either transcript.
 - Checkpoint: `demo/m1-c6-start`
 - Prompt: as above, **excluding** the skill line
 - `plans/prompts/` moved aside for this run?
+- Conversions stated before the code, per the prompt? (a run that opens on *"Implemented the …
+  slice"* with no conversions named is **not usable** — see below)
+- Which of the three tells appeared:
 - Sources Codex says it consulted (ask it; a Run B naming `plans/prompts/` or
   `framework-skill/` is contaminated — discard and re-run both):
 
