@@ -165,7 +165,8 @@ catches it too, since `package.json` appearing in `git status` fails that step.
 | Tests fail on a fresh checkout | dependencies not installed | `npm install` |
 | Source Control shows changes before Step 1 | previous run not reset | `./module1/scripts/demo_reset.sh` |
 | Codex describes files or a dirty tree that `git status` does not show | its workspace view predates your reset — a fresh *thread* does not refresh it | close and reopen the Codex session, confirm `git status --short supporthub-api/` is empty, then repeat Step 1 |
-| Codex reports files created and gates green, but `git status` lists nothing | the summary is a claim, not the work | repeat Step 1; never proceed to Step 2 on the summary alone |
+| Codex reports files created and gates green, but `ls` cannot find the files | the summary is a claim, not the work | repeat Step 1; never proceed to Step 2 on the summary alone |
+| That happens twice in a row, and the reply keeps describing a pre-reset working tree | the session is not looking at this checkout — a stale snapshot, or a different clone | confirm the directory Codex has open is this repository at this branch, then reopen the session; if the third run still reports work that is not on disk, stop and diagnose the environment rather than re-running |
 
 ---
 
@@ -232,30 +233,42 @@ differently, and getting it wrong produces `undefined` at runtime with no compil
 
 **Decision produced.** One route is migrated under the skill's guidance, and the change is bounded.
 
-**Verification.**
+**Verification. Run this before reading Codex's reply.** The order is the point: two runs reported
+both files created and all five gates green having written neither, and a reply that confident is
+hard to un-read once it is in your head.
 
 ```bash
+ls -l supporthub-api/migration/routes/ticketRead.mts \
+      supporthub-api/migration/tests/contracts/ticket-read.route.test.mts
 git status --short supporthub-api/
 git status --porcelain supporthub-api/modern | wc -l    # must be 0
 ```
 
-Both are scoped to the workspace on purpose. A bare `git status --short` also lists the three
-deleted entries from moving `plans/prompts` aside for the run, and counting those as the step's
-output is how a wrong reading starts.
+The first command is the one that decides the step. It names both files the prompt asked for and
+prints `No such file or directory` for either that is missing, so *the work did not happen* looks
+nothing like *the work happened*. Nothing below it means anything until it lists two files.
 
-PASS if exactly two new paths are listed, both under `supporthub-api/migration/`, nothing shown as
-modified, and the second command prints `0`.
+The two `git status` calls are scoped to the workspace on purpose. A bare `git status --short` also
+lists the three deleted entries from moving `plans/prompts` aside for the run, and counting those as
+the step's output is how a wrong reading starts.
+
+PASS if `ls` lists both files, exactly two new paths appear under `supporthub-api/migration/`,
+nothing is shown as modified, and the last command prints `0`.
 
 FAIL if:
 
-- **nothing is listed.** Codex reported the two files created and all five gates green on a run that
-  wrote neither. Its summary is a claim about work, not the work.
+- **`ls` cannot find either file.** Nothing was written. A reported gate pass is not a gate pass —
+  a run cannot have linted, type-checked, built and tested files that are not on disk. Repeat
+  Step 1; do not go on.
+- nothing is listed by `git status` even though `ls` found the files — they exist but are ignored,
+  which means the paths are wrong.
 - `supporthub-api/modern/` or any `package.json` appears — either means the checkpoint scope was
   breached.
 
-**Read the two files before Step 2, not Codex's account of them.** Everything Step 2 does assumes
-they exist; a confident summary over an empty diff sends the whole rest of the clip against files
-that were never written.
+**If the reply also describes files as modified that `git status` shows clean**, its workspace view
+predates your reset and is describing an earlier run. Two occurrences of this named
+`package.json`, `package-lock.json` and `plans/migration-plan.md` — exactly the pre-check run's
+state. A fresh *thread* does not refresh that view; see the troubleshooting table.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` and repeat with the constraint restated.
 
