@@ -47,15 +47,29 @@ function splitPlanHolds() {
     );
   }
 
+  // Each row is matched by what it has to state, not by the seed's label for it.
+  // The seeded plan writes "Scope"; a measured C5 walk split that into "Kind" and
+  // "Files touched", which says strictly more. Asserting the seed's vocabulary
+  // rejected a correct artifact and would have pushed the author toward editing
+  // Codex's output to fit the check -- the manufactured split the walkthrough
+  // forbids.
+  const ROWS = [
+    ['what it touches', /\|\s*(?:Scope|Files touched|Files)\s*\|/i],
+    ['Validation', /\|\s*Validation\s*\|/i],
+    ['Rollback point', /\|\s*Rollback point\s*\|/i],
+  ];
   for (const [i, e] of entries.entries()) {
     const n = i + 1;
-    for (const field of ['| Scope |', '| Validation |', '| Rollback point |']) {
-      if (!e.includes(field)) {
-        return reject(`checkpoint ${n} is missing its ${field.replaceAll('|', '').trim()} row`);
-      }
+    for (const [label, row] of ROWS) {
+      if (!row.test(e)) return reject(`checkpoint ${n} is missing its ${label} row`);
     }
     const migratesRoute = /routes\/tickets\.js.*routes\/tickets\.mts/.test(e);
-    const upgradesDep = /express.{0,4}4\.x to 5\.x/i.test(e);
+    // Not the seed's literal "`express` 4.x to 5.x". A walk wrote "Upgrade Express
+    // 4 to Express 5", which that phrasing missed outright -- the batching test
+    // would have stayed silent on a checkpoint that really did carry both. Bounded
+    // to one line and one table cell so digits from a status code or a field list
+    // cannot bridge into a false match.
+    const upgradesDep = /\bexpress\b[^\n|]{0,40}\b4\b[^\n|]{0,24}\b(?:to|->|\u2192)\b[^\n|]{0,24}\b5\b/i.test(e);
     if (migratesRoute && upgradesDep) {
       return reject(`checkpoint ${n} still combines the route migration with the Express upgrade`);
     }
