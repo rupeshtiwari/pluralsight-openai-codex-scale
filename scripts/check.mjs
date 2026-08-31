@@ -1419,6 +1419,58 @@ const CHECKS = {
   },
 
   /**
+   * A runbook may grep an agent-authored file for contract values, never for a
+   * name the agent chose.
+   *
+   * Fourth instance of 11c, and the first inside a step verification rather than
+   * a check. C6 step 3 ran
+   * `grep -c "expect(res.status)" .../ticket-read.route.test.mts` and returned 0
+   * on a run that was entirely correct: Codex named the variable `response`.
+   * All four status codes were asserted, one each, exactly as the runbook said
+   * they would be.
+   *
+   * The discriminator is who writes the file being grepped. Five of the six
+   * greps in these runbooks target plans/ files this repository authors, where a
+   * heading is a fixed shape and runbook-plan-greps-resolve keeps the counts
+   * honest. Only the ones aimed at what an agent produces are coin flips, and
+   * only there does an identifier appear in the pattern.
+   *
+   * So: greps at the artifacts C6 creates may not contain a receiver-property
+   * pattern like `res.status` or `response.body`. Status codes, field names and
+   * error strings are all in the prompt and the behavioral contract; variable
+   * names, matcher choice and `.status` against `.statusCode` are not.
+   *
+   * Proven red on the exact regression -- `expect(res.status)` put back -- and
+   * on a `response.body` variant, so it is not keyed to one identifier.
+   */
+  'agent-file-greps-assert-contract-values': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const RUNBOOK = 'module1/m1-c6-migrate-one-express-route.md';
+    const ARTIFACTS = [
+      'supporthub-api/migration/routes/ticketRead.mts',
+      'supporthub-api/migration/tests/contracts/ticket-read.route.test.mts',
+    ];
+    const src = read(RUNBOOK);
+    const camera = src.slice(src.indexOf('# ON-CAMERA'));
+    let ok = true;
+    let seen = 0;
+    for (const block of camera.matchAll(/```bash\n([\s\S]*?)\n```/g)) {
+      // Join continuations so a grep split across lines is read as one command.
+      for (const cmd of block[1].replace(/\\\n\s*/g, ' ').split('\n')) {
+        if (!/\bgrep\b/.test(cmd)) continue;
+        if (!ARTIFACTS.some((a) => cmd.includes(a))) continue;
+        seen += 1;
+        const ident = cmd.match(/[A-Za-z_$][\w$]*\.(?:status|statusCode|body|headers|text)\b/);
+        if (ident) {
+          ok = reject(`${RUNBOOK}: \`${cmd.trim()}\` greps an agent-authored file for "${ident[0]}" -- the receiver is a name Codex picks, not a contract value. Count the status codes, field names or error strings instead`);
+        }
+      }
+    }
+    if (seen === 0) return reject(`${RUNBOOK}: no on-camera grep targets either migrated artifact -- the verification shape changed`);
+    return ok;
+  },
+
+  /**
    * Clip 6 step 1 proves its two files exist, by name, before anything else.
    *
    * Two measured runs reported both files created and all five migration gates

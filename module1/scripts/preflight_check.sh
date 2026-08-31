@@ -472,6 +472,12 @@ check "c6" "step 1 proves its two files exist" \
   "Put an ls naming both artifacts first in step 1's verification, ahead of git status." \
   "Does step 1 prove its two files exist by name, before anything else in the block?"
 
+check "c6" "verifications grep agent files for contract values" \
+  'node "${ROOT}/scripts/check.mjs" agent-file-greps-assert-contract-values' \
+  "Step 3 grepped for expect(res.status) and returned 0 on a run that was entirely correct: Codex had named the variable response. Status codes are in the contract; the receiver is a name the agent picks." \
+  "Count the status codes, field names or error strings instead of the identifier around them." \
+  "Which on-camera grep targets a file Codex writes, and does its pattern contain a name Codex chose?"
+
 check "c6" "the route migrates in place" \
   'node "${ROOT}/scripts/check.mjs" c6-migrates-in-place' \
   "The prompt decides which workspace the work lands in. An earlier C6 prompt named supporthub-api/modern as the target, so Codex created a route, a contract test and an app.ts edit there — correct work, wrong service, and it collided with the clean tree clip 2 films." \
