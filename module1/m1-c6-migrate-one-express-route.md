@@ -88,6 +88,11 @@ npm test                        # Tests  25 passed (25)
 git status --short              # must print nothing at all
 ```
 
+Run that **before** moving `plans/prompts` aside for the skill-on/skill-off runs, which
+[m1-c6-framework-skill-evidence.md](m1-c6-framework-skill-evidence.md) covers. After the move a bare
+`git status` shows three deleted entries and this check no longer means what it says; the step
+verifications below are workspace-scoped for the same reason.
+
 **Pulling? Use `./scripts/sync.sh`.** It resets both modules, then pulls. Plain `git pull` after a
 run aborts with *"Your local changes to the following files would be overwritten by merge"*, because
 every demo dirties tracked files — `plans/ExecPlan.md`, `plans/migration-plan.md`, anything under
@@ -159,6 +164,8 @@ catches it too, since `package.json` appearing in `git status` fails that step.
 | `npm test` reports `Missing script: "test"` | wrong branch | `git checkout demo/m1-c6-start` |
 | Tests fail on a fresh checkout | dependencies not installed | `npm install` |
 | Source Control shows changes before Step 1 | previous run not reset | `./module1/scripts/demo_reset.sh` |
+| Codex describes files or a dirty tree that `git status` does not show | its workspace view predates your reset — a fresh *thread* does not refresh it | close and reopen the Codex session, confirm `git status --short supporthub-api/` is empty, then repeat Step 1 |
+| Codex reports files created and gates green, but `git status` lists nothing | the summary is a claim, not the work | repeat Step 1; never proceed to Step 2 on the summary alone |
 
 ---
 
@@ -228,13 +235,27 @@ differently, and getting it wrong produces `undefined` at runtime with no compil
 **Verification.**
 
 ```bash
-git status --short
+git status --short supporthub-api/
 git status --porcelain supporthub-api/modern | wc -l    # must be 0
 ```
 
+Both are scoped to the workspace on purpose. A bare `git status --short` also lists the three
+deleted entries from moving `plans/prompts` aside for the run, and counting those as the step's
+output is how a wrong reading starts.
+
 PASS if exactly two new paths are listed, both under `supporthub-api/migration/`, nothing shown as
-modified, and the second command prints `0`. FAIL if `supporthub-api/modern/` or any `package.json`
-appears — either would mean the checkpoint scope was breached.
+modified, and the second command prints `0`.
+
+FAIL if:
+
+- **nothing is listed.** Codex reported the two files created and all five gates green on a run that
+  wrote neither. Its summary is a claim about work, not the work.
+- `supporthub-api/modern/` or any `package.json` appears — either means the checkpoint scope was
+  breached.
+
+**Read the two files before Step 2, not Codex's account of them.** Everything Step 2 does assumes
+they exist; a confident summary over an empty diff sends the whole rest of the clip against files
+that were never written.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` and repeat with the constraint restated.
 
@@ -293,7 +314,7 @@ service behaved. This step compares the two directly, before anything is accepte
 **Commands.**
 
 ```bash
-git status --short
+git status --short supporthub-api/
 grep -c "expect(res.status)" supporthub-api/migration/tests/contracts/ticket-read.route.test.mts
 npm run test:migration
 ```
