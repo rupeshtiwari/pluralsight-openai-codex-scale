@@ -5,12 +5,12 @@ Demo: Execute a Codex refactor with ExecPlan checkpoints (6 minutes)
 
 RUNBOOK      module1/m1-c3-execute-codex-refactor.md
 OBJECTIVES   TO1, EO1b, EO1c
-READINESS    NOT READY - 1 of 22 checks failed
+READINESS    READY
 
 STEPS
 -----
 
-Step 1  BLOCKED
+Step 1  READY
   Create an ExecPlan that records intended changes, behavior contracts, validation checks, and progress across the refactor
   EO1b       ExecPlan records intended changes, contracts, validation checks
 
@@ -25,7 +25,7 @@ Step 1  BLOCKED
   pass  no document fixes the clip 3 gate count
         $ node "${ROOT}/scripts/check.mjs" c3-gates-not-hardcoded
 
-Step 2  BLOCKED
+Step 2  READY
   Let Codex implement one bounded cleanup pass and run Vitest plus TypeScript validation
   EO1b       running log maintained across the refactor
 
@@ -34,34 +34,27 @@ Step 2  BLOCKED
   pass  clip 3's prompt does not forbid the drift step 4 removes
         $ node "${ROOT}/scripts/check.mjs" c3-prompt-does-not-preempt-removal
 
-Step 3  BLOCKED
+Step 3  READY
   Inspect the generated diff and confirm public behavior is preserved
   EO1c       evaluate the diff for preserved public behavior
 
   no check of its own — gated by the shared checks below
 
-Step 4  BLOCKED
+Step 4  READY
   Remove the architecture migration Codex bundled into the cleanup diff and log it as a separate ExecPlan task
   EO1c, TO1  architecture migrations separated into discrete tasks
 
   pass  clip 3's prompt does not forbid the drift step 4 removes
         $ node "${ROOT}/scripts/check.mjs" c3-prompt-does-not-preempt-removal
 
-SHARED GATES  15 of 16 pass
+SHARED GATES  16 of 16 pass
 
   These gate every step above. A failure here blocks the whole clip.
-    FAIL  working tree clean
 
-WHAT TO FIX
------------
+Every gate is green. This clip can be recorded.
 
-working tree clean   [all]
-  why  Every demo starts from a clean tree; leftover edits change what the diff shows.
-  fix  ./module1/scripts/demo_reset.sh
-  ask  Show me every uncommitted change in this repository and what produced it.
-
-PASS: 21   FAIL: 1
+PASS: 22   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c3_preflight.full.txt
 
-VERDICT  NOT READY - 1 check(s) failed above.
+VERDICT  READY - this clip can be recorded.

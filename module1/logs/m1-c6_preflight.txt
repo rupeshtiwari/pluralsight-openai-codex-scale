@@ -5,7 +5,7 @@ Demo: Migrate one Express route to TypeScript with framework guidance (6 minutes
 
 RUNBOOK      module1/m1-c6-migrate-one-express-route.md
 OBJECTIVES   TO2, EO2c, EO2d
-READINESS    NOT READY - 2 of 26 checks failed
+READINESS    NOT READY - 1 of 26 checks failed
 
 STEPS
 -----
@@ -70,26 +70,20 @@ Step 4  BLOCKED
             cut it by walking the clip before it; the chain and its capture points are in module1/walkthrough-c5-c6.md
           module1/m1-c6-migrate-one-express-route.md starts on demo/m1-c5-captured, which does not exist — this clip cannot be recorded yet
 
-SHARED GATES  15 of 16 pass
+SHARED GATES  16 of 16 pass
 
   These gate every step above. A failure here blocks the whole clip.
-    FAIL  working tree clean
 
 WHAT TO FIX
 -----------
-
-working tree clean   [all]
-  why  Every demo starts from a clean tree; leftover edits change what the diff shows.
-  fix  ./module1/scripts/demo_reset.sh
-  ask  Show me every uncommitted change in this repository and what produced it.
 
 this clip's starting checkpoint exists   [c6]
   why  A clip cannot be ready when the checkout its first line performs does not resolve. m1-c6 reported READY while demo/m1-c6-start had never been cut, and neither had demo/m1-c5-captured, the branch it must be branched from.
   fix  Walk clip 5 and cut the checkpoints; the chain and its capture points are in module1/walkthrough-c5-c6.md.
   ask  Which demo branches does the walkthrough say clip 6 depends on, and do they exist?
 
-PASS: 24   FAIL: 2
+PASS: 25   FAIL: 1
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 
-VERDICT  NOT READY - 1 check(s) failed above.
+VERDICT  READY - this clip can be recorded.
