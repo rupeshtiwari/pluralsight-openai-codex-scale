@@ -1579,16 +1579,28 @@ const CHECKS = {
     if (!/git status --porcelain supporthub-api\/modern/.test(rb)) {
       ok = reject(`${RUNBOOK}: step 1's verification never proves supporthub-api/modern stayed untouched -- add "git status --porcelain supporthub-api/modern | wc -l" and require 0`);
     }
-    // Every git status inside a step must name the workspace. The skill-on/skill-off
-    // runs move plans/prompts aside, so a bare `git status --short` in a step lists
-    // three deletions that have nothing to do with the migration -- and a step whose
-    // PASS clause counts listed paths then counts the wrong ones. The prepare block's
-    // unscoped status is deliberate and runs before that move, so only the ON-CAMERA
-    // half is checked.
+    // Every on-camera `git status --short` must EXCLUDE plans/prompts and nothing
+    // else. Two ways to get this wrong, and both have happened.
+    //
+    // Bare: the skill-on/skill-off runs move plans/prompts aside, so a bare status
+    // lists three deletions that are apparatus, and a PASS clause counting listed
+    // paths counts the wrong ones.
+    //
+    // Narrowed to a directory: the first fix scoped to supporthub-api/, which was
+    // quiet about a measured run that also rewrote plans/migration-plan.md -- Step
+    // 4's job, done early, invisible. A filter that removes noise by naming what to
+    // look at removes signal with it. Exclude the apparatus; keep everything else.
+    //
+    // The prepare block's unscoped status is deliberate and runs before the move, so
+    // only the ON-CAMERA half is checked.
     const camera = rb.slice(rb.indexOf('# ON-CAMERA'));
-    const bare = [...camera.matchAll(/^git status --short\s*$/gm)];
-    if (bare.length) {
-      ok = reject(`${RUNBOOK}: ${bare.length} on-camera \`git status --short\` with no path -- scope it to supporthub-api/ so moving plans/prompts aside cannot pollute the step's own evidence`);
+    for (const m of camera.matchAll(/^git status --short(.*)$/gm)) {
+      const args = m[1].trim();
+      if (!args) {
+        ok = reject(`${RUNBOOK}: on-camera \`git status --short\` with no pathspec -- moving plans/prompts aside pollutes the step's own evidence. Use --  ':!plans/prompts'`);
+      } else if (!/:!plans\/prompts/.test(args)) {
+        ok = reject(`${RUNBOOK}: on-camera \`git status --short ${args}\` narrows to a path instead of excluding the apparatus -- it goes blind to everything outside it, which is how a run that also rewrote plans/migration-plan.md passed step 1. Use --  ':!plans/prompts'`);
+      }
     }
     return ok;
   },
