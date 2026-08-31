@@ -1477,6 +1477,17 @@ const CHECKS = {
     if (!/git status --porcelain supporthub-api\/modern/.test(rb)) {
       ok = reject(`${RUNBOOK}: step 1's verification never proves supporthub-api/modern stayed untouched -- add "git status --porcelain supporthub-api/modern | wc -l" and require 0`);
     }
+    // Every git status inside a step must name the workspace. The skill-on/skill-off
+    // runs move plans/prompts aside, so a bare `git status --short` in a step lists
+    // three deletions that have nothing to do with the migration -- and a step whose
+    // PASS clause counts listed paths then counts the wrong ones. The prepare block's
+    // unscoped status is deliberate and runs before that move, so only the ON-CAMERA
+    // half is checked.
+    const camera = rb.slice(rb.indexOf('# ON-CAMERA'));
+    const bare = [...camera.matchAll(/^git status --short\s*$/gm)];
+    if (bare.length) {
+      ok = reject(`${RUNBOOK}: ${bare.length} on-camera \`git status --short\` with no path -- scope it to supporthub-api/ so moving plans/prompts aside cannot pollute the step's own evidence`);
+    }
     return ok;
   },
 };
