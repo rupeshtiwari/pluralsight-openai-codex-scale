@@ -99,14 +99,8 @@ $ node "${ROOT}/scripts/check.mjs" contract-tests-pass
 RESULT PASS  [all] contract tests (expect 25)
 
 $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
-  module1/m1-c6-migrate-one-express-route.md starts on demo/m1-c6-start, which does not exist — this clip cannot be recorded yet
-    cut it by walking the clip before it; the chain and its capture points are in module1/walkthrough-c5-c6.md
-  module1/m1-c6-migrate-one-express-route.md starts on demo/m1-c5-captured, which does not exist — this clip cannot be recorded yet
-    cut it by walking the clip before it; the chain and its capture points are in module1/walkthrough-c5-c6.md
-RESULT FAIL  [c6] this clip's starting checkpoint exists
-WHY IT MATTERS  A clip cannot be ready when the checkout its first line performs does not resolve. m1-c6 reported READY while demo/m1-c6-start had never been cut, and neither had demo/m1-c5-captured, the branch it must be branched from.
-HOW TO FIX      Walk clip 5 and cut the checkpoints; the chain and its capture points are in module1/walkthrough-c5-c6.md.
-CODEX PROMPT    Which demo branches does the walkthrough say clip 6 depends on, and do they exist?
+
+RESULT PASS  [c6] this clip's starting checkpoint exists
 
 $ [ -f framework-skill/node-express-migration/SKILL.md ]
 
@@ -131,6 +125,10 @@ RESULT PASS  [c6] skill names all four validation gates
 $ [ -f supporthub-api/migration/compat/dirname.mts ] && [ -f supporthub-api/migration/compat/legacyRequire.mts ]
 
 RESULT PASS  [c6] compat modules present
+
+$ node "${ROOT}/scripts/check.mjs" runbook-plan-greps-resolve
+
+RESULT PASS  [c6] the runbook's plan greps resolve on the start branch
 
 $ node "${ROOT}/scripts/check.mjs" c6-migrates-in-place
 
