@@ -418,6 +418,12 @@ check "c5" "that milestone is unreviewed" \
 
 # ------------------------------------------------------------------- clip 6
 sect c6 "clip 6 - migrate one route"
+check "c6" "this clip's starting checkpoint exists" \
+  'node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists' \
+  "A clip cannot be ready when the checkout its first line performs does not resolve. m1-c6 reported READY while demo/m1-c6-start had never been cut, and neither had demo/m1-c5-captured, the branch it must be branched from." \
+  "Walk clip 5 and cut the checkpoints; the chain and its capture points are in module1/walkthrough-c5-c6.md." \
+  "Which demo branches does the walkthrough say clip 6 depends on, and do they exist?"
+
 check "c6" "framework skill present" \
   '[ -f framework-skill/node-express-migration/SKILL.md ]' \
   "EO2d requires the equivalent framework skill to be available in the repository." \

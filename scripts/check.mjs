@@ -1120,6 +1120,51 @@ const CHECKS = {
   'c6-start-opens-on-split': () => splitPlanHolds(),
 
   /**
+   * Every clip's starting checkpoint must exist.
+   *
+   * m1-c6's preflight reported "PASS: m1-c6 is ready" while demo/m1-c6-start had
+   * never been cut, and neither had demo/m1-c5-captured, the branch the
+   * walkthrough says it must be branched from. A clip cannot be ready when the
+   * checkout its first line performs does not resolve.
+   *
+   * demo-checkout-refs-exist did not cover this: it scans runnable bash fences,
+   * and the C6 runbook names its checkpoint in the AUTHOR PREP table rather than
+   * in a fence -- which is itself the fix that check forced, so closing one hole
+   * opened this one. This reads the declaration instead of the command.
+   *
+   * Reads git, so it ignores CHECK_ROOT.
+   */
+  'clip-start-checkpoint-exists': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const exists = (ref) => {
+      for (const r of [ref, `origin/${ref}`]) {
+        try {
+          if (execSync(`git rev-parse --verify -q ${r}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()) return true;
+        } catch { /* try the next form */ }
+      }
+      return false;
+    };
+    const files = globSync('module*/m*-c*.md', { cwd: ROOT }).filter((f) => !f.includes('evidence'));
+    let ok = true;
+    let declared = 0;
+    for (const f of files) {
+      const row = read(f).split('\n').find((l) => /^\|\s*Starting checkpoint\s*\|/.test(l));
+      if (!row) continue;                       // module 2 uses no demo branches
+      const refs = [...row.matchAll(/`(demo\/[A-Za-z0-9._/-]+)`/g)].map((m) => m[1]);
+      if (refs.length === 0) continue;
+      declared += 1;
+      for (const ref of refs) {
+        if (!exists(ref)) {
+          ok = reject(`${f} starts on ${ref}, which does not exist — this clip cannot be recorded yet`) && ok;
+          ok = reject('  cut it by walking the clip before it; the chain and its capture points are in module1/walkthrough-c5-c6.md') && ok;
+        }
+      }
+    }
+    if (declared === 0) return reject('no runbook declares a starting checkpoint — the AUTHOR PREP table shape changed');
+    return ok;
+  },
+
+  /**
    * No runnable block may check out a demo branch that does not exist.
    *
    * The C6 evidence artifact opened with 'git checkout demo/m1-c6-start' inside a

@@ -5,12 +5,12 @@ Demo: Inventory a legacy Express 4 service with Codex (6 minutes)
 
 RUNBOOK      module1/m1-c5-inventory-legacy-express4.md
 OBJECTIVES   TO2, EO2a, EO2b
-READINESS    READY
+READINESS    NOT READY - 1 of 29 checks failed
 
 STEPS
 -----
 
-Step 1  READY
+Step 1  BLOCKED
   Direct Codex to inventory the legacy CommonJS JavaScript Express 4 service across Express routes, data models, auth, build tooling, tests, and external contracts
   EO2a       inventory routing, models, auth, build tooling, tests, external contracts
 
@@ -29,7 +29,7 @@ Step 1  READY
   pass  both services seed the same tickets
         $ node "${ROOT}/scripts/check.mjs" seed-parity-across-services
 
-Step 2  READY
+Step 2  BLOCKED
   Review the generated migration plan for the CommonJS-to-ESM compatibility layer, explicit behavioral exceptions, and rollback visibility
   EO2b       compatibility layers and explicit behavioral exceptions
   EO2b       rollback visibility
@@ -39,7 +39,7 @@ Step 2  READY
   pass  no clip 5 prompt references the framework skill
         $ node "${ROOT}/scripts/check.mjs" c5-prompts-skill-free
 
-Step 3  READY
+Step 3  BLOCKED
   Split the ESM TypeScript Express 5 migration into incremental milestones that can be validated independently
   EO2b       milestones validated independently
 
@@ -50,7 +50,7 @@ Step 3  READY
   pass  clip 5's milestone prompt does not impose what step 4 audits
         $ node "${ROOT}/scripts/check.mjs" c5-step3-does-not-decompose
 
-Step 4  READY
+Step 4  BLOCKED
   Reject the milestone that batches route migration with dependency upgrades and have Codex split it into two checkpoints
   TO2, EO2b  incremental checkpoints; batched milestone rejected
 
@@ -67,14 +67,21 @@ Step 4  READY
   pass  step 4 audits the plan file, not the conversation
         $ node "${ROOT}/scripts/check.mjs" c5-step4-audits-the-plan-file
 
-SHARED GATES  16 of 16 pass
+SHARED GATES  15 of 16 pass
 
   These gate every step above. A failure here blocks the whole clip.
+    FAIL  working tree clean
 
-Every gate is green. This clip can be recorded.
+WHAT TO FIX
+-----------
 
-PASS: 29   FAIL: 0
+working tree clean   [all]
+  why  Every demo starts from a clean tree; leftover edits change what the diff shows.
+  fix  ./module1/scripts/demo_reset.sh
+  ask  Show me every uncommitted change in this repository and what produced it.
+
+PASS: 28   FAIL: 1
 
 Full command output for this run: module1/logs/m1-c5_preflight.full.txt
 
-VERDICT  READY - this clip can be recorded.
+VERDICT  NOT READY - 1 check(s) failed above.
