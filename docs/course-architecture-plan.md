@@ -485,6 +485,37 @@ out of the story with it. The actual answer was one extension: ESM is carried by
 by the package field, each migrated file opts itself in, and every piece of scenery becomes load
 bearing again.
 
+## 11c. An assertion tests a shape, never the wording it first saw
+
+Three checks in this repository have now failed the same way. Each was written by reading the
+seeded artifact and copying a string out of it, so each passed for as long as nothing changed and
+gave a wrong answer the first time a real Codex run phrased the same thing differently.
+
+| Assertion | Copied from the seed | What a measured walk wrote | Result |
+|---|---|---|---|
+| `splitPlanHolds` required row | the literal `Scope` row label | a `Kind` row plus a `Files touched` row | rejected a correct split |
+| `splitPlanHolds` upgrade test | `/express.{0,4}4\.x to 5\.x/i` | *"Upgrade Express 4 to Express 5"* | **silently could not detect its own condition** |
+| C6 prepare block | `grep -c '^### Checkpoint'` | `### Milestone` | printed `0` beside its own expected `2` |
+
+The second is the dangerous shape. A check that rejects a correct artifact is loud and gets fixed
+in minutes; a check that cannot see the state it exists to catch stays green and is believed. Both
+came from the same habit.
+
+**The test to apply: if the artifact is produced by an agent, ask what the assertion would do if the
+agent phrased it differently — because it will.** Assert the property the row establishes, not the
+label above it. `| Scope |`, `| Files touched |` and `| Files |` all answer *what does this
+checkpoint touch*, and any of them satisfies the check now.
+
+**A count is only checkable against a stated state.** `runbook-plan-greps-resolve` evaluates every
+runbook `grep -c '^### X' <file>  # must be N` against that file on the branch the clip's AUTHOR
+PREP table declares as its starting checkpoint — not against the working tree, where the same grep
+gives a different and equally correct answer. That is what makes an expected count assertable at
+all.
+
+**And this is why the negative case is not optional.** Reading any of the three would not have
+revealed the defect; only writing down the condition each exists to detect, and watching it go red,
+does. See `scripts/check-negatives.mjs`.
+
 ## 12. Nothing unexplained may show a badge on camera
 
 **Before recording, open every file the demo opens and account for every badge on every tab.** A
@@ -636,6 +667,33 @@ files, no notification toasts pending, and no extension update prompts.
   output still matches.
 
 ---
+
+## 14. A negative control has a floor, and its own apparatus is not part of it
+
+C6's skill-off run is the only place in this course that claims to measure what a tool contributes.
+A measured pre-check asked Codex what it had consulted, and it named five sources nobody had
+pointed it at. Sorting those five is the whole method.
+
+**Four are the floor.** `AGENTS.md` is ambient by design and carries the skill's checkpoint rule as
+a conclusion — *"Migrate one route slice at a time"*. `plans/migration-plan.md`,
+`docs/commonjs-esm-compatibility.md` and `docs/behavioral-exceptions.md` carry the checkpoints, the
+four conversions and the accepted differences. Run B reaches all of them, and that is fine, but it
+means **Run B is not a no-guidance run and must never be described as one.** State the floor in the
+artifact, or a small measured difference gets read as *"the skill adds little"* when what actually
+happened is the repository did the skill's job. What the comparison isolates is the skill's
+*reasoning* — which is why the tells are reasons (why `build` follows `--noEmit`, why the gate order
+cannot be permuted) rather than conclusions, and why none of the four state them.
+
+**The fifth is a leak.** `plans/prompts/m1-c6-migrate-route.md` opens on the skill line and then
+explains that Run B is that prompt minus its first line. A Run B that retrieves it has been told
+both that a skill exists and that it is being withheld. It moves aside for **both** runs — both, so
+neither has a source the other lacks — and each run records what it consulted, so a Run B naming
+`plans/prompts/` or `framework-skill/` is discarded and both are re-run.
+
+**The distinction that makes this legitimate.** Hiding `SKILL.md` to force a skill-off run would
+remove the thing under test, and a control that requires disguising its input is measuring nothing.
+Removing the experiment's own scaffolding from the environment it runs in is the opposite: the saved
+prompt is apparatus, not guidance. Ask which of the two a file is before moving it.
 
 ## Outstanding
 
