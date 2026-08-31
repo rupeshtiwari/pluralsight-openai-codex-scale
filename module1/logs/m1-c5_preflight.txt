@@ -67,13 +67,13 @@ Step 4  READY
   pass  step 4 audits the plan file, not the conversation
         $ node "${ROOT}/scripts/check.mjs" c5-step4-audits-the-plan-file
 
-SHARED GATES  15 of 15 pass
+SHARED GATES  16 of 16 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 28   FAIL: 0
+PASS: 29   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c5_preflight.full.txt
 
