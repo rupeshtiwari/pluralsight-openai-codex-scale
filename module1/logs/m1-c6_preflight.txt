@@ -68,13 +68,13 @@ Step 4  READY
   pass  this clip's starting checkpoint exists
         $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
 
-SHARED GATES  16 of 16 pass
+SHARED GATES  17 of 17 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 30   FAIL: 0
+PASS: 31   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 

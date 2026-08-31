@@ -76,6 +76,10 @@ $ node "${ROOT}/scripts/check.mjs" demo-checkout-refs-exist
 
 RESULT PASS  [all] no runnable block checks out a missing branch
 
+$ node "${ROOT}/scripts/check.mjs" no-fixed-offsets-into-agent-files
+
+RESULT PASS  [all] no verification reads an agent-written file at a fixed offset
+
 $ node "${ROOT}/scripts/check.mjs" doc-links-resolve
 
 RESULT PASS  [all] runbook links resolve
@@ -135,9 +139,9 @@ $ [ "$(grep -c "value === 'p0'" supporthub-api/modern/src/routes/tickets.ts)" -e
 RESULT PASS  [c2] the route does not normalize priority
 
 $ node "${ROOT}/scripts/check.mjs" c2-refs-identical
-  note: local demo/m1-c2-start is stale (6aeecef vs origin d2c6d87)
+  note: local demo/m1-c2-start is stale (6aeecef vs origin 6f57fae)
   note: git fetch origin && git branch -f demo/m1-c2-start origin/demo/m1-c2-start
-  note: local demo/m1-c2-captured is stale (6aeecef vs origin d2c6d87)
+  note: local demo/m1-c2-captured is stale (6aeecef vs origin 6f57fae)
   note: git fetch origin && git branch -f demo/m1-c2-captured origin/demo/m1-c2-captured
 RESULT PASS  [c2] start and captured checkpoints are the same commit
 
