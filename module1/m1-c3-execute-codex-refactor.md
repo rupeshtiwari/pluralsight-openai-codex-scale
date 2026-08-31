@@ -365,12 +365,18 @@ work table has an entry; 25 tests pass.
 
 ```bash
 git diff --stat
-grep -A6 "## Validation checks" plans/ExecPlan.md   # run each command it names
-grep -A3 "## Deferred work" plans/ExecPlan.md
+awk '/^## /{p = /^## Validation checks/} p' plans/ExecPlan.md   # run each command it names
+awk '/^## /{p = /^## Deferred work/} p' plans/ExecPlan.md
 ```
 
+Both print a whole section, however long Codex writes it. They used to be `grep -A6` and `grep -A3`,
+which are guesses about how much an agent will write into a file it authors on camera. However many
+gates the plan records, and however many rows Deferred work ends up with, a fixed offset truncates
+anything past it and the step reads the wrong thing off screen.
+
 PASS if the diff touches only the ExecPlan's intended files, every gate the plan names passes, and
-Deferred work contains one row. FAIL if the extra module is still present, or Deferred work is empty.
+Deferred work contains one row. FAIL if the extra module is still present, or Deferred work is
+empty.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` and restart from Step 2.
 

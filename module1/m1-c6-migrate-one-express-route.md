@@ -256,13 +256,20 @@ about the run that also rewrote `plans/migration-plan.md` — a filter that remo
 what to look at removes signal with it.
 
 PASS if `ls` lists both files, exactly two new paths appear under `supporthub-api/migration/`,
-nothing is shown as modified, and the last command prints `0`.
+nothing is shown as modified, the last command prints `0`, **and the reply stated the conversions
+before the code**. The conversion list is this step's Highlight — without it there is nothing to
+point at — and a measured run produced both files correctly while opening straight on
+*"Implemented the GET /tickets/:id migration slice"* with no conversions named at all.
 
 FAIL if:
 
 - **`ls` cannot find either file.** Nothing was written. A reported gate pass is not a gate pass —
   a run cannot have linted, type-checked, built and tested files that are not on disk. Repeat
   Step 1; do not go on.
+- **the reply names no conversions.** The files can be right and the step still fail: the prompt
+  asks for the conversions *before* editing, and they are what the Highlight and EO2d rest on.
+  Repeat Step 1. This matters twice over during the skill-on/skill-off runs — see
+  [m1-c6-framework-skill-evidence.md](m1-c6-framework-skill-evidence.md).
 - nothing is listed by `git status` even though `ls` found the files — they exist but are ignored,
   which means the paths are wrong.
 - `plans/migration-plan.md` appears. Recording the checkpoint is **Step 4's** job, and a run that
@@ -420,16 +427,28 @@ by the checkpoint boundary rather than chosen, and it is now written down.
 **Verification.**
 
 ```bash
-grep -A4 "## Behavioral exceptions" plans/migration-plan.md
+awk '/^## /{p = /^## Behavioral exceptions/} p' plans/migration-plan.md
+awk '/^## /{p = /^## Behavioral exceptions/} p' plans/migration-plan.md | grep -c 'app\.js'
 grep -c "^## " plans/migration-plan.md   # unchanged: the split adds entries, not sections
 git rev-parse --short HEAD
 npm run lint:migration && npm run typecheck:migration && npm run build:migration && npm run test:route:migration
 ```
 
-PASS if the exception is recorded with a reason, a rollback commit is named inside checkpoint 2's
-entry, the top-level section count is unchanged, and all four gates still pass. FAIL if the
-exception table is still empty, if a separate rollback section appeared, or if dependencies were
-changed — that belongs to checkpoint 2.
+**The first command prints the whole section, however long Codex writes it.** It used to be
+`grep -A4`, which showed the heading and the two intro lines and stopped — the recorded exception
+sits below line 4, so a correct run and an empty one looked identical. A fixed offset is a guess
+about how much an agent will write.
+
+The second bounds a content check to that section: the exception has to name `app.js`, which is why
+the route cannot be served yet. `app.js` is a file name from the prompt, not a phrasing Codex
+chooses — it prints `1` once the exception is recorded and `0` before. `grep -c "^## "` is fine as
+it stands: the section count is a shape this repository controls.
+
+PASS if the section prints the new exception with a reason, the content check prints at least `1`, a
+rollback commit is named inside checkpoint 2's entry, the top-level section count is unchanged, and
+all four gates still pass. FAIL if the exception table is unchanged, if the content check prints
+`0`, if a separate rollback section appeared, or if dependencies were changed — that belongs to
+checkpoint 2.
 
 **Recovery.** `./module1/scripts/demo_reset.sh` returns to the starting state.
 
