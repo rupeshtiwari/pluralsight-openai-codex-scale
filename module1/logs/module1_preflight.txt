@@ -135,9 +135,9 @@ $ [ "$(grep -c "value === 'p0'" supporthub-api/modern/src/routes/tickets.ts)" -e
 RESULT PASS  [c2] the route does not normalize priority
 
 $ node "${ROOT}/scripts/check.mjs" c2-refs-identical
-  note: local demo/m1-c2-start is stale (6aeecef vs origin 92f7a9d)
+  note: local demo/m1-c2-start is stale (6aeecef vs origin 8d34d78)
   note: git fetch origin && git branch -f demo/m1-c2-start origin/demo/m1-c2-start
-  note: local demo/m1-c2-captured is stale (6aeecef vs origin 92f7a9d)
+  note: local demo/m1-c2-captured is stale (6aeecef vs origin 8d34d78)
   note: git fetch origin && git branch -f demo/m1-c2-captured origin/demo/m1-c2-captured
 RESULT PASS  [c2] start and captured checkpoints are the same commit
 
@@ -222,14 +222,8 @@ $ grep -q "Not yet reviewed" plans/migration-plan.md
 RESULT PASS  [c5] that milestone is unreviewed
 
 $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
-  module1/m1-c6-migrate-one-express-route.md starts on demo/m1-c6-start, which does not exist — this clip cannot be recorded yet
-    cut it by walking the clip before it; the chain and its capture points are in module1/walkthrough-c5-c6.md
-  module1/m1-c6-migrate-one-express-route.md starts on demo/m1-c5-captured, which does not exist — this clip cannot be recorded yet
-    cut it by walking the clip before it; the chain and its capture points are in module1/walkthrough-c5-c6.md
-RESULT FAIL  [c6] this clip's starting checkpoint exists
-WHY IT MATTERS  A clip cannot be ready when the checkout its first line performs does not resolve. m1-c6 reported READY while demo/m1-c6-start had never been cut, and neither had demo/m1-c5-captured, the branch it must be branched from.
-HOW TO FIX      Walk clip 5 and cut the checkpoints; the chain and its capture points are in module1/walkthrough-c5-c6.md.
-CODEX PROMPT    Which demo branches does the walkthrough say clip 6 depends on, and do they exist?
+
+RESULT PASS  [c6] this clip's starting checkpoint exists
 
 $ [ -f framework-skill/node-express-migration/SKILL.md ]
 
@@ -254,6 +248,10 @@ RESULT PASS  [c6] skill names all four validation gates
 $ [ -f supporthub-api/migration/compat/dirname.mts ] && [ -f supporthub-api/migration/compat/legacyRequire.mts ]
 
 RESULT PASS  [c6] compat modules present
+
+$ node "${ROOT}/scripts/check.mjs" runbook-plan-greps-resolve
+
+RESULT PASS  [c6] the runbook's plan greps resolve on the start branch
 
 $ node "${ROOT}/scripts/check.mjs" c6-migrates-in-place
 
@@ -325,10 +323,4 @@ PER-CLIP TRANSCRIPTS
   m1-c5  READY  logs/m1-c5_preflight.txt
   m1-c6  READY  logs/m1-c6_preflight.txt
 
-FAILED CHECKS
-  [c6] this clip's starting checkpoint exists
-    why it matters : A clip cannot be ready when the checkout its first line performs does not resolve. m1-c6 reported READY while demo/m1-c6-start had never been cut, and neither had demo/m1-c5-captured, the branch it must be branched from.
-    how to fix     : Walk clip 5 and cut the checkpoints; the chain and its capture points are in module1/walkthrough-c5-c6.md.
-    codex prompt   : Which demo branches does the walkthrough say clip 6 depends on, and do they exist?
-
-VERDICT  NOT READY - 1 check(s) failed.
+VERDICT  READY - Module 1 can be run.
