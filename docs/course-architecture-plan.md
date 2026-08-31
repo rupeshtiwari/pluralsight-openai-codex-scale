@@ -446,6 +446,45 @@ the later step needs already exists in the artifact:
 Reaching for the second answer when the first would do is what makes a demo look staged. Check the
 artifact before deciding.
 
+## 11b. The prompt decides which workspace, so the repository has to agree with it
+
+A prompt is the only thing that tells an agent where to write. Everything else — the plan of
+record, a compat layer, a tsconfig `include`, a workspace-scoped npm script — is scenery the agent
+never has to look at. When the prompt and that scenery disagree, the prompt wins silently and the
+disagreement surfaces later as work in the wrong place.
+
+Clip 6 is the case. Its step 1 prompt said *"Migrate ONLY the GET /tickets/:id route from
+supporthub-api/migration to the modern service in supporthub-api/modern"*, and Codex did exactly
+that: a new route, a new contract test, and an edit to `modern/src/app.ts`. Nothing about the work
+was wrong. It was in the service clip 2 films, whose closing proof is an empty Source Control view,
+and it was found on `demo/m1-c3-start` two clips away from where it was produced.
+
+Everything else in the repository said in place: `plans/migration-plan.md`,
+`docs/commonjs-esm-compatibility.md`, `migration/package.json`'s own description, migration's
+`tsconfig.json` and vitest config, and the compat modules the migrated route depends on. Only the
+prompt said otherwise, so only the prompt was obeyed.
+
+**Two things follow, and a workspace constraint needs both.**
+
+- **Name the target path in the prompt, and forbid the other workspace by name.** "Migrate the
+  route" leaves the choice to the agent. `supporthub-api/migration/routes/ticketRead.mts` does not,
+  and `Do not create or modify any file under supporthub-api/modern.` closes the other door.
+- **Prove it in the step's own verification, not two clips later.** Step 1 runs
+  `git status --porcelain supporthub-api/modern | wc -l` and requires `0`. A scope breach is then a
+  visible failure at the moment it happens, which is the only time it is cheap to fix.
+
+`c6-migrates-in-place` asserts all of it — the target path, the forbidding line, the absence of any
+other `supporthub-api/modern` path in the prompt, and the verification that guards it.
+
+**A blocker found in the target workspace is a design question, not a reason to move the target.** The
+in-place migration looked impossible at first: `migration/package.json` cannot declare
+`"type": "module"` while any CommonJS `.js` file remains, so `tsc` emitted CommonJS and
+`moduleDir(import.meta.url)` typechecked without being able to run. Retargeting to the other
+workspace made that go away, and took the plan of record, the compat layer and the checkpoint split
+out of the story with it. The actual answer was one extension: ESM is carried by `.mts` rather than
+by the package field, each migrated file opts itself in, and every piece of scenery becomes load
+bearing again.
+
 ## 12. Nothing unexplained may show a badge on camera
 
 **Before recording, open every file the demo opens and account for every badge on every tab.** A
