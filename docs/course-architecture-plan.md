@@ -21,32 +21,46 @@ Locked against the approved Pluralsight outline (Opportunity ID `b266834d-afaf-4
 | Approved course outline | **Received — all clip titles, durations, LOs locked** |
 | Pluralsight standards PDF (terminal colors) | **MISSING** — blocks color tokens in `scripts/fmt.mjs` only (§T) |
 
-Duration arithmetic verified: 3+6+6+3+6+6 = 30 per module, 60 total. 8 demo clips @ 6 min, 4 presentation clips @ 3 min.
+Duration arithmetic verified: 3+6+6+3+6+6 = 30 per module, 60 total. 8 demo clips @ 6 min, 4 presentation
+clips @ 3 min.
 
 ---
 
 ## 1. Learning objectives (verbatim from outline)
 
 ### TO1 — Apply Codex to plan and execute a codebase refactoring operation using reviewable passes.
-- **EO1a** Construct a refactoring prompt that instructs Codex to map noisy modules, identify dead code, and propose one cleanup theme at a time before editing
-- **EO1b** Apply the ExecPlan pattern to maintain a running log of intended changes, behavior contracts, and validation checks across a multi-session refactor
-- **EO1c** Evaluate a Codex-generated refactoring diff to confirm that public behavior is preserved and that architecture migrations are separated into discrete tasks
+
+- - **EO1a** Construct a refactoring prompt that instructs Codex to map noisy modules, identify dead code, and
+  propose one cleanup theme at a time before editing
+- - **EO1b** Apply the ExecPlan pattern to maintain a running log of intended changes, behavior contracts, and
+  validation checks across a multi-session refactor
+- - **EO1c** Evaluate a Codex-generated refactoring diff to confirm that public behavior is preserved and that
+  architecture migrations are separated into discrete tasks
 - **EO1d** Explain when to use Plan mode before committing Codex to implementation
 
 ### TO2 — Demonstrate how to orchestrate a legacy-to-modern stack migration with Codex using incremental checkpoints.
-- **EO2a** Direct Codex to inventory a legacy system's routing, data models, auth, build tooling, tests, and external contracts before proposing a migration plan
-- **EO2b** Evaluate a Codex-generated migration plan for compatibility layers, explicit behavioral exceptions, and rollback visibility
-- **EO2c** Apply validation checks (lint, type-check, focused tests) after each migration milestone rather than batching cleanup
+
+- - **EO2a** Direct Codex to inventory a legacy system's routing, data models, auth, build tooling, tests, and
+  external contracts before proposing a migration plan
+- - **EO2b** Evaluate a Codex-generated migration plan for compatibility layers, explicit behavioral
+  exceptions, and rollback visibility
+- - **EO2c** Apply validation checks (lint, type-check, focused tests) after each migration milestone rather
+  than batching cleanup
 - **EO2d** Use the ASP.NET Core skill or equivalent framework skill to apply platform-specific migration guidance
 
 ### TO3 — Apply Codex automations to run recurring bug triage across multiple data sources at team scale.
-- **EO3a** Configure a bug triage automation using the Sentry, Slack, Linear, and GitHub plugins to sweep a defined time window
-- **EO3b** Evaluate a Codex-generated triage report for correct P0-P3 prioritization, deduplicated bug entries, and evidence-backed recommendations
+
+- - **EO3a** Configure a bug triage automation using the Sentry, Slack, Linear, and GitHub plugins to sweep a
+  defined time window
+- - **EO3b** Evaluate a Codex-generated triage report for correct P0-P3 prioritization, deduplicated bug
+  entries, and evidence-backed recommendations
 - **EO3c** Convert a tested manual triage sweep into a scheduled automation using the same thread context
 - **EO3d** Apply a routing workflow to draft Slack updates, Linear issues, or GitHub comments after triage approval
 
 ### TO4 — Demonstrate how to debug and trace Codex automations
-- **EO4a** Use the Codex review pane to inspect uncommitted diffs from an automation run, including per-hunk staging and revert controls
+
+- - **EO4a** Use the Codex review pane to inspect uncommitted diffs from an automation run, including per-hunk
+  staging and revert controls
 
 > **ASP.NET Core handling (§B).** EO2d names the ASP.NET Core skill. That string is curriculum-owned and
 > is quoted verbatim wherever the LO is displayed. It is **never** implemented: the repo ships the
@@ -92,6 +106,7 @@ Each demo runs 6 minutes / ~850 narration words / 3-4 major steps (§AK, §AO).
 Steps map to the outline's own clip bullets.
 
 ### M1 C2 — Map noisy TypeScript modules with Codex before editing
+
 Decision: **What should Codex change first, and what must remain untouched?**
 
 | Step | Action | Outline bullet | LO | Proof |
@@ -102,6 +117,7 @@ Decision: **What should Codex change first, and what must remain untouched?**
 | 4 | Confirm Plan mode produced a bounded reviewable first pass | 4 | TO1, EO1d | `git status` clean — zero edits |
 
 ### M1 C3 — Execute a Codex refactor with ExecPlan checkpoints
+
 Decision: **Which generated changes belong in this refactor?**
 
 | Step | Action | Outline bullet | LO | Proof |
@@ -112,6 +128,7 @@ Decision: **Which generated changes belong in this refactor?**
 | 4 | Remove bundled architecture migration; log as separate ExecPlan task | 4 | EO1c | deferred-work entry |
 
 ### M1 C5 — Inventory a legacy Express 4 service with Codex
+
 Decision: **Is this migration milestone safe enough to validate and roll back independently?**
 
 | Step | Action | Outline bullet | LO | Proof |
@@ -122,6 +139,7 @@ Decision: **Is this migration milestone safe enough to validate and roll back in
 | 4 | Reject the milestone batching route migration with dependency upgrades; split into two checkpoints | 4 | EO2b | 2 checkpoints, no code written |
 
 ### M1 C6 — Migrate one Express route to TypeScript with framework guidance
+
 Decision: **Can this migrated route be accepted safely?**
 
 | Step | Action | Outline bullet | LO | Proof |
@@ -132,6 +150,7 @@ Decision: **Can this migrated route be accepted safely?**
 | 4 | Record checkpoint for continue-or-rollback | 4 | TO2 | tag recorded |
 
 ### M2 C2 — Run a manual Codex triage sweep across Sentry and GitHub
+
 Decision: **Which incidents deserve action, and why?**
 
 | Step | Action | Outline bullet | LO | Proof |
@@ -142,6 +161,7 @@ Decision: **Which incidents deserve action, and why?**
 | 4 | Correct weak prioritization or duplicates before promotion | 4 | EO3b | corrected report |
 
 ### M2 C3 — Schedule Codex triage and route work to Slack and Linear
+
 Decision: **Which findings should be routed?**
 
 | Step | Action | Outline bullet | LO | Proof |
@@ -152,6 +172,7 @@ Decision: **Which findings should be routed?**
 | 4 | Verify Slack and Linear drafts preserve evidence and priority | 4 | EO3d | draft payloads match |
 
 ### M2 C5 — Inspect automation diffs in the Codex review pane
+
 Decision: **Which hunks should survive review?**
 
 | Step | Action | Outline bullet | LO | Proof |
@@ -162,6 +183,7 @@ Decision: **Which hunks should survive review?**
 | 4 | Confirm only approved changes remain | 4 | EO4a | `git diff --cached` clean |
 
 ### M2 C6 — Trace a failed Codex automation and recover safely
+
 Decision: **What failed, and what should be rerun?**
 
 | Step | Action | Outline bullet | LO | Proof |
@@ -485,6 +507,19 @@ it looks like the problem was handled.
 **A directive only suppresses the tool that reads it.** `markdownlint-disable` is not a general
 "stop linting this file" instruction, and neither is any other. Before writing one, name the
 extension, confirm it honours that directive, and confirm the effect.
+
+**A config is scoped to a location.** `.markdownlint.json` sits at the repository root, so it governs
+files inside the repository and nothing else. A copy of a runbook opened from a content folder
+elsewhere on disk inherits none of it and lints against markdownlint's defaults — 186 findings on a
+file that reports zero in place. If you keep working copies outside the repository, put a copy of
+the config beside them or point the extension's setting at this one; there is no repository-side fix
+for a file the repository cannot see.
+
+That badge was worth having. Chasing it found 46 real defects inside the repository, because
+`lint:md` had only ever covered the two on-camera plans: headings with no blank line under them,
+lists with none above, and two rows of the negative-case roster orphaned out of their table by a
+stray blank, which is why they rendered as loose text. `all-docs-lint-clean` now covers every
+tracked document.
 
 **Three badge sources so far, and what actually controls each:**
 

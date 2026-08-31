@@ -70,7 +70,8 @@ migrate a legacy Express 4 service.
 | Inventory a legacy Express 4 service with Codex | [module1/m1-c5-inventory-legacy-express4.md](module1/m1-c5-inventory-legacy-express4.md) |
 | Migrate one Express route to TypeScript with framework guidance | [module1/m1-c6-migrate-one-express-route.md](module1/m1-c6-migrate-one-express-route.md) |
 
-Source: [supporthub-api/modern/](supporthub-api/modern/) · [supporthub-api/migration/](supporthub-api/migration/) · [plans/](plans/)
+Source: [supporthub-api/modern/](supporthub-api/modern/) ·
+[supporthub-api/migration/](supporthub-api/migration/) · [plans/](plans/)
 
 ### Module 2 — Automating and debugging Codex workflows at team scale
 

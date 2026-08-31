@@ -178,6 +178,12 @@ check "all" "ESLint parser root pinned in both workspaces" \
   "Set parserOptions.tsconfigRootDir in the config the check names: import.meta.dirname in modern, __dirname in migration." \
   "Which ESLint config is missing parserOptions.tsconfigRootDir?"
 
+check "all" "every tracked document lints clean" \
+  'node "${ROOT}/scripts/check.mjs" all-docs-lint-clean' \
+  "lint:md covered the two on-camera plans and nothing else, so 46 real defects sat in the runbooks and docs unseen. They surfaced only when a copy of a runbook was opened from outside the repository, where .markdownlint.json does not apply." \
+  "npm run lint:md, then fix what it names." \
+  "Which tracked markdown files have markdownlint findings?"
+
 check "all" "no on-camera markdown shows a lint badge" \
   'node "${ROOT}/scripts/check.mjs" oncamera-markdown-lint-silent' \
   "plans/ExecPlan.md is on screen for all four clip 3 steps and Codex rewrites its tables in step 1, and markdownlint put 518 problems on it while the command line said nothing. This covers the tools that ship a CLI. Spell Right ships none, so a green result here does not mean the editor is quiet -- open the file and look before recording." \
