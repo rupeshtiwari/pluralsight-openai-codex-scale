@@ -341,13 +341,26 @@ service behaved. This step compares the two directly, before anything is accepte
 **Commands.**
 
 ```bash
+git diff --no-index supporthub-api/migration/routes/tickets.js \
+                    supporthub-api/migration/routes/ticketRead.mts
 git status --short -- ':!plans/prompts'
 grep -oE '\b(200|401|403|404)\b' \
   supporthub-api/migration/tests/contracts/ticket-read.route.test.mts | sort -u | wc -l
 npm run test:migration
 ```
 
-Expect two new files and nothing modified; `4`; and the legacy node:test suite still reporting
+**The first command is the diff this step is named for.** Both migrated files are new, so `git diff`
+and `git diff --stat` show nothing at all — the step used to open on a `git status` and never put a
+diff on screen. `--no-index` compares the two files directly regardless of tracking, which is the
+same comparison the prompt below asks Codex to make in prose.
+
+Read it for two things. The conversions are on the left and right of each hunk: `require()` against
+`import`, `module.exports` against `export default`, `var` against `const`. And the deletions are
+`POST /tickets` and `PATCH /tickets/:id/status` — they are absent from the migrated file because
+this checkpoint did not migrate them, which is the bounded slice made visible. Do not read the
+insertion and deletion counts as expected values; how the file is written is Codex's choice.
+
+Then expect two new files and nothing modified; `4`; and the legacy node:test suite still reporting
 **8 pass, 0 fail**, because the CommonJS service was not touched.
 
 **That grep counts the four status codes, not the way they are asserted.** It used to read
