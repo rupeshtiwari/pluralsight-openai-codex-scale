@@ -1419,6 +1419,65 @@ const CHECKS = {
   },
 
   /**
+   * No on-camera verification may read a file the agent writes at a fixed line
+   * offset.
+   *
+   * Fifth instance of 11c and the same shape as the fourth: C6 step 4 ran
+   * `grep -A4 "## Behavioral exceptions" plans/migration-plan.md`, and the
+   * exception Codex had just recorded sat below line 4. The command printed the
+   * heading and two intro lines and stopped, so a correct run and a run that
+   * recorded nothing looked identical. -A4 is the line-count equivalent of
+   * grepping for a variable name: a guess about how much an agent will write.
+   *
+   * Sweeping every runbook found two more, both in C3 and both against
+   * plans/ExecPlan.md, which Codex writes on camera in that clip -- an ExecPlan
+   * recording five gates instead of four, or two deferred rows instead of one,
+   * would have been silently truncated.
+   *
+   * "A file the agent writes" is taken from the runbook itself: any path named
+   * inside one of its own ```text prompt blocks is a file that clip asks Codex
+   * to produce. Offsets against files nobody asks an agent to write are not
+   * flagged, and prose describing the old form is not either -- only ```bash
+   * blocks after ON-CAMERA are read.
+   *
+   * The replacement prints a whole section regardless of length:
+   *
+   *     awk '/^## /{p = /^## Behavioral exceptions/} p' plans/migration-plan.md
+   *
+   * Proven red on each of the three real sites, and on -B and -C forms.
+   */
+  'no-fixed-offsets-into-agent-files': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const files = globSync('module*/m*-c*.md', { cwd: ROOT }).filter((f) => !f.includes('evidence'));
+    let ok = true;
+    let scanned = 0;
+    for (const f of files) {
+      const src = read(f);
+      const i = src.indexOf('# ON-CAMERA');
+      if (i < 0) continue;
+      scanned += 1;
+      // Paths this clip's own prompts ask Codex to write.
+      const written = new Set();
+      for (const b of src.matchAll(/```text\n([\s\S]*?)\n```/g)) {
+        for (const m of b[1].matchAll(/\b((?:plans|supporthub-api|docs)\/[A-Za-z0-9._/-]+)/g)) written.add(m[1]);
+      }
+      if (written.size === 0) continue;
+      for (const b of src.slice(i).matchAll(/```bash\n([\s\S]*?)\n```/g)) {
+        for (const cmd of b[1].replace(/\\\n\s*/g, ' ').split('\n')) {
+          const off = cmd.match(/-([ABC])\s*(\d+)/);
+          if (!off) continue;
+          const target = [...written].find((w) => cmd.includes(w));
+          if (target) {
+            ok = reject(`${f}: \`${cmd.trim()}\` reads ${target} at a fixed -${off[1]}${off[2]} offset, and this clip's own prompts ask Codex to write that file. How many lines it writes is its choice. Print the section instead: awk '/^## /{p = /^## <heading>/} p' ${target}`);
+          }
+        }
+      }
+    }
+    if (scanned === 0) return reject('no runbook has an ON-CAMERA section -- the runbook shape changed');
+    return ok;
+  },
+
+  /**
    * A runbook may grep an agent-authored file for contract values, never for a
    * name the agent chose.
    *
