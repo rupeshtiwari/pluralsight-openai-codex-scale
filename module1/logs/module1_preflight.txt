@@ -135,7 +135,10 @@ $ [ "$(grep -c "value === 'p0'" supporthub-api/modern/src/routes/tickets.ts)" -e
 RESULT PASS  [c2] the route does not normalize priority
 
 $ node "${ROOT}/scripts/check.mjs" c2-refs-identical
-
+  note: local demo/m1-c2-start is stale (6aeecef vs origin c832984)
+  note: git fetch origin && git branch -f demo/m1-c2-start origin/demo/m1-c2-start
+  note: local demo/m1-c2-captured is stale (6aeecef vs origin c832984)
+  note: git fetch origin && git branch -f demo/m1-c2-captured origin/demo/m1-c2-captured
 RESULT PASS  [c2] start and captured checkpoints are the same commit
 
 $ [ -f plans/prompts/m1-c2-map-codebase.md ]
@@ -248,32 +251,59 @@ $ grep -q "ESLint" framework-skill/node-express-migration/SKILL.md && grep -q "t
 
 RESULT PASS  [c6] skill names all four validation gates
 
-$ [ -f supporthub-api/modern/src/compat/dirname.ts ] && [ -f supporthub-api/modern/src/compat/legacyRequire.ts ]
+$ [ -f supporthub-api/migration/compat/dirname.mts ] && [ -f supporthub-api/migration/compat/legacyRequire.mts ]
 
 RESULT PASS  [c6] compat modules present
 
-$ npm run test:route
+$ node "${ROOT}/scripts/check.mjs" c6-migrates-in-place
 
-> supporthub@1.0.0 test:route
-> npm run test:route --workspace=supporthub-api/modern
+RESULT PASS  [c6] the route migrates in place
 
+$ npm run lint:migration && npm run typecheck:migration && npm run build:migration && npm run test:route:migration
 
-> @supporthub/api@1.0.0 test:route
-> vitest run tests/contracts/*route*.contract.test.ts
-
-
- RUN  v4.1.11 ./supporthub-api/modern
+> supporthub@1.0.0 lint:migration
+> npm run lint --workspace=supporthub-api/migration
 
 
- Test Files  1 passed (1)
-      Tests  4 passed (4)
-   Start at  <time>
-   Duration  <ms> (transform <ms>, setup <ms>, import <ms>, tests <ms>, environment <ms>)
-RESULT PASS  [c6] focused route tests pass
+> @supporthub/migration@0.9.4 lint
+> eslint .
 
-$ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
 
-RESULT PASS  [c6] express 5 in modern workspace
+> supporthub@1.0.0 typecheck:migration
+> npm run typecheck --workspace=supporthub-api/migration
+
+
+> @supporthub/migration@0.9.4 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+> supporthub@1.0.0 build:migration
+> npm run build --workspace=supporthub-api/migration
+
+
+> @supporthub/migration@0.9.4 build
+> tsc -p tsconfig.json
+
+
+> supporthub@1.0.0 test:route:migration
+> npm run test:route --workspace=supporthub-api/migration
+
+
+> @supporthub/migration@0.9.4 test:route
+> vitest run
+
+
+ RUN  v4.1.11 ./supporthub-api/migration
+
+No test files found, exiting with code 0
+
+include: tests/**/*.route.test.mts
+exclude:  **/node_modules/**, **/.git/**
+RESULT PASS  [c6] migration gates green on the baseline
+
+$ [ "$(npm run test:route:migration 2>&1 | grep -c "No test files found")" -eq 1 ]
+
+RESULT PASS  [c6] route contract suite starts empty
 
 $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/migration\"]})).version" | cut -d. -f1)" = "4" ]
 
