@@ -32,6 +32,7 @@ the captured branch that would let the assertion span start *and* end does not e
 ---
 
 ## M1 C2 — Map noisy TypeScript modules with Codex before editing
+
 Objectives: **TO1, EO1a, EO1d** · Checkpoint: `demo/m1-c2-start`
 
 | # | Demo bullet | Repo artifact | Command / prompt | Expected evidence | Status |
@@ -42,6 +43,7 @@ Objectives: **TO1, EO1a, EO1d** · Checkpoint: `demo/m1-c2-start`
 | 4 | Confirm Plan mode produces a bounded, reviewable first pass | `check.mjs c2-refs-identical`, preflight | VS Code Source Control view | **Changes** empty; start and captured refs identical | **PASS** |
 
 ## M1 C3 — Execute a Codex refactor with ExecPlan checkpoints
+
 Objectives: **TO1, EO1b, EO1c** · Checkpoint: `demo/m1-c3-start` (branched from `m1-c2-captured`)
 
 | # | Demo bullet | Repo artifact | Command / prompt | Expected evidence | Status |
@@ -52,6 +54,7 @@ Objectives: **TO1, EO1b, EO1c** · Checkpoint: `demo/m1-c3-start` (branched from
 | 4 | Remove the architecture migration Codex bundled into the cleanup diff and log it as a separate ExecPlan task | `plans/ExecPlan.md` Deferred work | Step 4 prompt, then `git diff --stat` | Diff matches intended files; one Deferred work row | READY |
 
 ## M1 C5 — Inventory a legacy Express 4 service with Codex
+
 Objectives: **TO2, EO2a, EO2b** · Checkpoint: `demo/m1-c5-start`
 
 | # | Demo bullet | Repo artifact | Command / prompt | Expected evidence | Status |
@@ -62,6 +65,7 @@ Objectives: **TO2, EO2a, EO2b** · Checkpoint: `demo/m1-c5-start`
 | 4 | Reject the milestone that batches route migration with dependency upgrades and have Codex split it into two checkpoints | `check.mjs milestone-batched` | `node scripts/check.mjs milestone-batched` | Seed: the plan opens on one unreviewed milestone whose single entry combines route + Express upgrade. The split into two is live | **SEEDED** |
 
 ## M1 C6 — Migrate one Express route to TypeScript with framework guidance
+
 Objectives: **TO2, EO2c, EO2d** · Checkpoint: `demo/m1-c6-start` — **BLOCKED on `m1-c5-captured`**
 
 | # | Demo bullet | Repo artifact | Command / prompt | Expected evidence | Status |

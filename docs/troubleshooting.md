@@ -240,9 +240,11 @@ from the shell.**
 
 ```bash
 # wrong - an escaped program inside a single-quoted shell string
+
 check "c5" "milestone batches" 'node -e "const t=require(\"fs\")..."'
 
 # right
+
 check "c5" "milestone batches" 'node "${ROOT}/scripts/check.mjs" milestone-batched'
 ```
 
@@ -285,9 +287,7 @@ appeared often enough to be predictable rather than unlucky:
 | 5 | the attribution gate passed | it invoked a deleted `fmt.py` with verbs `fmt.mjs` never had; the gate ran but printed nothing | false PASS | a sweep for references to a renamed file |
 | 6 | the preflight reported READY | it had just dirtied the tree by rewriting its own transcript with this machine's paths and timings — breaking clip 2 step 4, whose proof is an empty Source Control view | false PASS | the clean-clone check, again |
 | 7 | `skill-not-ambient` was broken | `AGENTS.md` was correct. The check matched `always consult` inside the sentence *explaining* why an always-consult instruction would be wrong | false FAIL | running the new check on the known-good file before trusting it — this standard, catching one on its first outing |
-
 | 8 | `migration tests pass (expect 8)` failed | the 8 tests passed. The check grepped for `# pass 8`, which Node prints under the tap reporter; Node 23 made **spec** the default, and it prints `i pass 8` | false FAIL | running the preflight on macOS with Node 24 — the version the course targets. It passed on the Node 22 in the build container |
-
 | 9 | `contract tests (expect 25)` failed | the 25 tests passed. The check grepped for the literal `Tests  25 passed (25)`, including its two spaces. That is a rendering, not a contract: colour codes, terminal width and reporter defaults all move it, so it matched on Linux and failed on macOS | false FAIL | running the preflight on the recording machine seconds after `npm test` passed by hand |
 
 Five of the nine are false passes, and that asymmetry is the point. **A false FAIL costs a take. A

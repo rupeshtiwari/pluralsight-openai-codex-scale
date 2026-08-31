@@ -82,9 +82,9 @@ lead to different decisions, so record which one actually happened rather than p
 
 | # | Question | Outcome | Notes |
 |---|---|---|---|
-| 1 | Scheduled task created from inside an existing thread? | _not yet run_ | |
-| 2 | Scheduled run inherits the manual sweep's corrections? | _not yet run_ | one of: re-derives cleanly · inherits partially · inherits fully |
-| 3 | Plugins work in the scheduled run (Sentry, GitHub, Slack, Linear)? | _not yet run_ | |
+| 1 | Scheduled task created from inside an existing thread? | *not yet run* | |
+| 2 | Scheduled run inherits the manual sweep's corrections? | *not yet run* | one of: re-derives cleanly · inherits partially · inherits fully |
+| 3 | Plugins work in the scheduled run (Sentry, GitHub, Slack, Linear)? | *not yet run* | |
 
 What each point-2 answer means:
 

@@ -887,6 +887,34 @@ const CHECKS = {
   },
 
   /**
+   * Every tracked document must lint clean, not only the two on camera.
+   *
+   * lint:md covered plans/ExecPlan.md and plans/migration-plan.md and nothing
+   * else, so 46 real defects sat in the runbooks and docs unnoticed: headings
+   * with no blank line under them, lists with none above, doubled blanks, and
+   * two rows of the negative-case roster orphaned out of their table by a blank
+   * line, which is why they rendered as loose text and why MD013's tables
+   * exemption could not reach them.
+   *
+   * They surfaced when a copy of a runbook was opened from outside the
+   * repository, where .markdownlint.json does not apply -- a config is scoped to
+   * a location, and a copy of a file placed outside that location inherits none
+   * of it. The badge was real; the repository had simply never looked.
+   */
+  'all-docs-lint-clean': () => {
+    let out = '';
+    try {
+      execSync('npx markdownlint-cli2 "module1/*.md" "module2/*.md" "docs/*.md" "plans/*.md" README.md',
+        { cwd: resolve(ROOT), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+      return true;
+    } catch (err) { out = `${err.stdout || ''}${err.stderr || ''}`; }
+    const hits = out.split('\n').filter((l) => /\.md:\d+/.test(l));
+    process.stderr.write(`  ${hits.length} markdownlint problem(s) across the tracked documents\n`);
+    for (const h of hits.slice(0, 4)) process.stderr.write(`    ${h.trim()}\n`);
+    return false;
+  },
+
+  /**
    * Every workspace opened on camera must lint completely silent -- zero errors
    * AND zero warnings.
    *

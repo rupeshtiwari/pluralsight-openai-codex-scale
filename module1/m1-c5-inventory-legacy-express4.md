@@ -72,7 +72,6 @@ The reset refuses if changes exist outside the demo surface and lists what it wo
 That guard exists because a plain reset destroyed unstaged work three times while this repository
 was being built. Between takes the dirty files are demo artifacts and it proceeds normally.
 
-
 **The framework skill must not appear anywhere in this demo.**
 
 C5's objectives are TO2, EO2a and EO2b. The framework skill is EO2d, which belongs to clip 6.
@@ -188,7 +187,6 @@ workflow rather than one that applies changes.
 > and use the label you actually see. The prompt below carries the hard boundary regardless
 > of which control you use.
 
-
 **Prompt.**
 
 ```text
@@ -212,7 +210,8 @@ on Express 5, and what stays the same.
 
 **Expected result.** Six labelled sections. Routes: **four** — `GET /health` with no auth, then
 `GET /tickets/:id`, `POST /tickets` and `PATCH /tickets/:id/status`, each behind API-key auth.
-Models: four statuses with a transition table. Auth: `x-api-key` header, 401 when missing, 403 when invalid. Build tooling: `node server.js`
+Models: four statuses with a transition table. Auth: `x-api-key` header, 401 when missing, 403 when invalid.
+Build tooling: `node server.js`
 to run, with `tsc` build and typecheck scripts already present. Tests: Node's built-in runner,
 8 tests, with vitest also configured. External contracts: paths, status codes, and response field
 names.
@@ -362,6 +361,7 @@ recoverable rather than a commitment.
 Break the migration into incremental milestones.
 
 Keep it to between three and five. Each milestone must:
+
 - be validated on its own by a named command
 - be undoable on its own, to a named commit
 

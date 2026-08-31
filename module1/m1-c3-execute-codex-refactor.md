@@ -220,7 +220,6 @@ implements changes rather than the planning one used to inspect without editing.
 > and use the label you actually see. The prompt below carries the hard boundary regardless
 > of which control you use.
 
-
 **Prompt.** Saved at `plans/prompts/m1-c3-bounded-cleanup.md`.
 
 ```text
