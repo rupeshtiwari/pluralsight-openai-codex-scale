@@ -766,13 +766,28 @@ fresh clone; the tool's printed summary is not evidence, so counts come from `--
 the skill-off run is never filled in from expectation. This adds the agent's own report to that
 list. The general form: **whatever claims the work happened is not what proves it.**
 
-### One consequence for the verification commands themselves
+### Exclude the noise; never narrow to the signal
 
-Scope them. C6's step verifications say `git status --short supporthub-api/`, not `git status
---short`, because §14 moves `plans/prompts` aside for both runs and a bare status then lists three
-deletions that have nothing to do with the migration. A PASS clause that counts listed paths would
-count those. `c6-migrates-in-place` asserts no on-camera `git status --short` is left unscoped; the
-prepare block's unscoped one is deliberate and runs before the move.
+C6's step verifications say `git status --short -- ':!plans/prompts'`. Getting there took two
+mistakes in opposite directions, both mine, and the pair is the lesson.
+
+A bare `git status --short` was wrong, because §14 moves `plans/prompts` aside for both runs and the
+status then lists three deletions that are apparatus. A PASS clause counting listed paths counts
+those.
+
+So I narrowed it to `supporthub-api/` — and the very next run rewrote `plans/migration-plan.md`
+(`+10 −7`, Step 4's job done early inside Step 1) while the step reported clean. **The filter I
+added to remove noise removed the signal with it.**
+
+The two forms look equally reasonable written down, and one of them is blind. **Exclude what you
+know is noise. Never enumerate what you expect to see** — the whole value of `git status` is telling
+you about the thing you did not expect, and a positive pathspec throws exactly that away. A
+verification narrowed to where you think the work is cannot report work somewhere else, which is the
+only failure worth running it for.
+
+`c6-migrates-in-place` now fails an on-camera status that is bare *or* narrowed to any path, and
+both are registered negatives. The prepare block's unscoped status is deliberate and runs before the
+move.
 
 ## Outstanding
 
