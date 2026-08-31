@@ -697,24 +697,43 @@ prompt is apparatus, not guidance. Ask which of the two a file is before moving 
 
 ## 15. An agent's account of its work is not the work
 
-A C6 Run A reported creating both migrated files and passing all five migration gates.
-`git status --short supporthub-api/` listed neither file. Nothing had been written. In the same
-reply it described the worktree as carrying modified `package.json`, `package-lock.json` and
-`plans/migration-plan.md` — true of the pre-check run an hour earlier, false after the reset the run
-actually started from.
+**Twice now**, a C6 Run A reported creating both migrated files and passing all five migration
+gates — `lint:migration`, `typecheck:migration`, `build:migration`, `test:route:migration` with 4
+tests, `test:migration` with 8. Neither file was on disk. `supporthub-api/migration/tests/contracts/`
+did not exist. Both replies also described the working tree as carrying modified `package.json`,
+`package-lock.json` and `plans/migration-plan.md` — true of the pre-check run earlier that day,
+false after the `reset --hard` the runs started from.
 
-The step verification caught it, which is the only reason it cost one run instead of the clip. But
-the failure it caught is not the one it was written for: the PASS clause enumerated *wrong place*
-and *wrong scope*, and said nothing about *nothing at all*. A confident summary over an empty diff
-reads like success, and every later step assumes the files exist.
+The step verification caught it both times, which is the only reason it cost two runs instead of the
+clip. But the failure it caught is not the one it was written for: the PASS clause enumerated *wrong
+place* and *wrong scope*, and said nothing about *nothing at all*. A confident summary over an empty
+diff reads like success, and every later step assumes the files exist.
 
-**So every step that produces an artifact verifies the artifact, and its FAIL clause names the empty
-case explicitly.** "PASS if two files are listed" is not enough on its own; an author skimming for
-what to worry about needs to see *nothing is listed* written down as a failure, next to the others.
+**A reported gate pass is not a gate pass.** Nothing can have linted, type-checked, built and tested
+files that are not on disk, so a green gate list in a reply is not weaker evidence than the files —
+it is evidence of nothing, and its specificity (4 tests, 8 tests) is what makes it persuasive.
+
+**So every step that produces an artifact proves the artifact exists, by name, before the reply is
+read.** Three properties, in order of how easily each is lost:
+
+1. **A positive existence test**, not only prohibitions. `ls -l <both paths>` prints `No such file or
+   directory` per missing path, so *the work did not happen* looks nothing like *the work happened*.
+2. **First in the block.** A reply that confident is hard to un-read once it is in your head, so the
+   disproof has to reach the screen ahead of it.
+3. **The empty case written into the FAIL list**, next to the others, because that list is what an
+   author skims for what to worry about.
+
+`c6-step1-proves-its-files-exist` asserts all three. Worth being explicit about what it cannot do:
+it cannot assert the two files exist. Before the demo they must not — `no-route-migrated` and the
+preflight's *route contract suite starts empty* both require their absence, and that absence is what
+makes the step's before-and-after real. A check that runs before the work can only assert that the
+runbook will look for the work.
 
 **A fresh thread does not refresh a stale workspace view.** When an agent describes state that
 predates your reset, the fix is a new session, not a new conversation — and the tell is a
-description that was true one run ago. That is now a troubleshooting row in the C6 runbook.
+description that was true one run ago. **After two such runs, stop re-running and check the
+environment:** a session describing a working tree you no longer have is not looking at your
+checkout, and a third attempt tests nothing. Both are troubleshooting rows in the C6 runbook.
 
 **Related, and the reason this section is short.** Three rules elsewhere are the same instinct
 applied to other subjects: the working tree is not evidence, so branch state is verified from a
