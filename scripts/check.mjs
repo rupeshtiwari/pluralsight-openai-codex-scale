@@ -804,25 +804,19 @@ const CHECKS = {
       const head = read(f).split('\n').slice(0, HEAD_LINES).join('\n');
       const dir2 = resolve(ROOT, '.md-directive-probe');
       let hits = [];
-      let spell = [];
       try {
         mkdirSync(dir2, { recursive: true });
         writeFileSync(join(dir2, '.markdownlint.json'), JSON.stringify(cfg));
         // Known-bad markdown, plus words no dictionary contains. Both tools are
         // run over the same probe, because both put an error badge on the same
         // tab and neither is visible to the other.
-        writeFileSync(join(dir2, 'probe.md'), `${head}\n\n# H\n\nzzqqxx wibblefrotz\n\n|a|b|\n|--|--|\n|1|2|\n\tTAB\n\n\n\n`);
+        writeFileSync(join(dir2, 'probe.md'), `${head}\n\n# H\n\n|a|b|\n|--|--|\n|1|2|\n\tTAB\n\n\n\n`);
         let out = '';
         try {
           execSync('npx markdownlint-cli2 probe.md', { cwd: dir2, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
         } catch (err) { out = `${err.stdout || ''}${err.stderr || ''}`; }
         hits = out.split('\n').filter((l) => /probe\.md:\d+/.test(l));
 
-        let sout = '';
-        try {
-          sout = execSync('npx cspell --no-progress --no-summary probe.md', { cwd: dir2, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-        } catch (err) { sout = `${err.stdout || ''}${err.stderr || ''}`; }
-        spell = sout.split('\n').filter((l) => /probe\.md:\d+/.test(l));
       } finally {
         try { rmSync(dir2, { recursive: true, force: true }); } catch { /* nothing to clean up */ }
       }
@@ -831,13 +825,32 @@ const CHECKS = {
         process.stderr.write(`    first: ${(hits[0] || '').trim()}\n`);
         process.stderr.write('    the directive must be a bare <!-- markdownlint-disable -->; any text after the command is read as rule names\n');
       }
-      if (spell.length) {
-        ok = reject(`${f} does not actually suppress spell-checking - ${spell.length} unknown word(s) still flagged under this file's opening lines`) && ok;
-        process.stderr.write('    add <!-- cspell:disable --> beside the markdownlint directive\n');
+
+    }
+
+    // 3. Spelling, on the documents cspell actually covers. plans/ is in
+    //    ignorePaths because Codex writes those files and their vocabulary is
+    //    its own, so there is nothing there to police.
+    //
+    //    This does NOT cover the badge that prompted the work. That was Spell
+    //    Right, which ships no CLI and reads no config this repository can
+    //    write, so no check here can see it. Said plainly rather than implied:
+    //    a green result from this check means the tools with CLIs are quiet, not
+    //    that the editor is.
+    {
+      let sout = '';
+      try {
+        sout = execSync('npx cspell --no-progress --no-summary "module1/*.md" "module2/*.md" "docs/*.md" README.md',
+          { cwd: resolve(ROOT), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (err) { sout = `${err.stdout || ''}${err.stderr || ''}`; }
+      const words = sout.split('\n').filter((l) => /\.md:\d+:\d+/.test(l));
+      if (words.length) {
+        ok = reject(`${words.length} unknown word(s) in the runbooks or docs — add real vocabulary to cspell.json, fix genuine typos`) && ok;
+        for (const w of words.slice(0, 3)) process.stderr.write(`    ${w.trim()}\n`);
       }
     }
 
-    // 3. The config still has to be sound for agent-written markdown, or every
+    // 4. The config still has to be sound for agent-written markdown, or every
     //    other document drifts. Lint a synthetic file in the shape Codex writes
     //    -- padded wide tables, long rows -- under the real config, with no
     //    inline directive, and require silence.

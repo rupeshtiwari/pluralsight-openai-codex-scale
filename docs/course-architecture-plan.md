@@ -474,7 +474,32 @@ badge sources have bitten so far and they behave differently:
   validation, falls back to defaults without saying so. Five `"//"` comment keys holding strings did
   exactly that: the CLI reported nothing and the editor reported 590 errors on the same bytes.
 
-**Two rules came out of that, and both are the same rule.**
+**Identify the badge source before writing a suppression for it.** A file showed 491 problems with
+markdownlint reporting zero, so the badge had clearly moved to a spell checker — and a
+`<!-- cspell:disable -->` went into both filmed files on that inference alone. The extension
+installed is **Spell Right**, which does not read cspell directives. The directive suppressed
+nothing, sat in a file that appears on camera doing nothing, and `oncamera-markdown-lint-silent`
+went green while the editor showed 493. A suppression written for the wrong tool is worse than none:
+it looks like the problem was handled.
+
+**A directive only suppresses the tool that reads it.** `markdownlint-disable` is not a general
+"stop linting this file" instruction, and neither is any other. Before writing one, name the
+extension, confirm it honours that directive, and confirm the effect.
+
+**Three badge sources so far, and what actually controls each:**
+
+| Source | Shares a config with a CLI? | Control |
+|---|---|---|
+| VS Code ESLint extension | no — it resolved a different TypeScript root | pin `tsconfigRootDir`; the preflight asserts the pin, not the badge |
+| markdownlint | yes — same `.markdownlint.json` | `oncamera-markdown-lint-silent` runs the CLI and fails on any finding |
+| Spell Right | **no CLI at all** | disable it for the workspace before recording; nothing in this repository can see it |
+
+The third row is the important one. **A green preflight means the tools with CLIs are quiet, not
+that the editor is.** Where no CLI exists, the only control is opening the file and looking before
+the camera runs — which is what this section asked for in the first place, and what no amount of
+checking replaces.
+
+**Two more rules came out of the markdownlint case, and both are the same rule.**
 
 **Check the artifact as filmed, not as shipped.** The first version of this check linted
 `plans/ExecPlan.md` in its reset state, which is the only state the preflight can see. The badge
