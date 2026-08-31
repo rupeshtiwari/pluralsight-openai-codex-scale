@@ -38,10 +38,7 @@ LEARNING OBJECTIVES
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT FAIL  [all] working tree clean
-WHY IT MATTERS  Every demo starts from a clean tree; leftover edits change what the diff shows.
-HOW TO FIX      ./module1/scripts/demo_reset.sh
-CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+RESULT PASS  [all] working tree clean
 
 $ node "${ROOT}/scripts/check.mjs" eslint-tsconfigrootdir-set
 
@@ -293,19 +290,15 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 2-4  EO2c  validation after the milestone
 
 PER-CLIP TRANSCRIPTS
-  m1-c2  NOT READY (1)  logs/m1-c2_preflight.txt
-  m1-c3  NOT READY (1)  logs/m1-c3_preflight.txt
-  m1-c5  NOT READY (1)  logs/m1-c5_preflight.txt
-  m1-c6  NOT READY (1)  logs/m1-c6_preflight.txt
+  m1-c2  READY  logs/m1-c2_preflight.txt
+  m1-c3  READY  logs/m1-c3_preflight.txt
+  m1-c5  READY  logs/m1-c5_preflight.txt
+  m1-c6  READY  logs/m1-c6_preflight.txt
 
 FAILED CHECKS
-  [all] working tree clean
-    why it matters : Every demo starts from a clean tree; leftover edits change what the diff shows.
-    how to fix     : ./module1/scripts/demo_reset.sh
-    codex prompt   : Show me every uncommitted change in this repository and what produced it.
   [c6] this clip's starting checkpoint exists
     why it matters : A clip cannot be ready when the checkout its first line performs does not resolve. m1-c6 reported READY while demo/m1-c6-start had never been cut, and neither had demo/m1-c5-captured, the branch it must be branched from.
     how to fix     : Walk clip 5 and cut the checkpoints; the chain and its capture points are in module1/walkthrough-c5-c6.md.
     codex prompt   : Which demo branches does the walkthrough say clip 6 depends on, and do they exist?
 
-VERDICT  NOT READY - 2 check(s) failed.
+VERDICT  NOT READY - 1 check(s) failed.
