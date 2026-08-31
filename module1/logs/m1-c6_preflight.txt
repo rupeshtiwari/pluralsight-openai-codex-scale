@@ -5,7 +5,7 @@ Demo: Migrate one Express route to TypeScript with framework guidance (6 minutes
 
 RUNBOOK      module1/m1-c6-migrate-one-express-route.md
 OBJECTIVES   TO2, EO2c, EO2d
-READINESS    NOT READY - 1 of 26 checks failed
+READINESS    NOT READY - 1 of 27 checks failed
 
 STEPS
 -----
@@ -18,6 +18,8 @@ Step 1  BLOCKED
         $ [ -f framework-skill/node-express-migration/SKILL.md ]
   pass  Run A prompt saved and matching the runbook
         $ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
+  pass  the route migrates in place
+        $ node "${ROOT}/scripts/check.mjs" c6-migrates-in-place
   pass  skill is opt-in, not ambient
         $ node "${ROOT}/scripts/check.mjs" skill-not-ambient
   pass  skill-off tells still unique to the skill
@@ -36,8 +38,10 @@ Step 2  BLOCKED
 
   pass  skill names all four validation gates
         $ grep -q "ESLint" framework-skill/node-express-migration/SKILL.md && grep -q "type-check" framework-skill/node-express-migration/SKILL.md && grep -q "build validation" framework-skill/node-express-migration/SKILL.md && grep -q "Vitest" framework-skill/node-express-migration/SKILL.md
-  pass  focused route tests pass
-        $ npm run test:route
+  pass  migration gates green on the baseline
+        $ npm run lint:migration && npm run typecheck:migration && npm run build:migration && npm run test:route:migration
+  pass  route contract suite starts empty
+        $ [ "$(npm run test:route:migration 2>&1 | grep -c "No test files found")" -eq 1 ]
   FAIL  this clip's starting checkpoint exists
         $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
         module1/m1-c6-migrate-one-express-route.md starts on demo/m1-c6-start, which does not exist — this clip cannot be recorded yet
@@ -48,10 +52,10 @@ Step 3  BLOCKED
   Inspect the diff and verify the CommonJS-to-ESM compatibility contract before accepting the route change
   EO2c       validation after each milestone rather than batching cleanup
 
+  pass  the route migrates in place
+        $ node "${ROOT}/scripts/check.mjs" c6-migrates-in-place
   pass  compat modules present
-        $ [ -f supporthub-api/modern/src/compat/dirname.ts ] && [ -f supporthub-api/modern/src/compat/legacyRequire.ts ]
-  pass  express 5 in modern workspace
-        $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
+        $ [ -f supporthub-api/migration/compat/dirname.mts ] && [ -f supporthub-api/migration/compat/legacyRequire.mts ]
   FAIL  this clip's starting checkpoint exists
         $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
         module1/m1-c6-migrate-one-express-route.md starts on demo/m1-c6-start, which does not exist — this clip cannot be recorded yet
@@ -62,8 +66,6 @@ Step 4  BLOCKED
   Record the checkpoint so the Express 5 migration can continue or roll back from a known state
   TO2        incremental checkpoints with rollback
 
-  pass  express 5 in modern workspace
-        $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
   FAIL  this clip's starting checkpoint exists
         $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
         module1/m1-c6-migrate-one-express-route.md starts on demo/m1-c6-start, which does not exist — this clip cannot be recorded yet
@@ -82,7 +84,7 @@ this clip's starting checkpoint exists   [c6]
   fix  Walk clip 5 and cut the checkpoints; the chain and its capture points are in module1/walkthrough-c5-c6.md.
   ask  Which demo branches does the walkthrough say clip 6 depends on, and do they exist?
 
-PASS: 25   FAIL: 1
+PASS: 26   FAIL: 1
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 
