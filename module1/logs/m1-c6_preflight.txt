@@ -5,12 +5,12 @@ Demo: Migrate one Express route to TypeScript with framework guidance (6 minutes
 
 RUNBOOK      module1/m1-c6-migrate-one-express-route.md
 OBJECTIVES   TO2, EO2c, EO2d
-READINESS    READY
+READINESS    NOT READY - 1 of 24 checks failed
 
 STEPS
 -----
 
-Step 1  READY
+Step 1  BLOCKED
   Apply an equivalent Node.js and TypeScript framework skill to migrate one Express route slice from JavaScript to TypeScript
   EO2d       equivalent framework skill applies platform-specific guidance
 
@@ -25,7 +25,7 @@ Step 1  READY
   pass  express 4 in migration workspace
         $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/migration\"]})).version" | cut -d. -f1)" = "4" ]
 
-Step 2  READY
+Step 2  BLOCKED
   Run ESLint, TypeScript type-checking, build validation, and focused Vitest tests immediately after the route migration
   EO2c       lint, type-check, and focused tests after the milestone
 
@@ -34,7 +34,7 @@ Step 2  READY
   pass  focused route tests pass
         $ npm run test:route
 
-Step 3  READY
+Step 3  BLOCKED
   Inspect the diff and verify the CommonJS-to-ESM compatibility contract before accepting the route change
   EO2c       validation after each milestone rather than batching cleanup
 
@@ -43,21 +43,28 @@ Step 3  READY
   pass  express 5 in modern workspace
         $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
 
-Step 4  READY
+Step 4  BLOCKED
   Record the checkpoint so the Express 5 migration can continue or roll back from a known state
   TO2        incremental checkpoints with rollback
 
   pass  express 5 in modern workspace
         $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/modern\"]})).version" | cut -d. -f1)" = "5" ]
 
-SHARED GATES  15 of 15 pass
+SHARED GATES  14 of 15 pass
 
   These gate every step above. A failure here blocks the whole clip.
+    FAIL  working tree clean
 
-Every gate is green. This clip can be recorded.
+WHAT TO FIX
+-----------
 
-PASS: 24   FAIL: 0
+working tree clean   [all]
+  why  Every demo starts from a clean tree; leftover edits change what the diff shows.
+  fix  ./module1/scripts/demo_reset.sh
+  ask  Show me every uncommitted change in this repository and what produced it.
+
+PASS: 23   FAIL: 1
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 
-VERDICT  READY - this clip can be recorded.
+VERDICT  NOT READY - 1 check(s) failed above.
