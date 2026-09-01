@@ -834,6 +834,24 @@ and current branch, and compare both against the checkout you intend to record f
 *whole path*. Two folders can differ only in a parent directory — here `Documents/ChatGPT/` against
 the home directory — so any comparison that stops at the basename passes on the wrong one.
 
+**The duplicate was deleted on 2026-09-01.** `~/Documents/ChatGPT/pluralsight-openai-codex-scale` is
+gone; `ls` had returned no non-hidden entries, so nothing was lost, and `cd` to that path now fails.
+The failure mode is closed at the source rather than only guarded against, which is the better of the
+two fixes and the reason this paragraph exists: the next person to read this section should not go
+looking for a folder that is not there.
+
+Worth noting what that emptiness does and does not settle. The wrong project explains which checkout
+Codex was reading and describing. It does not, on its own, account for two files it reported creating
+— they were not in that folder either by the time it was removed. Whether they were written and later
+cleared, or never written at all, is not established, and the section's rule is indifferent to the
+answer: **whatever claims the work happened is not what proves it.**
+
+**The precondition stays anyway, as a backstop.** Deleting one folder does not stop the machine
+growing another — a fresh clone into `Documents/`, a second worktree, a copy made to keep a walk
+safe. And the wrong-*folder* case is the rarer half of what the probe catches: right folder, wrong
+branch is the ordinary mistake, it produces the same confident and useless run, and no deletion
+prevents it.
+
 So the escalation ladder is short and worth following in order — **read the branch on the project
 chip, then make the agent print its absolute path and branch and check both against the intended
 checkout**, then a new thread, then quit and reopen the editor, then stop. **A third identical run
