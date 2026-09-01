@@ -16,20 +16,14 @@ Step 1  READY
 
   pass  framework skill present
         $ [ -f framework-skill/node-express-migration/SKILL.md ]
-  pass  Run A prompt saved and matching the runbook
+  pass  saved C6 prompts match the runbook
         $ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
   pass  the runbook's plan greps resolve on the start branch
         $ node "${ROOT}/scripts/check.mjs" runbook-plan-greps-resolve
-  pass  step 1 asks for the conversions in a turn of its own
-        $ node "${ROOT}/scripts/check.mjs" c6-step1-asks-for-conversions-alone
   pass  step 1 proves its two files exist
         $ node "${ROOT}/scripts/check.mjs" c6-step1-proves-its-files-exist
   pass  the route migrates in place
         $ node "${ROOT}/scripts/check.mjs" c6-migrates-in-place
-  pass  skill is opt-in, not ambient
-        $ node "${ROOT}/scripts/check.mjs" skill-not-ambient
-  pass  skill-off tells still unique to the skill
-        $ node "${ROOT}/scripts/check.mjs" skill-tells-unique
   pass  express 4 in migration workspace
         $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/migration\"]})).version" | cut -d. -f1)" = "4" ]
   pass  this clip's checkpoint descends from m1-c5-captured
@@ -84,7 +78,7 @@ SHARED GATES  19 of 19 pass
 
 Every gate is green. This clip can be recorded.
 
-PASS: 35   FAIL: 0
+PASS: 32   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 
