@@ -20,6 +20,8 @@ Step 1  READY
         $ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
   pass  the runbook's plan greps resolve on the start branch
         $ node "${ROOT}/scripts/check.mjs" runbook-plan-greps-resolve
+  pass  step 1 asks for the conversions in a turn of its own
+        $ node "${ROOT}/scripts/check.mjs" c6-step1-asks-for-conversions-alone
   pass  step 1 proves its two files exist
         $ node "${ROOT}/scripts/check.mjs" c6-step1-proves-its-files-exist
   pass  the route migrates in place
@@ -82,7 +84,7 @@ SHARED GATES  17 of 17 pass
 
 Every gate is green. This clip can be recorded.
 
-PASS: 32   FAIL: 0
+PASS: 33   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 
