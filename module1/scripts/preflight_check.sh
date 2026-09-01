@@ -243,6 +243,12 @@ check "all" "cut procedures branch before they commit" \
   "Put git checkout -b before git add and git commit in every cut block." \
   "Which cut block in module1/walkthrough-c5-c6.md commits before it branches?"
 
+check "all" "every prep block proves the agent is in this checkout" \
+  'node "${ROOT}/scripts/check.mjs" runbooks-probe-agent-identity' \
+  "Two folders on the recording machine shared the basename pluralsight-openai-codex-scale and Codex Desktop pointed at the wrong one, on a master branch this repository does not have. Two C6 Step 1 runs reported files created and gates green while nothing reached disk -- accurate reports about a different checkout. No verification downstream can see this, because they all read the terminal's checkout." \
+  "Restore the prep block's identity probe: the project chip's branch, then pwd and git rev-parse --abbrev-ref HEAD against what the agent prints. node scripts/check.mjs runbooks-probe-agent-identity names the runbook and the missing half." \
+  "Which runbook prep blocks do not make Codex print its absolute working directory and branch before the first prompt?"
+
 check "all" "every check is run by some preflight" \
   'node "${ROOT}/scripts/check.mjs" every-check-is-wired' \
   "Five checks had been written and then wired to nothing -- m2-c2-starts-without-the-correction among them, the one guarding C2's whole absence guarantee. preflight-step-map-complete catches a wired check with no step, and cannot see a check that no preflight runs at all." \

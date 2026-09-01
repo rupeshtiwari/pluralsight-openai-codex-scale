@@ -808,15 +808,47 @@ preflight's *route contract suite starts empty* both require their absence, and 
 makes the step's before-and-after real. A check that runs before the work can only assert that the
 runbook will look for the work.
 
-**The fix is to quit and reopen the editor.** Two consecutive C6 Run A attempts reported both files
-created and all five gates green while neither file reached disk, and both described a working tree
-that had stopped existing at `reset --hard`. A new Codex *thread* did not clear it. Quitting VS Code
-entirely and reopening did: the third attempt worked, and Step 1 has been correct since.
+**It was not the editor. It was a second folder with the same name.** Two consecutive C6 Run A
+attempts reported both files created and all five gates green while neither file reached disk, and
+both described a working tree that had stopped existing at `reset --hard`. A new Codex *thread* did
+not clear it. Quitting VS Code and reopening appeared to, and that was written up here as the fix —
+wrongly. The actual cause, found later by asking Codex directly: two directories on the machine
+share the basename `pluralsight-openai-codex-scale`, one under `Documents/ChatGPT/` and the real
+repository a level up under the home directory. Codex Desktop's project pointed at the copy. That
+copy sits on a `master` branch which does not exist in the real repository — so it was reading and
+writing a real checkout, just not this one. Reopening the editor happened to re-pick the right
+project; it fixed nothing, which is why the same failure could have come back at any time.
 
-So the escalation ladder is short and worth following in order — new thread, then quit and reopen
-the editor, then stop. **A third identical run diagnoses nothing.** An agent describing a working
-tree you no longer have is not reading your checkout, and no prompt fixes that. Both rungs are
-troubleshooting rows in the C6 runbook.
+**So the first rung is not a remedy at all — it is an identity check**, and it has two halves.
+
+The cheap half costs nothing and runs before the first prompt: **Codex Desktop prints the branch on
+the project chip above the composer**, beside the project name and the Local badge. On the run that
+started this, it read `master` — a branch this repository does not have. Nothing had to be asked;
+the wrong checkout was on screen the whole time. The project name beside it was truncated to
+`pluralsight-openai-codex-scal…` and would have looked right at any width, which is the point: **the
+name is the one field that cannot distinguish the two folders, and it is the field the eye goes to.**
+The branch can. Changing the project is ⌥⇧⌘O.
+
+The other half confirms it in the agent's own words: ask it to print its absolute working directory
+and current branch, and compare both against the checkout you intend to record from. Compare the
+*whole path*. Two folders can differ only in a parent directory — here `Documents/ChatGPT/` against
+the home directory — so any comparison that stops at the basename passes on the wrong one.
+
+So the escalation ladder is short and worth following in order — **read the branch on the project
+chip, then make the agent print its absolute path and branch and check both against the intended
+checkout**, then a new thread, then quit and reopen the editor, then stop. **A third identical run
+diagnoses nothing.** An agent describing a working tree you no longer have is not reading your
+checkout, and no prompt fixes that. All three rungs are troubleshooting rows in the C6 runbook.
+
+**This generalizes past the failure that found it.** Any walk in either module can be silently
+invalidated the same way — the agent's edits land, the gates really run, the reply is accurate, and
+none of it touches the repository being recorded. Nothing downstream catches it, because every
+verification in every runbook reads the terminal's checkout and the agent was never in it. So the
+probe is part of the prep block for every Module 1 clip and for M2 C2, where Module 2's
+once-per-session preparation lives, and `runbooks-probe-agent-identity` asserts it is still there.
+
+The rule this adds to the section: **before concluding an environment problem, confirm the agent is
+in the environment you mean.**
 
 **Related, and the reason this section is short.** Three rules elsewhere are the same instinct
 applied to other subjects: the working tree is not evidence, so branch state is verified from a

@@ -367,6 +367,91 @@ const fail = (m) => { failures += 1; process.stdout.write(`  FAIL  ${m}\n`); };
   });
 }
 
+/**
+ * runbooks-probe-agent-identity reads five runbooks at once, so build()'s
+ * one-file root cannot host it. buildFrom() copies all five, and each negative
+ * removes one half of the probe from ONE of them -- which also proves the check
+ * is not satisfied by the other four still having it.
+ */
+{
+  const RUNBOOKS = [
+    'module1/m1-c2-map-noisy-typescript-modules.md',
+    'module1/m1-c3-execute-codex-refactor.md',
+    'module1/m1-c5-inventory-legacy-express4.md',
+    'module1/m1-c6-migrate-one-express-route.md',
+    'module2/m2-c2-manual-triage.md',
+  ];
+  const control = Object.fromEntries(RUNBOOKS.map((f) => [f, readFileSync(f, 'utf8')]));
+  // Each case edits one runbook's prep block only. Cutting at ON-CAMERA keeps a
+  // mutation from landing in a step's verification, where it would prove nothing
+  // about the precondition.
+  const cases = [
+    ['module1/m1-c2-map-noisy-typescript-modules.md',
+      'the probe asks for a working directory but no longer says absolute, so a folder name passes',
+      (s) => s.replace('absolute working directory', 'working directory')],
+    ['module1/m1-c3-execute-codex-refactor.md',
+      'the probe stopped asking for the branch, which is the half that catches a master checkout at a glance',
+      (s) => s.replace('Print your absolute working directory and the current git branch.',
+        'Print your absolute working directory.')],
+    ['module1/m1-c5-inventory-legacy-express4.md',
+      'the terminal no longer prints pwd, so the agent\'s answer has nothing to be compared against',
+      (s) => s.replace('```bash\npwd\ngit rev-parse --abbrev-ref HEAD\n```',
+        '```bash\ngit rev-parse --abbrev-ref HEAD\n```')],
+    ['module1/m1-c6-migrate-one-express-route.md',
+      'the prep block stopped naming the branch this clip starts from, so "does it match" has no right answer',
+      (s) => s.slice(0, s.search(/^#+ *ON-CAMERA/m)).replaceAll('demo/m1-c6-start', 'the start branch')
+        + s.slice(s.search(/^#+ *ON-CAMERA/m))],
+    ['module2/m2-c2-manual-triage.md',
+      'the warning against comparing the project name is gone -- the one field that was identical between the two folders',
+      (s) => s.replace(
+        'Do not check the project *name* — it is truncated\nin the chip and was identical between the two folders, so it looks right either way.', '')],
+  ];
+  for (const [file, what, mutate] of cases) {
+    const negative = { ...control, [file]: mutate(control[file]) };
+    if (negative[file] === control[file]) {
+      throw new Error(`runbooks-probe-agent-identity: mutation for "${what}" changed nothing in ${file}`);
+    }
+    SYNTHETIC_CASES.push({ check: 'runbooks-probe-agent-identity', what, control, negative });
+  }
+}
+
+/**
+ * The two prompt-parity checks now count only the ```text blocks below the
+ * ON-CAMERA marker, because plans/prompts/ is the record of what is typed in
+ * front of the viewer and the prep blocks send prompts of their own. Their
+ * synthetic runbooks predate that boundary, so give them one -- the saved-copy
+ * files are prompts only and correctly have none.
+ */
+const RUNBOOK_OF = {
+  'c2-prompts-saved': 'module1/m1-c2-map-noisy-typescript-modules.md',
+  'c6-prompt-saved': 'module1/m1-c6-migrate-one-express-route.md',
+};
+for (const c of [...SYNTHETIC_CASES, ...SPLIT_CASES]) {
+  const rb = RUNBOOK_OF[c.check];
+  if (!rb) continue;
+  for (const files of [c.control, c.negative]) {
+    if (files && files[rb] !== undefined && !/^#+ *ON-CAMERA/m.test(files[rb])) {
+      files[rb] = '# ON-CAMERA\n\n' + files[rb];
+    }
+  }
+}
+
+// And prove the boundary itself: a prompt that sits in the prep block is not an
+// on-camera prompt, and one that drifts below the marker is.
+for (const [check, rb, saved] of [
+  ['c2-prompts-saved', RUNBOOK_OF['c2-prompts-saved'], 'plans/prompts/m1-c2-map-codebase.md'],
+  ['c6-prompt-saved', RUNBOOK_OF['c6-prompt-saved'], 'plans/prompts/m1-c6-migrate-route.md'],
+]) {
+  const ONE = '```text\nDo the thing.\n```\n';
+  const PROBE = '```text\nPrint your absolute working directory and the current git branch. Do nothing else.\n```\n';
+  SPLIT_CASES.push({
+    check,
+    what: 'a prep-block prompt is counted as an on-camera one, which is what adding the identity probe did to both parity checks',
+    control: { [rb]: PROBE + '\n# ON-CAMERA\n\n' + ONE, [saved]: ONE },
+    negative: { [rb]: '# ON-CAMERA\n\n' + PROBE + ONE, [saved]: ONE },
+  });
+}
+
 process.stdout.write('PROVING EACH CHECK FAILS ON ITS NEGATIVE CASE\n\n');
 
 for (const c of CASES) {
