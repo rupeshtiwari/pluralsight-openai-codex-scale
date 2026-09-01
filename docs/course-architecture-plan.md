@@ -897,6 +897,63 @@ only failure worth running it for.
 both are registered negatives. The prepare block's unscoped status is deliberate and runs before the
 move.
 
+### A correction step cannot depend on the agent being wrong
+
+Four demos were built the same way: an early step produces a flawed artifact, a later step finds the
+flaw, and the clip's value is the finding. Four times the early step produced the right answer and
+left the later step nothing to do. C3, C5, C6 step 1, and now M2 C2 — where Codex merged `evt-1042`
+and `evt-1043` unprompted, rejected `d4e5f6a` on its file list, deferred `evt-1099`, and then
+validated its own report and found nothing wrong, which is step 3's FAIL condition inverted.
+
+**The recurring authoring error is writing a PASS clause that only a bad run can satisfy.** A step
+that fails when the previous step succeeded has no correct outcome on a good take, and the author
+discovers this on camera.
+
+Three things were wrong in the M2 C2 case, and they are worth separating because only one is about
+the agent being capable.
+
+**The fixture shipped an answer key.** Every commit in `automation/github-seed/commits.json` carried
+a `note` — "Touches changeStatus, the frame both evt-1042 and evt-1043 share", "Touches no
+application code on the failing path", "the evidence for evt-1099 is too thin to correlate" — and a
+file comment stating that the genuine root cause was older than the misleading one. All three of step
+3's findings were written into the data step 2 reads, and Codex rejected `d4e5f6a` in almost the words
+of the note. This is §11a one level down: **a prompt may not impose the rule a later step audits,
+and a fixture may not state the finding.** `fixtures-carry-no-answer-key` whitelists the fields a
+record may carry and forbids a file comment from naming an individual record.
+
+**The trap was undecidable in the demo's favour anyway.** `d4e5f6a`'s `filesChanged` is
+`package.json` and `package-lock.json`, and step 3's prompt is *required* to ask which files a commit
+changed. The evidence settles it. No wording makes a competent reader get that wrong, and step 2's
+own prompt says "Apply the rubric literally" — the runbook instructed correct behaviour and then
+expected incorrect behaviour.
+
+**So step 3 was reframed from correction to verification.** It now passes when every priority is
+tied to a quoted rubric row, the shared frame is named, and `d4e5f6a` is addressed by its file list
+rather than its timestamp — whether or not any of that turns up a defect. **A verification that
+confirms a correct report is a successful verification.** The correction that remains in step 4 is
+`incident-2002`, the one finding where the evidence genuinely leaves room to differ.
+
+**The rule.** When a demo needs the agent to be wrong, check in this order before writing the step:
+is the answer sitting in the material the agent reads; is the answer derivable from evidence the step
+itself must ask for; and does the prompt tell it to do the thing you are hoping it will not do. If
+any of the three holds, the step cannot be about catching an error. Make it about checking a claim —
+that is the skill being taught either way, and it has a correct outcome on every take.
+
+**A related finding from the same walk, and the reason the priorities are now derived rather than
+asserted.** `incident-2001` sat at P0 in the baseline for the life of this repository and cannot be
+derived from the rubric. The affected-user column cannot separate P0 from P1 — P0 reads "Any number",
+which subsumes P1's "100 or more" — and the workaround column cannot either, since P1 admits "None,
+or manual only". The Impact column is the entire discriminator, and the fixture's own evidence
+describes status updates failing *for tickets whose status came from the pager bridge*: a subset, so
+degraded rather than unavailable, with no data loss. Applied literally the rubric yields P1, which is
+what Codex answered, quoting the row. Step 4 called that file "the rubric-derived baseline";
+`baseline-priorities-derive-from-rubric` makes it one, reading the bands out of the rubric rather
+than hardcoding them, and taking the P0 impact claim from the source issues rather than from the
+baseline's own summary — the first draft of that clause tested the baseline's prose and passed a
+restored P0, because the sentence earns its P1 by saying the impact is "rather than unavailable".
+**A summary that argues for a verdict cannot be the verification of it**, which is §15 again
+with the baseline in the agent's chair.
+
 ## Outstanding
 
 1. **Repository rename** — Author Notes declare `pluralsight-openai-codex-scale`; remote is still

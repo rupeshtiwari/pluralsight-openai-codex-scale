@@ -1,5 +1,5 @@
 {
-  "_comment": "Deterministic Sentry evidence. Every stack frame names a file that exists in this repository so evidence can be cross-referenced against real code.",
+  "_comment": "Deterministic Sentry evidence. Every stack frame names a file, a symbol that exists in that file, and a line the symbol is defined at or called from, so frames can be opened against real code. A frame with '?' for a line has none captured, which is itself evidence.",
   "query_window": {
     "from": "2025-03-03T00:00:00.000Z",
     "to": "2025-03-04T00:00:00.000Z"
@@ -16,8 +16,8 @@
       "occurrences": 1204,
       "release": "supporthub@2025.03.01",
       "stack": [
-        "at changeStatus (supporthub-api/modern/src/services/ticketService.ts:196)",
-        "at handler (supporthub-api/modern/src/routes/tickets.ts:62)"
+        "at changeStatus (supporthub-api/modern/src/services/ticketService.ts:254)",
+        "at ticketsRouter.patch (supporthub-api/modern/src/routes/tickets.ts:43)"
       ],
       "workaround": "none",
       "userImpact": "Status updates fail for tickets whose status came from the pager bridge."
@@ -32,11 +32,11 @@
       "occurrences": 305,
       "release": "supporthub@2025.03.01",
       "stack": [
-        "at changeStatus (supporthub-api/modern/src/services/ticketService.ts:196)",
-        "at bulkImport (supporthub-api/modern/src/services/ticketService.ts:214)"
+        "at changeStatus (supporthub-api/modern/src/services/ticketService.ts:254)",
+        "at ticketsRouter.patch (supporthub-api/modern/src/routes/tickets.ts:43)"
       ],
       "workaround": "none",
-      "userImpact": "Same fault reached through bulk import instead of the status route."
+      "userImpact": "The same fault recorded as a separate issue after client retries."
     },
     {
       "id": "evt-1088",
@@ -48,7 +48,8 @@
       "occurrences": 890,
       "release": "supporthub@2025.02.24",
       "stack": [
-        "at listTickets (supporthub-api/modern/src/routes/tickets.ts:18)"
+        "at listTickets (supporthub-api/modern/src/services/ticketService.ts:156)",
+        "at ticketsRouter.get (supporthub-api/modern/src/routes/tickets.ts:17)"
       ],
       "workaround": "Request completes; the response is slow.",
       "userImpact": "Three internal agents see a slow ticket list. No customer impact."
@@ -78,7 +79,7 @@
       "occurrences": 140,
       "release": "supporthub@2025.03.01",
       "stack": [
-        "at toPriority (supporthub-api/modern/src/services/ticketService.ts:71)"
+        "at toPriority (supporthub-api/modern/src/services/ticketService.ts:85)"
       ],
       "workaround": "An agent can set the priority manually after the ticket is created.",
       "userImpact": "Pager-bridge tickets land at default priority instead of their real one."

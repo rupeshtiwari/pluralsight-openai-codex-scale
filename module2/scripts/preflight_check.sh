@@ -186,6 +186,30 @@ check "c2" "C2 starts without its own answer on disk" \
   "./module2/scripts/demo_reset.sh removes it." \
   "Is automation/triage/corrected-sweep.json present before the take, and is the recorded baseline unmodified?"
 
+check "c2" "every baseline priority derives from the rubric" \
+  'node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric' \
+  "incident-2001 sat at P0 for the life of this repository and could not be derived: the rubric's P0 affected-user column is \"any number\", which subsumes P1's \"100 or more\", so only the impact column separates them and the fixture describes a subset of status updates failing. The walk's Codex said P1 and quoted the row. Step 4 calls this file the rubric-derived baseline." \
+  "Fix the baseline priority, or the fixture evidence it rests on. node scripts/check.mjs baseline-priorities-derive-from-rubric names the finding and the band." \
+  "Which baseline priorities cannot be derived from docs/triage-rubric.md and the sentry fixtures?"
+
+check "c2" "step 4 expects the baseline it compares against" \
+  'node "${ROOT}/scripts/check.mjs" runbook-expects-the-baseline-it-compares-to' \
+  "Step 4 states the four expected priorities in prose and then verifies against the baseline JSON. Two statements of one fact drift, and the author reading the prose would be told to expect a priority the verification rejects." \
+  "Bring step 4's expected result and automation/triage/baseline-manual-sweep.json back into agreement." \
+  "Which priorities does m2-c2 step 4 tell the author to expect, and do they match the baseline?"
+
+check "c2" "the evidence fixtures carry no answer key" \
+  'node "${ROOT}/scripts/check.mjs" fixtures-carry-no-answer-key' \
+  "Every commit in the seed once carried a note stating what a reviewer should conclude from it -- all three of step 3's findings were written into the data step 2 reads, and the walk's Codex rejected d4e5f6a in almost the words of the note." \
+  "Remove the field. Evidence fixtures hold facts about each record; the conclusion is the demo." \
+  "Which fields in automation/github-seed or automation/sentry-fixtures state a conclusion rather than a fact?"
+
+check "c2" "every fixture stack frame opens on real code" \
+  'node "${ROOT}/scripts/check.mjs" fixture-stack-frames-resolve' \
+  "The fixture promised frames that cross-reference against real code and mostly could not: changeStatus was given at line 196 when it starts at 244, and evt-1043 named a bulkImport that exists nowhere. An agent that opens them reports the real sites instead, and step 3's Highlight is a stack frame." \
+  "Point each frame at a symbol that exists and a line that defines or calls it. A frame may carry ? for the line where none was captured." \
+  "Which fixture stack frames name a file, symbol or line that does not exist?"
+
 check "c2" "sentry fixtures valid" 'node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json' \
   "The whole sweep reads this file; malformed JSON stops the demo." \
   "git checkout -- automation/sentry-fixtures/issues.json" \
