@@ -122,17 +122,9 @@ $ [ -f framework-skill/node-express-migration/SKILL.md ]
 
 RESULT PASS  [c6] framework skill present
 
-$ node "${ROOT}/scripts/check.mjs" skill-tells-unique
-
-RESULT PASS  [c6] skill-off tells still unique to the skill
-
 $ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
 
-RESULT PASS  [c6] Run A prompt saved and matching the runbook
-
-$ node "${ROOT}/scripts/check.mjs" skill-not-ambient
-
-RESULT PASS  [c6] skill is opt-in, not ambient
+RESULT PASS  [c6] saved C6 prompts match the runbook
 
 $ grep -q "ESLint" framework-skill/node-express-migration/SKILL.md && grep -q "type-check" framework-skill/node-express-migration/SKILL.md && grep -q "build validation" framework-skill/node-express-migration/SKILL.md && grep -q "Vitest" framework-skill/node-express-migration/SKILL.md
 
@@ -145,10 +137,6 @@ RESULT PASS  [c6] compat modules present
 $ node "${ROOT}/scripts/check.mjs" runbook-plan-greps-resolve
 
 RESULT PASS  [c6] the runbook's plan greps resolve on the start branch
-
-$ node "${ROOT}/scripts/check.mjs" c6-step1-asks-for-conversions-alone
-
-RESULT PASS  [c6] step 1 asks for the conversions in a turn of its own
 
 $ node "${ROOT}/scripts/check.mjs" c6-step1-proves-its-files-exist
 
