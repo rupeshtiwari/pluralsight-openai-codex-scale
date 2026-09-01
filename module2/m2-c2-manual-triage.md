@@ -161,11 +161,18 @@ Now triage the window. For every finding, give:
 - a recommendation
 
 Apply the rubric literally. Do not let occurrence count override impact.
+
+Use automation/sentry-fixtures/ and automation/github-seed/ as your evidence.
+Do not read anything under automation/triage/.
 ```
 
-**Expected result.** A report covering all five issues. Expect Codex to get some of this wrong —
-commonly by treating `evt-1042` and `evt-1043` separately, by correlating `d4e5f6a` because it is
-nearest in time, or by calling `incident-2002` a P1.
+**Expected result.** A report covering all five issues, each with a priority and its evidence.
+
+**It may be substantially correct, and that is not a failed take.** Four measured walks across this
+course have now had a competent agent produce the right answer at the step whose successor was
+written to correct it. Do not narrate this step as *watch it get this wrong*; narrate it as *this is
+the pass a human has to be able to check*. `incident-2002` is the one place the evidence genuinely
+leaves room to differ.
 
 **Highlight.** The correlated commit for the checkout fault, and the priority given to
 `incident-2002`. Those are the two places judgment is being tested.
@@ -203,17 +210,32 @@ Check your own report against docs/triage-rubric.md:
 4. For any finding with low confidence, say what evidence is missing.
 ```
 
-**Expected result.** Three problems surface: `evt-1042` and `evt-1043` share the `changeStatus`
-frame and are one fault; `d4e5f6a` changed only `package.json` and `package-lock.json`, neither of
-which appears in any failing stack; `evt-1099` has no line number and no reproduction.
+**Expected result.** Every claim in the report is tied to something checkable: each priority to a
+quoted rubric row with its band and workaround; `evt-1042` and `evt-1043` to the `changeStatus` frame
+at `ticketService.ts:254` they share; `d4e5f6a` to a file list — `package.json` and
+`package-lock.json` — containing nothing that appears in any failing stack; `evt-1099` to the line
+number and reproduction it does not have.
+
+**This step verifies. It does not require the report to have been wrong.** It was written expecting
+Step 2 to produce defects and Step 3 to catch them, and in the measured walk Step 2 produced none —
+Codex had already merged the two events, already rejected `d4e5f6a` on its file list, already
+deferred `evt-1099`. A step whose PASS clause needs the previous step to fail has no way to pass on a
+good run, which is the wrong shape for a demo about reviewing agent work. **A verification that
+confirms a correct report is a successful verification.** What is on trial is whether each claim can
+be checked, not whether Codex erred.
 
 **Highlight.** The file lists for `a1b2c3d` versus `d4e5f6a`. One touches
-`services/ticketService.ts`, which is in the failing stack. The other touches neither.
+`services/ticketService.ts`, which is in the failing stack. The other touches neither. Say out loud
+that this is decidable from the evidence rather than from judgement — it is the difference between a
+review you can repeat and an opinion.
 
-**Decision produced.** The specific defects in the report are identified.
+**Decision produced.** Every claim in the report is either grounded or identified as ungrounded.
 
-**Verification.** PASS if the shared stack frame is found and the `d4e5f6a` correlation is shown to
-rest on timing alone. FAIL if Codex defends the original report.
+**Verification.** PASS if each priority is justified by a quoted rubric row naming its affected-user
+band and its workaround, the shared `changeStatus` frame is named for the two merged events, and
+`d4e5f6a` is addressed by its file list rather than its timestamp. FAIL if any priority is asserted
+without a rubric row, if a correlation is defended by proximity in time, or if a finding's evidence
+is described only in summary.
 
 **Recovery.** Ask: `Which files did d4e5f6a change, and do any of them appear in the stack for
 evt-1042?`
@@ -248,7 +270,7 @@ For each finding state whether it should be routed. Route nothing yet.
 Write the corrected report to automation/triage/corrected-sweep.json.
 ```
 
-**Expected result.** Four findings: `incident-2001` at P0 with 500 users, `incident-2002` at P2,
+**Expected result.** Four findings: `incident-2001` at P1 with 500 users, `incident-2002` at P2,
 `evt-1088` at P3, `evt-1099` deferred. Two marked for routing.
 
 **Operator action.** Accept this corrected pattern as the standard a scheduled run must match.

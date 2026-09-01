@@ -452,6 +452,155 @@ for (const [check, rb, saved] of [
   });
 }
 
+/**
+ * The three C2 evidence checks read several real files together, so their
+ * controls are those files and each negative changes one of them. The baseline
+ * cases include the defect that actually shipped: incident-2001 at P0.
+ */
+{
+  const RUBRIC = 'docs/triage-rubric.md';
+  const BASE = 'automation/triage/baseline-manual-sweep.json';
+  const COMMITS = 'automation/github-seed/commits.json';
+  const ISSUES = 'automation/sentry-fixtures/issues.json';
+  const SVC = 'supporthub-api/modern/src/services/ticketService.ts';
+  const RTE = 'supporthub-api/modern/src/routes/tickets.ts';
+  const load = (...fs) => Object.fromEntries(fs.map((f) => [f, readFileSync(f, 'utf8')]));
+  const edit = (files, f, fn) => {
+    const doc = JSON.parse(files[f]);
+    fn(doc);
+    return { ...files, [f]: JSON.stringify(doc, null, 2) + '\n' };
+  };
+  const find = (doc, id) => doc.findings.find((x) => x.id === id);
+
+  // The P0 clause reads the source issues, so they belong in the control too.
+  const baseCtl = load(RUBRIC, BASE, ISSUES);
+  SYNTHETIC_CASES.push(
+    {
+      check: 'baseline-priorities-derive-from-rubric',
+      what: 'incident-2001 is back at P0 — the priority this file shipped with, which the rubric cannot derive at 500 users because its P0 band is "any number"',
+      control: baseCtl,
+      negative: edit(baseCtl, BASE, (d) => { find(d, 'incident-2001').priority = 'P0'; }),
+    },
+    {
+      check: 'baseline-priorities-derive-from-rubric',
+      what: 'incident-2002 is priced P1 on 61 affected users, outside the band the rubric gives P1',
+      control: baseCtl,
+      negative: edit(baseCtl, BASE, (d) => { find(d, 'incident-2002').priority = 'P1'; }),
+    },
+    {
+      check: 'baseline-priorities-derive-from-rubric',
+      what: 'evt-1099 is deferred on high confidence, which the rubric defers for nothing but low',
+      control: baseCtl,
+      negative: edit(baseCtl, BASE, (d) => { find(d, 'evt-1099').confidence = 'high'; }),
+    },
+    {
+      // Proves the bands are read from the rubric rather than hardcoded: C5's
+      // seeded diff edits this very row, in the other direction.
+      check: 'baseline-priorities-derive-from-rubric',
+      what: 'the rubric raises the P1 threshold above 500, so a baseline that was derivable no longer is',
+      control: baseCtl,
+      negative: { ...baseCtl, [RUBRIC]: baseCtl[RUBRIC].replace('| 100 or more |', '| 600 or more |') },
+    },
+  );
+
+  SYNTHETIC_CASES.push({
+    check: 'baseline-priorities-derive-from-rubric',
+    what: 'incident-2001 is P0 and argues for it in its own evidence string, which is the form that slipped past the first draft of this clause',
+    control: baseCtl,
+    negative: edit(baseCtl, BASE, (d) => {
+      const f = find(d, 'incident-2001');
+      f.priority = 'P0';
+      f.evidence = 'Core workflow unavailable for 500 users with no workaround. Data loss is possible.';
+    }),
+  });
+
+  const RB = 'module2/m2-c2-manual-triage.md';
+  const RB3 = 'module2/m2-c3-schedule-triage.md';
+  const rbCtl = load(RB, RB3, BASE);
+  SYNTHETIC_CASES.push(
+    {
+      check: 'runbook-expects-the-baseline-it-compares-to',
+      what: 'the baseline moves incident-2001 to P1 and step 4 still tells the author to expect P0 — the drift this pair produced',
+      control: rbCtl,
+      negative: { ...rbCtl, [RB]: rbCtl[RB].replace('`incident-2001` at P1', '`incident-2001` at P0') },
+    },
+    {
+      check: 'runbook-expects-the-baseline-it-compares-to',
+      what: "step 4 tells the author to expect evt-1099 at a priority, when the baseline defers it -- low confidence is not a priority",
+      control: rbCtl,
+      negative: { ...rbCtl, [RB]: rbCtl[RB].replace('`evt-1099` deferred. Two marked', '`evt-1099` at P3. Two marked') },
+    },
+    {
+      check: 'runbook-expects-the-baseline-it-compares-to',
+      what: "C3's transcribed table still shows the old P0 -- output that appears on camera beside the command that prints the real value",
+      control: rbCtl,
+      negative: {
+        ...rbCtl,
+        [RB3]: rbCtl[RB3].replace('  incident-2001    P1        users=500  route=true',
+          '  incident-2001    P0        users=500  route=true'),
+      },
+    },
+    {
+      check: 'runbook-expects-the-baseline-it-compares-to',
+      what: "C3's transcribed table shows a combined user count the baseline does not hold",
+      control: rbCtl,
+      negative: {
+        ...rbCtl,
+        [RB3]: rbCtl[RB3].replace('  incident-2001    P1        users=500  route=true',
+          '  incident-2001    P1        users=412  route=true'),
+      },
+    },
+  );
+
+  const keyCtl = load(COMMITS, ISSUES);
+  SYNTHETIC_CASES.push(
+    {
+      check: 'fixtures-carry-no-answer-key',
+      what: 'a commit carries a note again — "touches no application code on the failing path" is step 3\'s second finding, handed over',
+      control: keyCtl,
+      negative: edit(keyCtl, COMMITS, (d) => {
+        d.commits[1].note = 'Landed 17 minutes before the first error. Touches no application code on the failing path.';
+      }),
+    },
+    {
+      check: 'fixtures-carry-no-answer-key',
+      what: 'the file comment reasons about a specific record instead of describing the file',
+      control: keyCtl,
+      negative: edit(keyCtl, ISSUES, (d) => {
+        d._comment = 'Deterministic Sentry evidence. evt-1042 and evt-1043 are the same fault.';
+      }),
+    },
+  );
+
+  const frameCtl = load(ISSUES, SVC, RTE);
+  SYNTHETIC_CASES.push(
+    {
+      check: 'fixture-stack-frames-resolve',
+      what: 'evt-1043 names bulkImport again, a function that exists nowhere in the repository',
+      control: frameCtl,
+      negative: edit(frameCtl, ISSUES, (d) => {
+        d.issues.find((i) => i.id === 'evt-1043').stack[1] = `at bulkImport (${SVC}:214)`;
+      }),
+    },
+    {
+      check: 'fixture-stack-frames-resolve',
+      what: 'changeStatus is given at line 196 again — the number this fixture shipped with, inside a different function entirely',
+      control: frameCtl,
+      negative: edit(frameCtl, ISSUES, (d) => {
+        d.issues.find((i) => i.id === 'evt-1042').stack[0] = `at changeStatus (${SVC}:196)`;
+      }),
+    },
+    {
+      check: 'fixture-stack-frames-resolve',
+      what: 'a frame points past the end of the file it names',
+      control: frameCtl,
+      negative: edit(frameCtl, ISSUES, (d) => {
+        d.issues.find((i) => i.id === 'evt-1088').stack[0] = `at listTickets (${SVC}:99999)`;
+      }),
+    },
+  );
+}
+
 process.stdout.write('PROVING EACH CHECK FAILS ON ITS NEGATIVE CASE\n\n');
 
 for (const c of CASES) {

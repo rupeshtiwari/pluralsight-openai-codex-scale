@@ -166,6 +166,21 @@
     "C2 starts without its own answer on disk": [
       2,
       4
+    ],
+    "every baseline priority derives from the rubric": [
+      3,
+      4
+    ],
+    "the evidence fixtures carry no answer key": [
+      2,
+      3
+    ],
+    "every fixture stack frame opens on real code": [
+      2,
+      3
+    ],
+    "step 4 expects the baseline it compares against": [
+      4
     ]
   },
   "m2-c3": {

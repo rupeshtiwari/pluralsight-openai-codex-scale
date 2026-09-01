@@ -106,7 +106,7 @@ Comparing against a recorded baseline turns "looks right" into a specific pass o
 
 **Navigation.** In the scheduled task, choose the option to run it now rather than waiting.
 
-**Expected result.** A report with four findings: `incident-2001` at P0 with 500 combined users,
+**Expected result.** A report with four findings: `incident-2001` at P1 with 500 combined users,
 `incident-2002` at P2, `evt-1088` at P3, `evt-1099` deferred.
 
 **Command.** Show the baseline beside it:
@@ -120,7 +120,7 @@ node scripts/json.mjs fields "$BASE" "rejected=rejectedCorrelations.0.commit"
 **Expected output.**
 
 ```text
-  incident-2001    P0        users=500  route=true
+  incident-2001    P1        users=500  route=true
   incident-2002    P2        users=61   route=true
   evt-1088         P3        users=3    route=false
   evt-1099         deferred  users=2    route=false

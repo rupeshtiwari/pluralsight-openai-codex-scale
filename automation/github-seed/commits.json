@@ -1,5 +1,5 @@
 {
-  "_comment": "GitHub change evidence. The genuine root cause is OLDER than the misleading change, so recency alone must not decide correlation.",
+  "_comment": "Change evidence as GitHub would return it. Fields are facts about each commit and nothing else: what a reviewer concludes from them is the demo.",
   "repository": "rupeshtiwari/pluralsight-openai-codex-scale",
   "commits": [
     {
@@ -9,8 +9,7 @@
       "committedAt": "2025-03-01T14:06:22.000Z",
       "filesChanged": [
         "supporthub-api/modern/src/services/ticketService.ts"
-      ],
-      "note": "Touches changeStatus, the frame both evt-1042 and evt-1043 share."
+      ]
     },
     {
       "sha": "d4e5f6a",
@@ -20,8 +19,7 @@
       "filesChanged": [
         "package.json",
         "package-lock.json"
-      ],
-      "note": "Landed 17 minutes before the first error. Touches no application code on the failing path."
+      ]
     },
     {
       "sha": "f7a8b9c",
@@ -30,8 +28,7 @@
       "committedAt": "2025-03-02T16:30:00.000Z",
       "filesChanged": [
         "supporthub-api/modern/src/services/ticketService.ts"
-      ],
-      "note": "Touches linkIncident but the evidence for evt-1099 is too thin to correlate."
+      ]
     }
   ]
 }
