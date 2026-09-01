@@ -1419,6 +1419,55 @@ const CHECKS = {
   },
 
   /**
+   * demo/m1-c6-start must descend from demo/m1-c5-captured.
+   *
+   * module1/walkthrough-c5-c6.md opens on this as "the one mis-cut in the chain
+   * that fails silently": m1-c6-start is defined by opening on the two-checkpoint
+   * split C5 produces, and cut from anywhere else it carries the combined
+   * milestone instead. The walkthrough gave the operator a merge-base command and
+   * nothing asserted it, so it was checked by hand or not at all.
+   *
+   * It broke without anyone noticing. Doc fixes were cherry-picked onto both
+   * branches independently, which gives identical trees and unrelated commits --
+   * the guard flipped to failing while the content stayed correct, so the next
+   * author to run it would have read a mis-cut that had not happened. Carry
+   * changes onto m1-c5-captured and move m1-c6-start to it; never onto both.
+   *
+   * Trees are compared as well as ancestry, because ancestry alone would accept
+   * m1-c6-start having drifted ahead of the split it is supposed to open on.
+   *
+   * Proven red by pointing m1-c6-start at the build branch, which is exactly the
+   * mis-cut the walkthrough describes, and by committing on top of it.
+   */
+  'c6-start-descends-from-c5-captured': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const resolve = (ref) => {
+      for (const r of [ref, `origin/${ref}`]) {
+        try {
+          const out = execSync(`git rev-parse --verify -q ${r}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+          if (out) return r;
+        } catch { /* try the next form */ }
+      }
+      return null;
+    };
+    const captured = resolve('demo/m1-c5-captured');
+    const start = resolve('demo/m1-c6-start');
+    if (!captured || !start) {
+      return reject(`${!captured ? 'demo/m1-c5-captured' : 'demo/m1-c6-start'} does not exist yet -- walk the clip before it; the chain is in module1/walkthrough-c5-c6.md`);
+    }
+    try {
+      execSync(`git merge-base --is-ancestor ${captured} ${start}`, { stdio: 'ignore' });
+    } catch {
+      return reject(`demo/m1-c6-start does not descend from demo/m1-c5-captured -- it was cut from somewhere else, or both branches were advanced separately. Move it: git branch -f demo/m1-c6-start demo/m1-c5-captured`);
+    }
+    const tree = (r) => execSync(`git rev-parse ${r}^{tree}`).toString().trim();
+    if (tree(captured) !== tree(start)) {
+      return reject('demo/m1-c6-start has drifted from the split demo/m1-c5-captured recorded -- it must open on that state, not on a later one');
+    }
+    return true;
+  },
+
+  /**
    * No on-camera verification may read a file the agent writes at a fixed line
    * offset.
    *
