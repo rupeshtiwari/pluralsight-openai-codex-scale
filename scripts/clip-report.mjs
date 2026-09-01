@@ -64,7 +64,7 @@ const failed = results.filter((r) => r.state === 'FAIL');
 const out = [];
 const rule = (n) => '-'.repeat(n);
 out.push(`${clip.toUpperCase()} PREFLIGHT`, rule(clip.length + 10), '');
-out.push(meta.title || clip, '');
+out.push(meta.title ? `${meta.title}${meta.minutes ? ` (${meta.minutes} minutes)` : ''}` : clip, '');
 out.push(`RUNBOOK      ${meta.runbook || 'unknown'}`);
 out.push(`OBJECTIVES   ${(meta.objectives || []).join(', ')}`);
 out.push(`READINESS    ${failed.length === 0 ? 'READY' : `NOT READY - ${failed.length} of ${results.length} checks failed`}`);
