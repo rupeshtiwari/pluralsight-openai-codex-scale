@@ -1640,6 +1640,28 @@ const CHECKS = {
     if (/\bcreate supporthub-api\//i.test(first)) {
       return reject(`${RUNBOOK}: step 1's first prompt also asks for a file to be created -- a turn with a deliverable in it resolves to the deliverable`);
     }
+    // It must ask why, not only what. A measured run answered a conversions-only
+    // prompt completely and correctly and carried none of the three tells -- it
+    // could not have, because the conversions are in
+    // docs/commonjs-esm-compatibility.md and plans/migration-plan.md, which Run B
+    // reaches without the skill. A lookup-shaped prompt makes Run A and Run B
+    // produce the same list and the comparison read as "the skill adds little",
+    // which is the misreading section 14 exists to prevent. The skill's unique
+    // content is rationale, so the prompt has to ask for rationale.
+    const RATIONALE = [
+      [/what breaks if it is done wrong/i, 'which failures each conversion causes, and whether they are compile-time or run-time'],
+      [/what does each one catch that the gate before it cannot/i, 'why the validation gates are ordered as they are'],
+      [/what is its reason/i, 'why the dependency upgrade belongs to a separate milestone'],
+    ];
+    // Collapsed, because prompts are hard-wrapped: a regex written against the
+    // sentence as it reads does not match the sentence as it is stored. That
+    // exact mistake cost c5-step4-audits-the-plan-file a round, and it cost this
+    // assertion one too, on its first run.
+    const flat = first.replace(/\s+/g, ' ');
+    const missing = RATIONALE.filter(([re]) => !re.test(flat)).map(([, what]) => what);
+    if (missing.length) {
+      return reject(`${RUNBOOK}: step 1's first prompt asks what but not why -- it never asks ${missing.join('; nor ')}. The conversions are already in the compatibility doc and the migration plan, so a lookup-shaped prompt is answerable without the skill and the skill-on/skill-off comparison measures nothing`);
+    }
     return true;
   },
 

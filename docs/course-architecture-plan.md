@@ -584,6 +584,15 @@ Two things fall out of this beyond the clip.
 after the first prompt as well: a turn asked to reason and forbidden to write must leave the tree
 clean, and one that writes has already collapsed back into the old shape.
 
+**The instrument has to match the stimulus.** C6's three tells are all *reasons* — why `build`
+follows `--noEmit`, why the gate order cannot be permuted, why a route migration is never batched
+with a dependency upgrade. The prompt asked for *conversions*, which are written out in
+`docs/commonjs-esm-compatibility.md` and `plans/migration-plan.md` and therefore reachable without
+the skill at all. A run answered it completely and correctly and produced no tell, because the
+question had no place for one. **Ask what the floor already supplies and both runs answer the same,
+which reads as "the skill adds little" rather than as a measurement that never happened.** The
+prompt now asks why as well, and those questions are the only surface the tells can appear on.
+
 **The negative control becomes measurable.** C6's skill-on/skill-off comparison lives entirely in
 that first turn — later prompts are byte-identical between runs, and the gates prove the artifacts
 identical anyway. A combined turn left the two runs differing only in files that were the same, so
