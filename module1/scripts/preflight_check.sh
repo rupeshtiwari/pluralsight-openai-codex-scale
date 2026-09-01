@@ -45,7 +45,7 @@ PREFLIGHT_ONLY="$ONLY" node -e '
     fs.writeFileSync("module1/logs/" + key + "_preflight.txt", [
       key.toUpperCase() + " PREFLIGHT",
       "=".repeat(key.length + 10), "",
-      e.title || key, "",
+      e.title ? e.title + (e.minutes ? " (" + e.minutes + " minutes)" : "") : key, "",
       "RUNBOOK", "  " + (e.runbook || "unknown"), "",
       "LEARNING OBJECTIVES", ...objs, "",
       "SCOPE",
@@ -218,6 +218,12 @@ check "all" "every check is mapped to a demo step" \
   "The per-clip transcripts group results by the clip's four steps. A check with no entry in docs/preflight-step-map.json runs but appears under no step, so the report silently understates what gates a clip." \
   "Add the check to docs/preflight-step-map.json under its clip, naming the step numbers it gates." \
   "Which preflight check has no entry in docs/preflight-step-map.json?"
+
+check "all" "the clip map matches the outline it transcribes" \
+  'node "${ROOT}/scripts/check.mjs" outline-map-matches-source' \
+  "Every runbook is checked against docs/outline-clip-map.json, and that map was itself an unverified transcription of the outline. Checking runbooks against it proves nothing if it has drifted." \
+  "Re-extract docs/outline-course-organization.txt from the outline, or correct the map. Never edit the extract to make this pass." \
+  "Which objective, bullet, title or duration differs between docs/outline-clip-map.json and docs/outline-course-organization.txt?"
 
 check "all" "runbooks match the approved outline" \
   'node "${ROOT}/scripts/check.mjs" clip-outline-alignment' \
