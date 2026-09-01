@@ -459,23 +459,11 @@ check "c6" "framework skill present" \
   "git checkout -- framework-skill/" \
   "The express-typescript-migration skill is missing. Restore it."
 
-check "c6" "skill-off tells still unique to the skill" \
-  'node "${ROOT}/scripts/check.mjs" skill-tells-unique' \
-  "The toggle pre-check decides whether Codex read the skill by looking for wording that exists nowhere else. If a tell is copied into another document it stops being evidence, and the pre-check would keep reporting a load that never happened." \
-  "Remove the duplicated phrasing named above, or pick a new tell and update the evidence artifact." \
-  "Which files besides SKILL.md contain the skill-off tell phrases?"
-
-check "c6" "Run A prompt saved and matching the runbook" \
+check "c6" "saved C6 prompts match the runbook" \
   'node "${ROOT}/scripts/check.mjs" c6-prompt-saved' \
-  "The negative control is only valid if Run A and Run B differ by exactly one line. If the runbook prompt and the saved file drift apart, the comparison stops measuring the skill and nothing says so." \
+  "Step 1 is sent from the saved file rather than retyped, so the runbook and that file are two places to paste from. When they drift, Codex gets different instructions depending on which was open." \
   "Re-sync plans/prompts/m1-c6-migrate-route.md with the Prompt block in module1/m1-c6-migrate-one-express-route.md." \
-  "Do the saved C6 prompt and the runbook Prompt block match exactly, and does the saved one open on the skill line?"
-
-check "c6" "skill is opt-in, not ambient" \
-  'node "${ROOT}/scripts/check.mjs" skill-not-ambient' \
-  "The negative control needs the skill to load only when a prompt asks for it. An ambient directive in AGENTS.md would load it in both runs, make them identical, and turn the evidence artifact into a comparison of nothing." \
-  "Restore the opt-out wording in AGENTS.md: Do not consult it unless the prompt asks you to." \
-  "Does anything in AGENTS.md direct you to read framework-skill/node-express-migration/SKILL.md without being asked?"
+  "Do the saved C6 prompts and the runbook prompt blocks match exactly, block for block?"
 
 check "c6" "skill names all four validation gates" \
   'grep -q "ESLint" framework-skill/node-express-migration/SKILL.md && grep -q "type-check" framework-skill/node-express-migration/SKILL.md && grep -q "build validation" framework-skill/node-express-migration/SKILL.md && grep -q "Vitest" framework-skill/node-express-migration/SKILL.md' \
@@ -494,12 +482,6 @@ check "c6" "the runbook's plan greps resolve on the start branch" \
   "A verification an author runs on camera has to return what the runbook says it returns. The C6 prepare block grepped '^### Checkpoint' while the plan uses '^### Milestone', so it printed 0 beside an expected 2." \
   "Match the heading and the count to the plan as it stands on the branch the clip starts from." \
   "Which heading does plans/migration-plan.md actually use on demo/m1-c6-start, and how many are there?"
-
-check "c6" "step 1 asks for the conversions in a turn of its own" \
-  'node "${ROOT}/scripts/check.mjs" c6-step1-asks-for-conversions-alone' \
-  "Combined with the create, two measured runs produced both files correctly and skipped the conversions entirely -- and the conversion list is step 1's Highlight and the only turn Run A and Run B differ in." \
-  "Keep step 1 as two prompts: state the conversions and write nothing, then apply them." \
-  "How many prompts does step 1 send, and does the first one forbid writing?"
 
 check "c6" "step 1 proves its two files exist" \
   'node "${ROOT}/scripts/check.mjs" c6-step1-proves-its-files-exist' \
