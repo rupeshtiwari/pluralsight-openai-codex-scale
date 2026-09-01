@@ -33,14 +33,21 @@ difference is the one being measured. `c6-prompt-saved` asserts that file still 
 runbook byte for byte and still opens on the skill line; if the runbook is edited and the file is
 not, the check fails rather than the comparison silently drifting.
 
-**Run A — skill ON.** Send the saved file as-is. It opens with:
+**Run A — skill ON.** Send the saved prompts in order. Prompt 1 opens with:
 
 ```text
 Read framework-skill/node-express-migration/SKILL.md and follow its guidance.
 ```
 
-**Run B — skill OFF.** Send the same file with the first line and the blank line after it removed.
-Everything else is byte-identical. Do not retype it.
+**Run B — skill OFF.** Send prompt 1 with that line and the blank line after it removed. Every
+later prompt is byte-identical. Do not retype any of them.
+
+**The comparison is prompt 1's reply and nothing else.** Step 1 sends two prompts — state the
+conversions, then apply them — and only the first differs between the runs. That is not a
+convenience; it is what makes the control measurable. A combined turn was tried and two runs
+returned correct files with no conversions at all, so there was nothing to compare: the artifacts
+are produced by prompt 2, which is identical in both runs, and the gates prove them identical
+anyway. **Prompt 1's reply is the entire measurement surface.**
 
 The static half of that is now asserted, so it cannot regress unnoticed:
 
@@ -189,10 +196,11 @@ the test honest — the saved prompt is apparatus, not guidance.
 
 ### A Run A with no reasoning in it is not a Run A
 
-The comparison is between two pieces of *reasoning*, not two sets of files. Step 1's prompt asks for
-the conversions before any editing, and a measured run produced both files correctly while opening
-on *"Implemented the GET /tickets/:id migration slice"* — no conversion list, and none of the three
-tells anywhere in the reply.
+The comparison is between two pieces of *reasoning*, not two sets of files. **Two** measured runs of
+a combined single prompt produced both files correctly and skipped the conversions entirely — one
+opened *"Implemented the GET /tickets/:id migration slice"*, the other *"Done. I added the migrated
+GET-only router."* Neither carried any of the three tells. That is why step 1 is now two prompts;
+this section is the gate for when it happens anyway.
 
 Both halves of that are disqualifying, for the same reason:
 

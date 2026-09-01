@@ -478,6 +478,12 @@ check "c6" "the runbook's plan greps resolve on the start branch" \
   "Match the heading and the count to the plan as it stands on the branch the clip starts from." \
   "Which heading does plans/migration-plan.md actually use on demo/m1-c6-start, and how many are there?"
 
+check "c6" "step 1 asks for the conversions in a turn of its own" \
+  'node "${ROOT}/scripts/check.mjs" c6-step1-asks-for-conversions-alone' \
+  "Combined with the create, two measured runs produced both files correctly and skipped the conversions entirely -- and the conversion list is step 1's Highlight and the only turn Run A and Run B differ in." \
+  "Keep step 1 as two prompts: state the conversions and write nothing, then apply them." \
+  "How many prompts does step 1 send, and does the first one forbid writing?"
+
 check "c6" "step 1 proves its two files exist" \
   'node "${ROOT}/scripts/check.mjs" c6-step1-proves-its-files-exist' \
   "Two measured runs reported both files created and all five gates green having written neither. A verification that lists only prohibitions cannot tell an author that nothing happened, and a reported gate pass is not a gate pass." \
