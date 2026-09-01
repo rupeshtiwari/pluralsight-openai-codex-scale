@@ -1229,6 +1229,71 @@ const CHECKS = {
    * without it.
    */
   /**
+   * C6 step 1 asks for the conversions in a turn that creates nothing, in both
+   * the runbook and the saved file.
+   *
+   * The conversions were once instruction three of seven in a single prompt that
+   * also said "Then create ...". Twice, Codex produced both files correctly,
+   * passed every gate, and said only "Implemented the GET /tickets/:id migration
+   * slice" -- the second time, "Done. I added the migrated GET-only router." No
+   * conversions either time.
+   *
+   * The cause is not ordering. A turn that contains something to hand back
+   * resolves to the hand-back: the file is the evident deliverable and anything
+   * before it compresses into a summary. Moving the sentence earlier leaves it in
+   * the same turn as the file.
+   *
+   * This check was first written to protect a skill-on / skill-off comparison,
+   * where prompt 1 was the only turn the two runs differed in. That comparison is
+   * retired and the check is not, because its first reason never depended on it:
+   *
+   *   - the conversion list is step 1's Highlight, and in a combined turn the
+   *     Highlight was absent entirely, twice
+   *   - EO2d is now demonstrated rather than measured, and what it is
+   *     demonstrated BY is the skill's guidance appearing in those stated
+   *     conversions. A turn that skips them removes the demonstration
+   *
+   * Both files are read. Recombining in the runbook alone is caught by
+   * c6-prompt-saved as a parity failure; recombining in both is what nothing
+   * caught, and is the case this exists for.
+   *
+   * Proven red on: recombined in both files, recombined in the runbook only, the
+   * first prompt losing its no-writing instruction, and the first prompt also
+   * asking for a file.
+   */
+  'c6-step1-states-conversions-first': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const RUNBOOK = 'module1/m1-c6-migrate-one-express-route.md';
+    const SAVED = 'plans/prompts/m1-c6-migrate-route.md';
+    let ok = true;
+
+    for (const [file, blocks] of [
+      [RUNBOOK, (() => {
+        const src = read(RUNBOOK);
+        const step1 = src.slice(src.indexOf('## Step 1 '), src.indexOf('## Step 2 '));
+        return [...step1.matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
+      })()],
+      [SAVED, [...read(SAVED).matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]).slice(0, 2)],
+    ]) {
+      if (blocks.length < 2) {
+        ok = reject(`${file}: step 1 sends ${blocks.length} prompt(s). The conversions need a turn of their own -- combined with the create, two measured runs skipped them entirely and returned only a summary, and the conversion list is this step's Highlight and what EO2d is demonstrated by`);
+        continue;
+      }
+      const first = blocks[0].replace(/\s+/g, ' ');
+      if (!/\bconversions\b/i.test(first)) {
+        ok = reject(`${file}: step 1's first prompt never asks for the conversions -- they are the step's Highlight, and EO2d is demonstrated by the skill's guidance showing up in them`);
+      }
+      if (!/Do not create, edit or delete any file/i.test(first)) {
+        ok = reject(`${file}: step 1's first prompt does not forbid writing. Without that it can produce the files and compress the reasoning into a summary, which is the failure the split exists to prevent`);
+      }
+      if (/\bcreate supporthub-api\//i.test(first)) {
+        ok = reject(`${file}: step 1's first prompt also asks for a file to be created -- a turn with a deliverable in it resolves to the deliverable`);
+      }
+    }
+    return ok;
+  },
+
+  /**
    * Every C6 prompt block matches its saved copy, in order.
    *
    * Step 1 is sent from plans/prompts/m1-c6-migrate-route.md rather than retyped,

@@ -459,6 +459,12 @@ check "c6" "framework skill present" \
   "git checkout -- framework-skill/" \
   "The express-typescript-migration skill is missing. Restore it."
 
+check "c6" "step 1 states the conversions in a turn of its own" \
+  'node "${ROOT}/scripts/check.mjs" c6-step1-states-conversions-first' \
+  "Combined with the create, two measured runs produced both files correctly and stated no conversions at all. The conversion list is step 1's Highlight, and EO2d is demonstrated by the skill's guidance appearing in it -- a combined turn removes both." \
+  "Keep step 1 as two prompts in the runbook AND in plans/prompts/m1-c6-migrate-route.md: state the conversions and write nothing, then apply them." \
+  "How many prompts does step 1 send in each file, and does the first forbid writing?"
+
 check "c6" "saved C6 prompts match the runbook" \
   'node "${ROOT}/scripts/check.mjs" c6-prompt-saved' \
   "Step 1 is sent from the saved file rather than retyped, so the runbook and that file are two places to paste from. When they drift, Codex gets different instructions depending on which was open." \
