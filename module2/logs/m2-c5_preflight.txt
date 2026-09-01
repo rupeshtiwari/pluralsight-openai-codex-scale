@@ -38,13 +38,13 @@ Step 4  READY
   pass  run-3001 declares one valid and one invalid hunk
         $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3001.json one-of-each)" -eq 1 ]
 
-SHARED GATES  3 of 3 pass
+SHARED GATES  4 of 4 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 6   FAIL: 0
+PASS: 7   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c5_preflight.full.txt
 
