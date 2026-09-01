@@ -48,6 +48,10 @@ $ node "${ROOT}/scripts/check.mjs" preflight-step-map-complete
 
 RESULT PASS  [all] every check is mapped to a demo step
 
+$ node "${ROOT}/scripts/check.mjs" outline-map-matches-source
+
+RESULT PASS  [all] the clip map matches the outline it transcribes
+
 $ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
 
 RESULT PASS  [all] runbooks match the approved outline
