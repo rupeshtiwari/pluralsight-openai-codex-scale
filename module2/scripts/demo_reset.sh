@@ -43,10 +43,14 @@ fi
 # Count only what this script actually discards: tracked modifications, and
 # untracked files inside the directories it cleans.
 TRACKED=$(git diff --name-only | wc -l | tr -d ' ')
-UNTRACKED=$(git ls-files --others --exclude-standard supporthub-api docs automation | wc -l | tr -d ' ')
+UNTRACKED=$(git ls-files --others --exclude-standard supporthub-api docs automation plans | wc -l | tr -d ' ')
 if [ "$TRACKED" -gt 0 ] || [ "$UNTRACKED" -gt 0 ]; then
   git checkout -- . 2>/dev/null
-  git clean -fd supporthub-api docs automation >/dev/null 2>&1
+  # plans/ is inside DEMO_SURFACE_RE, so the guard above lets a stray there
+  # through, and this used not to clean it. Codex persists corrections to disk
+  # -- Gate 1 measured it editing four files to record one -- so an unnamed
+  # output landing in plans/ would have survived every reset between takes.
+  git clean -fd supporthub-api docs automation plans >/dev/null 2>&1
   $FMT item "reverted ${TRACKED} modified file(s), removed ${UNTRACKED} untracked file(s)"
 else
   $FMT item "already clean"
@@ -55,6 +59,15 @@ fi
 # 2. Fixtures restored to their recorded values
 $FMT section "fixtures"
 git checkout -- automation/ 2>/dev/null
+# C2 step 4 writes automation/triage/corrected-sweep.json. It is untracked by
+# design: its absence IS the starting state, and its presence means a previous
+# take's correction is still on disk. git clean above removes it; this says so.
+if [ -e automation/triage/corrected-sweep.json ]; then
+  $FMT item "corrected-sweep.json STILL PRESENT - remove it before the next take"
+else
+  $FMT item "corrected-sweep.json absent - C2 starts without its own answer"
+fi
+
 for f in automation/sentry-fixtures/issues.json \
          automation/github-seed/commits.json \
          automation/triage/baseline-manual-sweep.json; do

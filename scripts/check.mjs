@@ -1229,6 +1229,45 @@ const CHECKS = {
    * without it.
    */
   /**
+   * Module 2 clip 2 starts without its own answer already on disk.
+   *
+   * Gate 1 established that Codex persists a mid-thread correction to disk
+   * rather than only to conversation context -- it edited four files to record
+   * one. C2 step 4 produces exactly such a correction, and if it survives to the
+   * next take the step's before-and-after is false: Codex appears to arrive at a
+   * standard it was handed at the start.
+   *
+   * So step 4 names its output, automation/triage/corrected-sweep.json, and this
+   * asserts the file is absent before a take. Same shape as clip 6's "route
+   * contract suite starts empty": a leftover artifact does not fail anything
+   * loudly, it just makes the demonstration untrue.
+   *
+   * The baseline beside it is the opposite case -- recorded, tracked, and
+   * required to be present and unmodified, since it is the standard the
+   * correction is compared against.
+   *
+   * Proven red with the corrected sweep left in place, and with the baseline
+   * edited.
+   */
+  'm2-c2-starts-without-the-correction': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const OUT = 'automation/triage/corrected-sweep.json';
+    const BASE = 'automation/triage/baseline-manual-sweep.json';
+    let ok = true;
+    if (existsSync(join(ROOT, OUT))) {
+      ok = reject(`${OUT} exists before the take. C2 step 4 produces it, so a previous run's correction is still on disk and this clip would start from its own answer. ./module2/scripts/demo_reset.sh removes it`);
+    }
+    if (!existsSync(join(ROOT, BASE))) {
+      return reject(`${BASE} is missing -- it is the recorded standard step 4 compares against`);
+    }
+    try {
+      const dirty = execSync(`git status --porcelain -- ${BASE}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+      if (dirty) ok = reject(`${BASE} is modified. It is the recorded baseline, not an output: git checkout -- ${BASE}`);
+    } catch { /* no git, nothing to say */ }
+    return ok;
+  },
+
+  /**
    * Module 2 clip 3 stays inside the Codex panel.
    *
    * Its fourth bullet -- "Verify Slack and Linear drafts preserve the evidence
