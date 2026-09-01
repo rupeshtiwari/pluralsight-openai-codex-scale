@@ -57,6 +57,11 @@ PREFLIGHT_ONLY="$ONLY" node -e '
   }
 '
 
+# Two c5 checks assert the batched seed and therefore FAIL by design on the
+# branches that carry the split. Said once here, quoted into both remediations,
+# so the verdict names the branch instead of reading as a defect.
+BRANCH_NOTE="Expected to FAIL off demo/m1-c5-start. demo/m1-c5-captured and demo/m1-c6-start carry the two-checkpoint split by design; on those branches this FAIL is the branch being what it is."
+
 FAILED=()
 
 log(){ echo "$@" >> "$LOG"; }
@@ -406,8 +411,8 @@ check "c5" "no clip 5 prompt references the framework skill" \
 
 check "c5" "migration plan opens on exactly one milestone" \
   '[ "$(grep -c "^### Milestone" plans/migration-plan.md)" -eq 1 ]' \
-  "The rejection step needs a single batched milestone to act on. Two already-split checkpoints mean a previous run was not reset." \
-  "git checkout -- plans/migration-plan.md" \
+  "The rejection step needs a single batched milestone to act on. Two already-split checkpoints mean a previous run was not reset -- or that this is not demo/m1-c5-start." \
+  "On demo/m1-c5-start: git checkout -- plans/migration-plan.md. On demo/m1-c5-captured or demo/m1-c6-start: nothing to fix, those branches carry the split. ${BRANCH_NOTE}" \
   "plans/migration-plan.md must contain exactly one proposed milestone. Show how many it contains."
 
 check "c5" "step 4 audits the plan file, not the conversation" \
@@ -418,8 +423,8 @@ check "c5" "step 4 audits the plan file, not the conversation" \
 
 check "c5" "that milestone batches code with a dependency upgrade" \
   'node "${ROOT}/scripts/check.mjs" milestone-batched' \
-  "If the milestone does not combine a route migration with a dependency upgrade, there is nothing objectionable to reject." \
-  "git checkout -- plans/migration-plan.md" \
+  "If the milestone does not combine a route migration with a dependency upgrade, there is nothing objectionable to reject -- unless this is a branch that carries the post-rejection split." \
+  "On demo/m1-c5-start: git checkout -- plans/migration-plan.md. On demo/m1-c5-captured or demo/m1-c6-start: nothing to fix. ${BRANCH_NOTE}" \
   "Milestone 1 must combine the route migration with the Express upgrade. Show its scope."
 
 check "c5" "that milestone is unreviewed" \
