@@ -229,7 +229,6 @@ pluralsight-openai-codex-scale/
   framework-skill/node-express-migration/SKILL.md
 
   module1/  README.md  m1-c{2,3,5,6}-<clip-title>.md
-            m1-c6-framework-skill-evidence.md
             scripts/  logs/
   module2/  README.md  m2-c{2,3,5,6}-<clip-title>.md
             scripts/  logs/
@@ -584,20 +583,12 @@ Two things fall out of this beyond the clip.
 after the first prompt as well: a turn asked to reason and forbidden to write must leave the tree
 clean, and one that writes has already collapsed back into the old shape.
 
-**The instrument has to match the stimulus.** C6's three tells are all *reasons* — why `build`
-follows `--noEmit`, why the gate order cannot be permuted, why a route migration is never batched
-with a dependency upgrade. The prompt asked for *conversions*, which are written out in
-`docs/commonjs-esm-compatibility.md` and `plans/migration-plan.md` and therefore reachable without
-the skill at all. A run answered it completely and correctly and produced no tell, because the
-question had no place for one. **Ask what the floor already supplies and both runs answer the same,
-which reads as "the skill adds little" rather than as a measurement that never happened.** The
-prompt now asks why as well, and those questions are the only surface the tells can appear on.
-
-**The negative control becomes measurable.** C6's skill-on/skill-off comparison lives entirely in
-that first turn — later prompts are byte-identical between runs, and the gates prove the artifacts
-identical anyway. A combined turn left the two runs differing only in files that were the same, so
-there was nothing to measure. `c6-step1-asks-for-conversions-alone` asserts the split holds: two
-prompts, the first asking for conversions, forbidding writes, and not also asking for a file.
+**Retired, and the rule outlives it.** C6 once carried a skill-on / skill-off comparison, and the
+strongest argument for splitting the turn was that prompt 1 became its only measurement surface.
+That comparison is gone — three runs produced no reasoning unique to the skill in either direction.
+The split stays, because its first reason was never the control: a combined turn returned correct
+files and no conversions twice, and the conversions are the step's Highlight whether or not anything
+is being measured.
 
 Structurally this costs nothing. C5 already sends eight prompts across four steps and C2 four —
 more turns inside a step is the existing shape, and agent waits are edited out of the recording, so
@@ -758,30 +749,30 @@ files, no notification toasts pending, and no extension update prompts.
 
 ## 14. A negative control has a floor, and its own apparatus is not part of it
 
-C6's skill-off run is the only place in this course that claims to measure what a tool contributes.
-A measured pre-check asked Codex what it had consulted, and it named five sources nobody had
-pointed it at. Sorting those five is the whole method.
+**Retired with the comparison it described. Kept because the reasoning is the transferable part.**
 
-**Four are the floor.** `AGENTS.md` is ambient by design and carries the skill's checkpoint rule as
-a conclusion — *"Migrate one route slice at a time"*. `plans/migration-plan.md`,
-`docs/commonjs-esm-compatibility.md` and `docs/behavioral-exceptions.md` carry the checkpoints, the
-four conversions and the accepted differences. Run B reaches all of them, and that is fine, but it
-means **Run B is not a no-guidance run and must never be described as one.** State the floor in the
-artifact, or a small measured difference gets read as *"the skill adds little"* when what actually
-happened is the repository did the skill's job. What the comparison isolates is the skill's
-*reasoning* — which is why the tells are reasons (why `build` follows `--noEmit`, why the gate order
-cannot be permuted) rather than conclusions, and why none of the four state them.
+C6 once claimed to measure what a framework skill contributes: the same prompt with and without the
+skill line, compared for reasoning only the skill contains. Building it surfaced two things worth
+keeping.
 
-**The fifth is a leak.** `plans/prompts/m1-c6-migrate-route.md` opens on the skill line and then
-explains that Run B is that prompt minus its first line. A Run B that retrieves it has been told
-both that a skill exists and that it is being withheld. It moves aside for **both** runs — both, so
-neither has a source the other lacks — and each run records what it consulted, so a Run B naming
-`plans/prompts/` or `framework-skill/` is discarded and both are re-run.
+**A negative control has a floor, and the floor has to be stated.** Asked what it had consulted, a
+run named five sources nobody had pointed it at. Four were ambient — `AGENTS.md` carries the
+checkpoint rule as a conclusion; the plan, the compatibility doc and the exceptions doc carry the
+conversions. The skill-off run was therefore never a no-guidance run, and describing it as one would
+have turned a small measured difference into "the skill adds little" when the repository had done
+the skill's job.
 
-**The distinction that makes this legitimate.** Hiding `SKILL.md` to force a skill-off run would
-remove the thing under test, and a control that requires disguising its input is measuring nothing.
-Removing the experiment's own scaffolding from the environment it runs in is the opposite: the saved
-prompt is apparatus, not guidance. Ask which of the two a file is before moving it.
+**The experiment's own apparatus is not part of what is under test.** The fifth source was
+`plans/prompts/m1-c6-migrate-route.md`, which opened on the skill line and explained the toggle. The
+distinction that licensed moving it aside: hiding `SKILL.md` would have removed the thing under
+test, while removing the scaffolding kept the test honest. Ask which of the two a file is before
+moving it.
+
+**And the reason it was retired is the third lesson.** Three runs produced no tell in either
+direction, and two prompt rewrites chased it. An instrument that never reads is not evidence of
+absence — it is an instrument that was never demonstrated to read. The honest end was to stop and
+disclose EO2d as demonstrated rather than measured, not to keep reshaping the prompt until the
+comparison produced something.
 
 ## 15. An agent's account of its work is not the work
 
