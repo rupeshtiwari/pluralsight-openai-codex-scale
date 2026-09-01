@@ -27,6 +27,10 @@ Step 2  READY
         $ [ "$(node "${ROOT}/scripts/json.mjs" count automation/sentry-fixtures/issues.json issues)" -eq 5 ]
   pass  C2 starts without its own answer on disk
         $ node "${ROOT}/scripts/check.mjs" m2-c2-starts-without-the-correction
+  pass  the evidence fixtures carry no answer key
+        $ node "${ROOT}/scripts/check.mjs" fixtures-carry-no-answer-key
+  pass  every fixture stack frame opens on real code
+        $ node "${ROOT}/scripts/check.mjs" fixture-stack-frames-resolve
 
 Step 3  READY
   Inspect the report for P0–P3 priority, deduplicated bugs, and evidence-backed recommendations
@@ -38,6 +42,12 @@ Step 3  READY
         $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/github-seed/commits.json misleading-newer)" -eq 1 ]
   pass  rubric P1 threshold is 100
         $ grep -qF "| **P1** | Core workflow degraded or failing for many users | 100 or more |" docs/triage-rubric.md
+  pass  every baseline priority derives from the rubric
+        $ node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric
+  pass  the evidence fixtures carry no answer key
+        $ node "${ROOT}/scripts/check.mjs" fixtures-carry-no-answer-key
+  pass  every fixture stack frame opens on real code
+        $ node "${ROOT}/scripts/check.mjs" fixture-stack-frames-resolve
 
 Step 4  READY
   Correct weak prioritization or duplicate entries before automation is promoted
@@ -49,6 +59,10 @@ Step 4  READY
         $ grep -qF "| **P1** | Core workflow degraded or failing for many users | 100 or more |" docs/triage-rubric.md
   pass  C2 starts without its own answer on disk
         $ node "${ROOT}/scripts/check.mjs" m2-c2-starts-without-the-correction
+  pass  every baseline priority derives from the rubric
+        $ node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric
+  pass  step 4 expects the baseline it compares against
+        $ node "${ROOT}/scripts/check.mjs" runbook-expects-the-baseline-it-compares-to
 
 SHARED GATES  4 of 4 pass
 
@@ -56,7 +70,7 @@ SHARED GATES  4 of 4 pass
 
 Every gate is green. This clip can be recorded.
 
-PASS: 10   FAIL: 0
+PASS: 14   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c2_preflight.full.txt
 
