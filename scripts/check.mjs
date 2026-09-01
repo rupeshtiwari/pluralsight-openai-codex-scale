@@ -1495,30 +1495,59 @@ const CHECKS = {
    * mis-cut the walkthrough describes, and by committing on top of it.
    */
   'c6-start-descends-from-c5-captured': () => {
-    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
-    const resolve = (ref) => {
-      for (const r of [ref, `origin/${ref}`]) {
-        try {
-          const out = execSync(`git rev-parse --verify -q ${r}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-          if (out) return r;
-        } catch { /* try the next form */ }
-      }
-      return null;
+    // Published refs are the subject, and a stale local is a different problem
+    // from a wrongly cut branch. Conflating them printed
+    // `git branch -f demo/m1-c6-start demo/m1-c5-captured` at an author whose
+    // demo/m1-c6-start was fine -- their local demo/m1-c5-captured was behind
+    // origin. That command rewrites the start branch to C5's captured state, and
+    // git refused it only because the branch happened to be checked out.
+    //
+    // c2-refs-identical had already been rebuilt for exactly this, in this file.
+    // A remediation must name the ref it believes is wrong, and say why, so an
+    // author can disagree with it before running it.
+    const rev = (ref) => {
+      try {
+        return execSync(`git rev-parse --verify -q ${ref}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+      } catch { return ''; }
     };
-    const captured = resolve('demo/m1-c5-captured');
-    const start = resolve('demo/m1-c6-start');
-    if (!captured || !start) {
-      return reject(`${!captured ? 'demo/m1-c5-captured' : 'demo/m1-c6-start'} does not exist yet -- walk the clip before it; the chain is in module1/walkthrough-c5-c6.md`);
+    const CAPTURED = 'demo/m1-c5-captured';
+    const START = 'demo/m1-c6-start';
+    const say = (l) => process.stderr.write(`  ${l}\n`);
+
+    // Report local drift first, whatever the outcome: it is the likeliest cause
+    // of a surprising verdict, and the fix is per branch -- never the other one.
+    let drifted = 0;
+    for (const b of [CAPTURED, START]) {
+      const local = rev(b);
+      const remote = rev(`origin/${b}`);
+      if (local && remote && local !== remote) {
+        drifted += 1;
+        say(`local ${b} is ${local.slice(0, 7)}, origin has ${remote.slice(0, 7)} — the local one is not what was published`);
+        say(`  git fetch origin --prune && git branch -f ${b} origin/${b}`);
+      }
+    }
+
+    const captured = rev(`origin/${CAPTURED}`) || rev(CAPTURED);
+    const startRef = rev(`origin/${START}`) || rev(START);
+    if (!captured || !startRef) {
+      say(`${!captured ? CAPTURED : START} does not resolve — walk the clip before it; the chain is in module1/walkthrough-c5-c6.md`);
+      return false;
     }
     try {
-      execSync(`git merge-base --is-ancestor ${captured} ${start}`, { stdio: 'ignore' });
+      execSync(`git merge-base --is-ancestor ${captured} ${startRef}`, { stdio: 'ignore' });
     } catch {
-      return reject(`demo/m1-c6-start does not descend from demo/m1-c5-captured -- it was cut from somewhere else, or both branches were advanced separately. Move it: git branch -f demo/m1-c6-start demo/m1-c5-captured`);
+      say(`${START} (${startRef.slice(0, 7)}) does not descend from ${CAPTURED} (${captured.slice(0, 7)}) in the repository`);
+      say(`  ${START} is the branch to move, because it is defined as branched from ${CAPTURED}:`);
+      say(`  git branch -f ${START} ${CAPTURED}`);
+      say(`  do not move ${CAPTURED} — it carries the split C5 produced`);
+      return false;
     }
-    const tree = (r) => execSync(`git rev-parse ${r}^{tree}`).toString().trim();
-    if (tree(captured) !== tree(start)) {
-      return reject('demo/m1-c6-start has drifted from the split demo/m1-c5-captured recorded -- it must open on that state, not on a later one');
+    if (rev(`${captured}^{tree}`) !== rev(`${startRef}^{tree}`)) {
+      say(`${START} has drifted from the split ${CAPTURED} recorded — it must open on that state, not a later one`);
+      say(`  git branch -f ${START} ${CAPTURED}`);
+      return false;
     }
+    if (drifted) say('note: the published refs are correct; only the local branches above differ');
     return true;
   },
 
