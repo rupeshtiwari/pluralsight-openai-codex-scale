@@ -222,16 +222,26 @@ node scripts/json.mjs files 'automation/*-drafts/*.json' \
   slack-drafts   incident-2001   status=draft  approvedBy=none
 ```
 
-**Operator action.** Confirm each draft names its priority and its evidence, then confirm that
+**Operator action.** Read the priority and the evidence off Codex's own reply, then confirm that
 nothing has been sent.
+
+**Stay in the Codex panel. Do not open Slack or Linear.** Gate 1 measured what the plugins render
+in-thread and it is enough to verify a draft without a browser: Linear reported its issue key, a
+link, and *"Priority is set to Low, matching the P3 / zero affected users note"*; Slack rendered the
+message body with a clickable link. A browser switch here costs screen time, leaves the surface the
+clip is about, and shows a destination the demo is deliberately not writing to.
 
 **Highlight.** `status=draft` and `approvedBy=none` on every row, and the rejected-correlation
 sentence inside the `incident-2001` drafts. A reader learns not just what broke, but which
 tempting explanation was ruled out.
 
-**Verification.** PASS if three drafts exist for the two approved findings, each carries priority
-and evidence, and nothing was sent. FAIL if a draft exists for `evt-1088` or `evt-1099`, or if any
-item was actually created.
+**Verification.** PASS if the in-thread reply states each draft's priority and evidence, three
+drafts exist on disk for the two approved findings, and nothing was sent. FAIL if a draft exists for
+`evt-1088` or `evt-1099`, if any item was actually created, or if the priority has to be looked up
+outside Codex to confirm it.
+
+The disk check and the in-thread reply are two different claims, and both are wanted. The reply is
+what a viewer sees and what bullet 4 is about; the JSON is what proves the reply matches the file.
 
 **Recovery.** `./module2/scripts/demo_reset.sh` restores the drafts to their recorded state.
 

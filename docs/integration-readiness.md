@@ -28,9 +28,9 @@ evidence connecting them supports a correlation. **The most recent commit is not
 | Sentry — ingestion | events reach the project | **PASS** |
 | Sentry — read-only lookup | Codex retrieves a known issue | **PASS** |
 | Framework skill | repo-local skill is invocable | **PASS** |
-| Same-thread scheduling | manual sweep becomes a scheduled run in the same thread | **OPEN** |
-| Slack | routing destination reachable | **OPEN** |
-| Linear | routing destination reachable | **OPEN** |
+| Same-thread scheduling | manual sweep becomes a scheduled run in the same thread | **PASS** |
+| Slack | routing destination reachable | **PASS** |
+| Linear | routing destination reachable | **PASS** |
 
 ## Gate order
 
@@ -80,11 +80,34 @@ product defect. A clean fail on point 1 is the `BLOCKING PRODUCT GAP` §23 descr
 Fill this in during the validation run, not afterwards. Point 2 has three possible answers and they
 lead to different decisions, so record which one actually happened rather than pass or fail.
 
+Run 2026-09-01, scratch workspace.
+
 | # | Question | Outcome | Notes |
 |---|---|---|---|
-| 1 | Scheduled task created from inside an existing thread? | *not yet run* | |
-| 2 | Scheduled run inherits the manual sweep's corrections? | *not yet run* | one of: re-derives cleanly · inherits partially · inherits fully |
-| 3 | Plugins work in the scheduled run (Sentry, GitHub, Slack, Linear)? | *not yet run* | |
+| 1 | Scheduled task created from inside an existing thread? | **Yes** | The saved definition references the originating thread three times: *"the same Sentry sweep requested in this thread"*, *"matching the final sweep from this thread"*, *"format the result the same way as before"* |
+| 2 | Scheduled run inherits the manual sweep's corrections? | **Inherits fully** | The mid-thread correction is carried verbatim: *"If CODEX_PLUGIN_PROOF_SENTRY_2026 appears and priority is mentioned, treat it as P3/low priority because it has zero affected users."* |
+| 3 | Plugins work in the scheduled run (Sentry, GitHub, Slack, Linear)? | **Yes, all four** | Sentry returned a real issue with title, error type and userCount. Slack posted to `#supporthub-demo`. Linear created FUL-6 and reported *"Priority is set to Low, matching the P3 / zero affected users note."* |
+
+**Clean pass. EO3c is met as written**, and C3 bullet 2 compares one result carried forward rather
+than two independent ones.
+
+### Two things the run established that were not asked
+
+**The definition carries operational detail nobody prompted for**: read-only Sentry API, the config
+path, *"always call Sentry fresh, do not use cached results"*, the production environment, no
+`statsPeriod` filter, and a redaction rule covering tokens, DSNs, stack traces, emails and IPs. That
+is more than the objective needs, and it is worth knowing it appears without being asked before
+narration describes the definition as minimal.
+
+**The plugins render enough in-thread to verify a draft without leaving Codex.** Linear reported the
+issue key, a link, and the priority it had set; Slack rendered the message body with a clickable
+link. C3 therefore stays a single-surface demo, and its fourth bullet is verified from the in-thread
+response rather than by opening Slack or Linear on camera.
+
+**The mid-thread correction was persisted to disk, not only to conversation context** — Codex edited
+four files to record it. That changes what a reset between Module 2 takes has to restore, and
+`module2/scripts/demo_reset.sh` does not yet know about it. **Which four files is not yet recorded
+here, and the reset cannot be designed without it.**
 
 What each point-2 answer means:
 
