@@ -81,9 +81,14 @@ Deliberate differences accepted as part of the migration. Full detail in
 |---|---|---|---|
 | Rejected promise in an async handler | Not forwarded; the request hangs unless the handler catches it | Forwarded automatically to the error handler | Accept the Express 5 behavior, and keep the existing explicit error responses so status codes do not change |
 
+The migrated `GET /tickets/:id` route is not mounted yet. `app.js` is still CommonJS and cannot
+`require()` an ESM router, so the migrated route is verified against the contract on its own until
+the platform checkpoint sets `"type": "module"`. The route path, status codes, response fields,
+and `x-api-key` authentication behavior are unchanged.
+
 ## Milestones
 
-Produced by the initial planning pass. **Not yet reviewed.**
+Produced by the initial planning pass. Checkpoint 1 is complete; checkpoint 2 has not started.
 
 One list, one term. A milestone *is* a checkpoint: the unit that is validated independently and
 rolled back to. Splitting a milestone replaces its entry here with two entries — it does not create
@@ -98,11 +103,12 @@ CommonJS.
 
 | | |
 |---|---|
+| State | Complete |
 | Kind | Application code only |
-| Files touched | `supporthub-api/migration/app.js`; `supporthub-api/migration/app.mts`; `supporthub-api/migration/server.js`; `supporthub-api/migration/server.mts`; `supporthub-api/migration/routes/tickets.js`; `supporthub-api/migration/routes/tickets.mts`; `supporthub-api/migration/tests/tickets.test.js`; `supporthub-api/migration/tests/tickets.route.test.mts`; `supporthub-api/migration/package.json`; `supporthub-api/migration/tsconfig.json` |
-| Validation | `npm run lint:migration && npm run typecheck:migration && npm run build:migration && npm run test:route:migration && npm run test:migration` |
+| Files touched | `supporthub-api/migration/routes/ticketRead.mts`; `supporthub-api/migration/tests/contracts/ticket-read.route.test.mts` |
+| Validation | Passed: `npm run lint:migration`; `npm run typecheck:migration`; `npm run build:migration`; `npm run test:route:migration`; `npm run test:migration` |
 | Rollback point | commit `92f7a9d` |
-| External contract | `GET /tickets/:id` remains mounted at the same path, still runs `express.json()` before `requireApiKey`, still requires `x-api-key`, still returns `401 { error: "missing_api_key" }`, `403 { error: "invalid_api_key" }`, `404 { error: "ticket_not_found", id }`, or `200` with the ticket response fields `id`, `subject`, `status`, `priority`, `assignee`, `accountId`, `incidentId`, `createdAt`, and `updatedAt`. |
+| External contract | `GET /tickets/:id` has the same route path, still requires `x-api-key`, still returns `401 { error: "missing_api_key" }`, `403 { error: "invalid_api_key" }`, `404 { error: "ticket_not_found", id }`, or `200` with the ticket response fields `id`, `subject`, `status`, `priority`, `assignee`, `accountId`, `incidentId`, `createdAt`, and `updatedAt`. |
 
 ### Milestone 2 — Upgrade Express 4 to Express 5
 
@@ -112,10 +118,11 @@ same externally visible match.
 
 | | |
 |---|---|
+| State | Not started |
 | Kind | Dependency upgrade only |
 | Files touched | `supporthub-api/migration/package.json`; `package-lock.json` |
 | Validation | `npm run lint:migration && npm run typecheck:migration && npm run build:migration && npm run test:route:migration && npm run test:migration` |
-| Rollback point | commit `feat(migration): migrate GET /tickets/:id to ESM TypeScript on Express 4` |
+| Rollback point | commit `e8a9750` |
 | External contract | `GET /tickets/:id` continues to match the same URLs and preserve the same middleware order, authentication failures, `404` body, `200` ticket body, and response field names captured in Milestone 1. |
 
 ## Validation checks
