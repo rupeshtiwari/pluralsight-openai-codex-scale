@@ -1,7 +1,7 @@
 M2-C5 PREFLIGHT
 ===============
 
-Demo: Inspect automation diffs in the Codex review pane (6 minutes)
+Demo: Inspect automation diffs in the Codex review pane
 
 RUNBOOK
   module2/m2-c5-inspect-automation-diffs.md
@@ -26,6 +26,60 @@ RESULT PASS  [all] runbooks match the approved outline
 $ [ -z "$(git diff --cached --name-only)" ]
 
 RESULT PASS  [all] nothing left staged
+
+$ ./scripts/verify_integrations.sh
+MODULE 2 INTEGRATION PREPARATION
+Fixtures, rubric and config shape - not plugin reachability
+
+FIXTURES
+
+  > issues.json parses: PASS
+
+  > issues.json parses: PASS
+
+  > commits.json parses: PASS
+
+  > baseline-manual-sweep.json parses: PASS
+
+  > evt-1042 seeded: PASS
+
+  > evt-1043 seeded: PASS
+
+  > evt-1088 seeded: PASS
+
+  > evt-1099 seeded: PASS
+
+  > baseline names incident-2001: PASS
+
+STARTING STATE
+
+  > C2 starts without its own answer on disk: PASS
+
+TRIAGE RUBRIC
+
+  > P0-P3 all defined: PASS
+
+  > P1 affected-user threshold present: PASS
+
+CONFIG SHAPE
+
+  > .env.example declares every key the demo needs: PASS
+
+  > .env and .env.local untracked: PASS
+
+WHAT THIS DOES NOT COVER
+
+  > Plugin reachability - Sentry, Slack, Linear and GitHub
+    answering.
+
+  > That is C2 step 1's on-camera readiness step, and cannot
+    be asserted from a shell.
+
+  > Gate results are recorded in
+    docs/integration-readiness.md.
+
+  PASS: Fixtures, rubric and config shape are ready. Reachability is still C2 step 1's job.
+RESULT PASS  [all] fixtures, rubric and config shape are ready
 
 $ git apply --check automation/runs/run-3001.patch
 

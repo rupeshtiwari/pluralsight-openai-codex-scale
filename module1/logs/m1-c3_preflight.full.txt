@@ -64,6 +64,10 @@ $ node "${ROOT}/scripts/check.mjs" cut-blocks-branch-before-committing
 
 RESULT PASS  [all] cut procedures branch before they commit
 
+$ node "${ROOT}/scripts/check.mjs" every-check-is-wired
+
+RESULT PASS  [all] every check is run by some preflight
+
 $ node "${ROOT}/scripts/check.mjs" no-fixed-offsets-into-agent-files
 
 RESULT PASS  [all] no verification reads an agent-written file at a fixed offset

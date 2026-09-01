@@ -43,14 +43,16 @@ Step 4  READY
         $ [ "$(grep -l "\"status\": \"draft\"" automation/slack-drafts/*.json automation/linear-drafts/*.json | wc -l | tr -d " ")" -eq 3 ]
   pass  no draft is pre-approved
         $ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-drafts/*.json | grep -cv "null")" -eq 0 ]
+  pass  step 4 is verified in-thread, not in a browser
+        $ node "${ROOT}/scripts/check.mjs" m2-c3-verifies-in-thread
 
-SHARED GATES  3 of 3 pass
+SHARED GATES  4 of 4 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 8   FAIL: 0
+PASS: 10   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c3_preflight.full.txt
 

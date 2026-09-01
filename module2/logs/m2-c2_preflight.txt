@@ -25,6 +25,8 @@ Step 2  READY
 
   pass  five sentry issues in window
         $ [ "$(node "${ROOT}/scripts/json.mjs" count automation/sentry-fixtures/issues.json issues)" -eq 5 ]
+  pass  C2 starts without its own answer on disk
+        $ node "${ROOT}/scripts/check.mjs" m2-c2-starts-without-the-correction
 
 Step 3  READY
   Inspect the report for P0–P3 priority, deduplicated bugs, and evidence-backed recommendations
@@ -45,14 +47,16 @@ Step 4  READY
         $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/github-seed/commits.json misleading-newer)" -eq 1 ]
   pass  rubric P1 threshold is 100
         $ grep -qF "| **P1** | Core workflow degraded or failing for many users | 100 or more |" docs/triage-rubric.md
+  pass  C2 starts without its own answer on disk
+        $ node "${ROOT}/scripts/check.mjs" m2-c2-starts-without-the-correction
 
-SHARED GATES  3 of 3 pass
+SHARED GATES  4 of 4 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 8   FAIL: 0
+PASS: 10   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c2_preflight.full.txt
 

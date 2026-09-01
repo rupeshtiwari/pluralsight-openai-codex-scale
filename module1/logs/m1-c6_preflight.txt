@@ -32,6 +32,8 @@ Step 1  READY
         $ node "${ROOT}/scripts/check.mjs" c6-start-descends-from-c5-captured
   pass  this clip's starting checkpoint exists
         $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
+  pass  no route has migrated yet
+        $ node "${ROOT}/scripts/check.mjs" no-route-migrated
 
 Step 2  READY
   Run ESLint, TypeScript type-checking, build validation, and focused Vitest tests immediately after the route migration
@@ -74,13 +76,13 @@ Step 4  READY
   pass  this clip's starting checkpoint exists
         $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
 
-SHARED GATES  19 of 19 pass
+SHARED GATES  20 of 20 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 33   FAIL: 0
+PASS: 35   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 
