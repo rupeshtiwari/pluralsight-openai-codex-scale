@@ -12,13 +12,13 @@
         "evt-1042",
         "evt-1043"
       ],
-      "priority": "P0",
+      "priority": "P1",
       "affectedUsers": 500,
       "occurrences": 1509,
       "workaround": "none",
       "confidence": "high",
       "correlatedCommit": "a1b2c3d",
-      "evidence": "Both events share the changeStatus frame in ticketService.ts. a1b2c3d changed that function.",
+      "evidence": "Both events share the changeStatus frame at ticketService.ts:254, where ALLOWED_TRANSITIONS[ticket.status] is undefined for a status the pager bridge supplied unvalidated. a1b2c3d changed that function. P1, not P0: the combined 500 affected users clear the P1 band of 100 or more, no workaround exists, and the impact is a core workflow degraded -- status updates fail for pager-bridge tickets, a subset -- rather than unavailable, with no data loss.",
       "recommendation": "Validate the incoming status before indexing ALLOWED_TRANSITIONS.",
       "route": true
     },
