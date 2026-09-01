@@ -131,6 +131,12 @@
     "compat modules present": [
       3
     ],
+    "this clip's checkpoint descends from m1-c5-captured": [
+      1,
+      2,
+      3,
+      4
+    ],
     "this clip's starting checkpoint exists": [
       1,
       2,
