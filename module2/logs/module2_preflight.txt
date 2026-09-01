@@ -97,6 +97,22 @@ $ node "${ROOT}/scripts/check.mjs" m2-c2-starts-without-the-correction
 
 RESULT PASS  [c2] C2 starts without its own answer on disk
 
+$ node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric
+
+RESULT PASS  [c2] every baseline priority derives from the rubric
+
+$ node "${ROOT}/scripts/check.mjs" runbook-expects-the-baseline-it-compares-to
+
+RESULT PASS  [c2] step 4 expects the baseline it compares against
+
+$ node "${ROOT}/scripts/check.mjs" fixtures-carry-no-answer-key
+
+RESULT PASS  [c2] the evidence fixtures carry no answer key
+
+$ node "${ROOT}/scripts/check.mjs" fixture-stack-frames-resolve
+
+RESULT PASS  [c2] every fixture stack frame opens on real code
+
 $ node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json
 
 RESULT PASS  [c2] sentry fixtures valid
