@@ -243,6 +243,12 @@ check "all" "cut procedures branch before they commit" \
   "Put git checkout -b before git add and git commit in every cut block." \
   "Which cut block in module1/walkthrough-c5-c6.md commits before it branches?"
 
+check "all" "every check is run by some preflight" \
+  'node "${ROOT}/scripts/check.mjs" every-check-is-wired' \
+  "Five checks had been written and then wired to nothing -- m2-c2-starts-without-the-correction among them, the one guarding C2's whole absence guarantee. preflight-step-map-complete catches a wired check with no step, and cannot see a check that no preflight runs at all." \
+  "Add the check to the per-clip section it guards in module1/scripts/preflight_check.sh or module2/scripts/preflight_check.sh, or list it in the EXEMPT table inside every-check-is-wired with the reason it cannot run from a preflight." \
+  "Which named checks in scripts/check.mjs are invoked by neither preflight script?"
+
 check "all" "no verification reads an agent-written file at a fixed offset" \
   'node "${ROOT}/scripts/check.mjs" no-fixed-offsets-into-agent-files' \
   "C6 step 4 ran grep -A4 against the plan Codex had just written, and the recorded exception sat below line 4 -- a correct run and an empty one printed the same thing. Sweeping found two more in C3 against plans/ExecPlan.md." \
@@ -476,6 +482,12 @@ check "c6" "skill names all four validation gates" \
   "Clip 6 relies on the skill prescribing the four gates by name." \
   "git checkout -- framework-skill/node-express-migration/SKILL.md" \
   "The migration skill must name ESLint, TypeScript type-check, build validation, and focused Vitest tests."
+
+check "c6" "no route has migrated yet" \
+  'node "${ROOT}/scripts/check.mjs" no-route-migrated' \
+  "Step 2 narrates nothing-to-run becoming four passing tests, and step 1 expects two NEW files. A migrated route left behind by an unreset run makes both false." \
+  "./module1/scripts/demo_reset.sh" \
+  "Does supporthub-api/migration/routes contain a .ts or .mts file before the demo starts?"
 
 check "c6" "compat modules present" \
   '[ -f supporthub-api/migration/compat/dirname.mts ] && [ -f supporthub-api/migration/compat/legacyRequire.mts ]' \

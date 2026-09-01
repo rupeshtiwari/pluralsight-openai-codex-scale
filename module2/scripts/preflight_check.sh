@@ -168,6 +168,18 @@ check "all" "nothing left staged" '[ -z "$(git diff --cached --name-only)" ]' \
   "git diff --cached shows staged changes. Show me what they are."
 
 sect c2 "clip 2 - manual triage sweep"
+check "all" "fixtures, rubric and config shape are ready" \
+  './scripts/verify_integrations.sh' \
+  "Every Module 2 clip reads these fixtures and this rubric. Running the preparation script from here means it cannot be the separate thing an author forgets -- and it deliberately does not claim plugin reachability, which is C2 step 1's on-camera job." \
+  "Read its own output: it names the fixture, rubric row or config key that failed." \
+  "Which fixture, rubric row or .env.example key does ./scripts/verify_integrations.sh report as failing?"
+
+check "c2" "C2 starts without its own answer on disk" \
+  'node "${ROOT}/scripts/check.mjs" m2-c2-starts-without-the-correction' \
+  "Codex persists a mid-thread correction to disk, not only to conversation context -- Gate 1 measured it editing four files to record one. Step 4 writes automation/triage/corrected-sweep.json, and if that survives to the next take this clip starts from the answer it is supposed to reach." \
+  "./module2/scripts/demo_reset.sh removes it." \
+  "Is automation/triage/corrected-sweep.json present before the take, and is the recorded baseline unmodified?"
+
 check "c2" "sentry fixtures valid" 'node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json' \
   "The whole sweep reads this file; malformed JSON stops the demo." \
   "git checkout -- automation/sentry-fixtures/issues.json" \
@@ -198,6 +210,12 @@ check "c2" "rubric P1 threshold is 100" \
   "The P1 row in docs/triage-rubric.md must read 100 or more. Show what it reads."
 
 sect c3 "clip 3 - schedule and route"
+check "c3" "step 4 is verified in-thread, not in a browser" \
+  'node "${ROOT}/scripts/check.mjs" m2-c3-verifies-in-thread' \
+  "Gate 1 measured what the plugins render in-thread and it is enough to verify a draft. Sending an author to Slack or Linear costs screen time, leaves the surface the clip is about, and shows a destination this demo deliberately does not write to." \
+  "Keep step 4 reading priority and evidence off Codex's reply, and keep the stay-in-panel instruction." \
+  "Does m2-c3 step 4 tell the author to open Slack or Linear?"
+
 check "c3" "triage baseline present" 'node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json' \
   "The scheduled run is compared against this baseline." \
   "git checkout -- automation/triage/" \
