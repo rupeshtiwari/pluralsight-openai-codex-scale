@@ -77,6 +77,25 @@ function splitPlanHolds() {
   return true;
 }
 
+/**
+ * The ```text blocks a clip sends on camera.
+ *
+ * plans/prompts/ is the record of what is typed in front of the viewer, so the
+ * parity checks must compare against that and nothing else. Prep blocks send
+ * prompts too -- the identity probe that catches Codex being open on a
+ * different folder is one -- and counting those made both parity checks fail
+ * the moment it was added, reporting a drift that did not exist.
+ *
+ * Missing marker is a hard failure rather than a silent whole-file scan: the
+ * defect being avoided is exactly a parity check quietly widening its subject.
+ */
+const onCameraPrompts = (f) => {
+  const s = read(f);
+  const i = s.search(/^#+ *ON-CAMERA/m);
+  if (i < 0) throw new Error(`${f}: no ON-CAMERA marker, so its on-camera prompts cannot be identified`);
+  return [...s.slice(i).matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
+};
+
 const CHECKS = {
   /** createTicket must carry all four responsibilities, so one cleanup pass touches them together. */
   'load-bearing-function': () => {
@@ -1047,9 +1066,9 @@ const CHECKS = {
    */
   'c2-prompts-saved': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
-    const prompts = (f) => [...read(f).matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
-    const rb = prompts('module1/m1-c2-map-noisy-typescript-modules.md');
-    const saved = prompts('plans/prompts/m1-c2-map-codebase.md');
+    const rb = onCameraPrompts('module1/m1-c2-map-noisy-typescript-modules.md');
+    // The saved file is prompts only, so it has no on-camera boundary to slice at.
+    const saved = [...read('plans/prompts/m1-c2-map-codebase.md').matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
     if (rb.length === 0) return reject('m1-c2: no prompt blocks found — the runbook shape changed');
     if (rb.length !== saved.length) {
       return reject(`m1-c2 has ${rb.length} prompts, plans/prompts/m1-c2-map-codebase.md has ${saved.length}`);
@@ -1430,9 +1449,9 @@ const CHECKS = {
    */
   'c6-prompt-saved': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
-    const prompts = (f) => [...read(f).matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
-    const rb = prompts('module1/m1-c6-migrate-one-express-route.md');
-    const saved = prompts('plans/prompts/m1-c6-migrate-route.md');
+    const rb = onCameraPrompts('module1/m1-c6-migrate-one-express-route.md');
+    // The saved file is prompts only, so it has no on-camera boundary to slice at.
+    const saved = [...read('plans/prompts/m1-c6-migrate-route.md').matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
     if (rb.length === 0) return reject('m1-c6: no prompt blocks found -- the runbook shape changed');
     if (rb.length !== saved.length) {
       return reject(`m1-c6 has ${rb.length} prompts, plans/prompts/m1-c6-migrate-route.md has ${saved.length}`);
@@ -1897,6 +1916,73 @@ const CHECKS = {
    * Proven red three ways: the existence test removed, one of the two paths
    * dropped from it, and the test demoted below git status.
    */
+  /**
+   * Every prep block makes the agent prove it is in this checkout.
+   *
+   * Two directories on the recording machine shared the basename
+   * pluralsight-openai-codex-scale -- one under Documents/ChatGPT/, the real
+   * repository a level up -- and Codex Desktop's project pointed at the copy,
+   * which sits on a `master` branch this repository does not have. Two C6 Step
+   * 1 runs reported both files created and all five gates green while neither
+   * file reached disk. The reports were accurate. They were about a different
+   * checkout.
+   *
+   * Nothing downstream can catch that: every verification in every runbook
+   * reads the terminal's checkout, and the agent was never in it. So the probe
+   * is a precondition, and it has to survive edits to these files.
+   *
+   * Asserted per runbook: the agent is asked for an ABSOLUTE working directory
+   * and a BRANCH; the terminal prints both to compare against; the clip's own
+   * starting branch is named, so the comparison has a right answer; and the
+   * block warns against comparing the project NAME, which is the one field
+   * that was identical between the two folders.
+   */
+  'runbooks-probe-agent-identity': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const RUNBOOKS = [
+      ['module1/m1-c2-map-noisy-typescript-modules.md', 'demo/m1-c2-start'],
+      ['module1/m1-c3-execute-codex-refactor.md', 'demo/m1-c3-start'],
+      ['module1/m1-c5-inventory-legacy-express4.md', 'demo/m1-c5-start'],
+      ['module1/m1-c6-migrate-one-express-route.md', 'demo/m1-c6-start'],
+      ['module2/m2-c2-manual-triage.md', 'demo/m2-c2-start'],
+    ];
+    let ok = true;
+    for (const [file, branch] of RUNBOOKS) {
+      // The prep block is everything before ON-CAMERA; a probe after the first
+      // prompt has already let a wrong-checkout run start.
+      const whole = read(file);
+      const cut = whole.search(/^#+ *ON-CAMERA/m);
+      const prepRaw = cut < 0 ? whole : whole.slice(0, cut);
+      // Collapsed for prose assertions, which must not be coupled to hard wraps.
+      // Line-anchored assertions read prepRaw instead: the PASS clause names
+      // `pwd` in prose, so a substring match would pass on a block that never
+      // runs it.
+      const prep = prepRaw.replace(/\s+/g, ' ');
+      const need = [
+        [/absolute[^.]{0,40}\bworking director/i,
+          'ask the agent for its ABSOLUTE working directory -- a relative path or a folder name cannot tell the two checkouts apart'],
+        [/\bprint\b[^.]{0,80}\bbranch\b|\bbranch\b[^.]{0,80}\bprint\b/i,
+          'ask the agent for its current branch -- it is the half of the test that does not depend on reading a long path carefully'],
+        [/^\s*pwd\s*$/m,
+          'run pwd in the terminal, so the agent\'s answer has something to be compared against (naming it in the PASS clause is not running it)',
+          true],
+        [/^\s*git rev-parse --abbrev-ref HEAD\s*$/m,
+          'run git rev-parse --abbrev-ref HEAD in the terminal too, for the same reason',
+          true],
+        [new RegExp(branch.replace(/[/-]/g, '\\$&')),
+          `name ${branch} in the prep block, so "does it match" has a right answer`],
+        [/\bname\b[^.]{0,120}\b(identical|truncat|same)|\b(identical|truncat|same)\b[^.]{0,120}\bname\b/i,
+          'warn that the project NAME cannot distinguish the two folders -- it was identical, and it is the field the eye goes to'],
+      ];
+      for (const [re, what, lineAnchored] of need) {
+        if (!re.test(lineAnchored ? prepRaw : prep)) {
+          ok = reject(`${file}: the prep block does not ${what}`);
+        }
+      }
+    }
+    return ok;
+  },
+
   'c6-step1-proves-its-files-exist': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const RUNBOOK = 'module1/m1-c6-migrate-one-express-route.md';

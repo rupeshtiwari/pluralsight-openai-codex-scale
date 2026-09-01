@@ -96,6 +96,37 @@ npm test                        # Tests  25 passed (25)
 git status --short              # must print nothing at all
 ```
 
+**Confirm Codex is in this checkout before the first prompt.**
+
+Two folders on the recording machine once shared the basename `pluralsight-openai-codex-scale` — one
+under `Documents/ChatGPT/`, the real repository a level up — and Codex Desktop's project pointed at
+the wrong one. It edited files, ran gates and reported accurately, in a checkout nobody was
+recording. Nothing downstream catches that: every verification in this runbook reads the terminal's
+checkout, and the agent was never in it.
+
+The cheap check costs nothing. **The project chip above the Codex composer prints the branch**, next
+to the project name and the Local badge. It must read `demo/m1-c6-start`. On the run that found this it read
+`master`, a branch this repository does not have. Do not check the project *name* — it is truncated
+in the chip and was identical between the two folders, so it looks right either way. Change the
+project with ⌥⇧⌘O.
+
+Then have Codex say it, and compare against the terminal:
+
+```text
+Print your absolute working directory and the current git branch. Do nothing else.
+```
+
+```bash
+pwd
+git rev-parse --abbrev-ref HEAD
+```
+
+**PASS** — the path Codex prints matches `pwd` character for character, and its branch matches
+`demo/m1-c6-start`. Compare the whole path: the two folders differed only in a parent directory, so any
+comparison that stops at the folder name passes on the wrong one.
+**FAIL** — anything else, including a path you cannot read in full. Fix the project before
+recording. A walk from the wrong checkout looks entirely successful and proves nothing.
+
 **Pulling? Use `./scripts/sync.sh`.** It resets both modules, then pulls. Plain `git pull` after a
 run aborts with *"Your local changes to the following files would be overwritten by merge"*, because
 every demo dirties tracked files — `plans/ExecPlan.md`, `plans/migration-plan.md`, anything under
@@ -167,9 +198,9 @@ catches it too, since `package.json` appearing in `git status` fails that step.
 | `npm test` reports `Missing script: "test"` | wrong branch | `git checkout demo/m1-c6-start` |
 | Tests fail on a fresh checkout | dependencies not installed | `npm install` |
 | Source Control shows changes before Step 1 | previous run not reset | `./module1/scripts/demo_reset.sh` |
-| Codex describes files or a dirty tree that `git status` does not show | its workspace view predates your reset — a fresh *thread* does not refresh it | close and reopen the Codex session, confirm `git status --short supporthub-api/` is empty, then repeat Step 1 |
-| Codex reports files created and gates green, but `ls` cannot find the files | the summary is a claim, not the work | repeat Step 1; never proceed to Step 2 on the summary alone |
-| That happens twice in a row, and the reply keeps describing a pre-reset working tree | the editor's workspace view is stale; a new Codex thread does not clear it | **quit VS Code entirely and reopen it.** That fixed it on the measured occurrence — two failed attempts, then a clean Step 1 on the third. If a run after the restart still reports work that is not on disk, stop: a third identical attempt diagnoses nothing |
+| Codex reports files created and gates green, but `ls` cannot find them | **first suspect: it is in a different folder with the same name.** That is what it was on the run this row was written for — a second `pluralsight-openai-codex-scale` under `Documents/ChatGPT/`, on a `master` branch this repository does not have | read the branch on the project chip above the composer; then ask it to print its absolute working directory and branch and compare both against `pwd` and `git rev-parse --abbrev-ref HEAD`. Change the project with ⌥⇧⌘O. Never proceed to Step 2 on a summary alone |
+| Codex describes files or a dirty tree that `git status` does not show | same first suspect — an accurate description of a checkout that is not yours reads exactly like a stale view of one that is | run the identity check above before assuming anything about staleness |
+| The identity check passes and it still reports work that is not on disk | now it is the editor's workspace view, and a fresh *thread* does not clear it | quit VS Code entirely and reopen it, confirm `git status --short supporthub-api/` is empty, then repeat Step 1. If a run after the restart still reports work that is not on disk, stop: a third identical attempt diagnoses nothing |
 
 ---
 

@@ -84,6 +84,37 @@ npm test                        # Tests  25 passed (25)
 git status --short              # must print nothing at all
 ```
 
+**Confirm Codex is in this checkout before the first prompt.**
+
+Two folders on the recording machine once shared the basename `pluralsight-openai-codex-scale` — one
+under `Documents/ChatGPT/`, the real repository a level up — and Codex Desktop's project pointed at
+the wrong one. It edited files, ran gates and reported accurately, in a checkout nobody was
+recording. Nothing downstream catches that: every verification in this runbook reads the terminal's
+checkout, and the agent was never in it.
+
+The cheap check costs nothing. **The project chip above the Codex composer prints the branch**, next
+to the project name and the Local badge. It must read `demo/m1-c2-start`. On the run that found this it read
+`master`, a branch this repository does not have. Do not check the project *name* — it is truncated
+in the chip and was identical between the two folders, so it looks right either way. Change the
+project with ⌥⇧⌘O.
+
+Then have Codex say it, and compare against the terminal:
+
+```text
+Print your absolute working directory and the current git branch. Do nothing else.
+```
+
+```bash
+pwd
+git rev-parse --abbrev-ref HEAD
+```
+
+**PASS** — the path Codex prints matches `pwd` character for character, and its branch matches
+`demo/m1-c2-start`. Compare the whole path: the two folders differed only in a parent directory, so any
+comparison that stops at the folder name passes on the wrong one.
+**FAIL** — anything else, including a path you cannot read in full. Fix the project before
+recording. A walk from the wrong checkout looks entirely successful and proves nothing.
+
 **Pulling? Use `./scripts/sync.sh`.** It resets both modules, then pulls. Plain `git pull` after a
 run aborts with *"Your local changes to the following files would be overwritten by merge"*, because
 every demo dirties tracked files — `plans/ExecPlan.md`, `plans/migration-plan.md`, anything under
