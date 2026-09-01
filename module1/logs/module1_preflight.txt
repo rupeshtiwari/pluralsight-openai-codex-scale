@@ -155,10 +155,7 @@ $ [ "$(grep -c "value === 'p0'" supporthub-api/modern/src/routes/tickets.ts)" -e
 RESULT PASS  [c2] the route does not normalize priority
 
 $ node "${ROOT}/scripts/check.mjs" c2-refs-identical
-  note: local demo/m1-c2-start is stale (6aeecef vs origin a5cbaa5)
-  note: git fetch origin && git branch -f demo/m1-c2-start origin/demo/m1-c2-start
-  note: local demo/m1-c2-captured is stale (6aeecef vs origin a5cbaa5)
-  note: git fetch origin && git branch -f demo/m1-c2-captured origin/demo/m1-c2-captured
+
 RESULT PASS  [c2] start and captured checkpoints are the same commit
 
 $ [ -f plans/prompts/m1-c2-map-codebase.md ]
@@ -242,9 +239,7 @@ $ grep -q "Not yet reviewed" plans/migration-plan.md
 RESULT PASS  [c5] that milestone is unreviewed
 
 $ node "${ROOT}/scripts/check.mjs" c6-start-descends-from-c5-captured
-  local demo/m1-c5-captured is 05494d6, origin has fc2579a — the local one is not what was published
-    git fetch origin --prune && git branch -f demo/m1-c5-captured origin/demo/m1-c5-captured
-  note: the published refs are correct; only the local branches above differ
+
 RESULT PASS  [c6] this clip's checkpoint descends from m1-c5-captured
 
 $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
