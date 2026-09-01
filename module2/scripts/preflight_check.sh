@@ -27,7 +27,13 @@ mkdir -p "$(dirname "$LOG")"
 
 # Per-clip transcripts. The master log above covers the whole module; an author
 # about to record one clip wants the gates for that clip and nothing else. Every
-# check is already scoped -- check "all" gates every clip, check "cN" gates one
+# check is already scoped -- check "all" "every prep block proves the agent is in this checkout" \
+  'node "${ROOT}/scripts/check.mjs" runbooks-probe-agent-identity' \
+  "Two folders on the recording machine shared the basename pluralsight-openai-codex-scale and Codex Desktop pointed at the wrong one, on a master branch this repository does not have. Two C6 Step 1 runs reported files created and gates green while nothing reached disk -- accurate reports about a different checkout. No verification downstream can see this, because they all read the terminal's checkout." \
+  "Restore the prep block's identity probe: the project chip's branch, then pwd and git rev-parse --abbrev-ref HEAD against what the agent prints. node scripts/check.mjs runbooks-probe-agent-identity names the runbook and the missing half." \
+  "Which runbook prep blocks do not make Codex print its absolute working directory and branch before the first prompt?"
+
+check "all" gates every clip, check "cN" gates one
 # -- so the run is partitioned rather than repeated. Headers come from
 # docs/outline-clip-map.json so a clip's title and objectives cannot drift from
 # the approved outline.
