@@ -1229,6 +1229,52 @@ const CHECKS = {
    * without it.
    */
   /**
+   * Every check is either run by a preflight or exempted here, with a reason.
+   *
+   * preflight-step-map-complete catches a check that is WIRED but unmapped. It
+   * cannot see a check that is written and wired nowhere at all -- there is
+   * nothing in the preflight for it to notice the absence of. Two Module 2
+   * checks were added in one session and neither reached a preflight, so both
+   * ran only in the full sweep and would not have fired before a recording. A
+   * check nobody runs before recording does not fire when it matters.
+   *
+   * The exemptions are real and each names why. They are asserted from a
+   * specific checkout by the walkthrough, and would fail by design from the seed
+   * branches every preflight runs on -- wiring them would teach an author to
+   * ignore a red line, which is worse than not running them.
+   *
+   * Proven red by removing a check's preflight invocation, and by exempting one
+   * with an empty reason.
+   */
+  'every-check-is-wired': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const EXEMPT = {
+      'c5-captured-opens-on-split': 'asserted from a demo/m1-c5-captured checkout at walkthrough step 4; fails by design on the seed branches a preflight runs from',
+      'c6-start-opens-on-split': 'asserted from a demo/m1-c6-start checkout at walkthrough step 6; same reason',
+    };
+    const wired = new Set();
+    for (const f of ['module1/scripts/preflight_check.sh', 'module2/scripts/preflight_check.sh']) {
+      for (const m of read(f).matchAll(/check\.mjs["']?\s+([a-z0-9-]+)/g)) wired.add(m[1]);
+    }
+    let ok = true;
+    for (const name of Object.keys(CHECKS)) {
+      if (wired.has(name)) {
+        if (EXEMPT[name]) ok = reject(`${name} is both wired and exempted -- drop the exemption, it is stale`);
+        continue;
+      }
+      if (!EXEMPT[name]) {
+        ok = reject(`${name} is not run by any preflight. A check nobody runs before recording does not fire when it matters -- wire it to the clip it guards, or exempt it in every-check-is-wired with the reason`);
+      } else if (!EXEMPT[name].trim()) {
+        ok = reject(`${name} is exempted with no reason given`);
+      }
+    }
+    for (const name of Object.keys(EXEMPT)) {
+      if (!(name in CHECKS)) ok = reject(`${name} is exempted but no longer exists -- remove the exemption`);
+    }
+    return ok;
+  },
+
+  /**
    * Module 2 clip 2 starts without its own answer already on disk.
    *
    * Gate 1 established that Codex persists a mid-thread correction to disk
