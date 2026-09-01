@@ -100,7 +100,19 @@ is not reliable in either direction: it can cite the skill without having read i
 not mention it. Judge on an objective signal instead.
 
 **Primary signal — content only the skill contains.** These phrasings appear nowhere else in the
-repository, so their appearance in a reply is evidence of a read regardless of what Codex says:
+repository, so their appearance in a reply is evidence of a read regardless of what Codex says.
+
+**All three are reasons, and that is not incidental — it is what makes them usable.** A measured run
+answered a conversions-only prompt completely and correctly and carried none of them. It could not
+have: `module.exports` shapes and `__dirname` are written out in
+[docs/commonjs-esm-compatibility.md](../docs/commonjs-esm-compatibility.md) and
+[plans/migration-plan.md](../plans/migration-plan.md), both of which Run B reaches by retrieval. A
+prompt asking only *what* asks for the floor, and both runs answer it the same way.
+
+So Step 1's first prompt asks *why* as well — which failures are compile-time and which are
+run-time, why the gate order cannot be permuted, why the upgrade is a separate milestone. Those
+three questions are the surface these three tells can appear on, and nothing else in the repository
+answers them. `c6-step1-asks-for-conversions-alone` fails the prompt if any of the three is dropped.
 
 | Tell | Why it is a tell |
 |---|---|

@@ -20,14 +20,24 @@ prompt 2 onward are identical in both.
 ```text
 Read framework-skill/node-express-migration/SKILL.md and follow its guidance.
 
-State the exact conversions the skill requires to move the GET /tickets/:id route
-out of supporthub-api/migration/routes/tickets.js and into ESM TypeScript in that
-same workspace:
+Answer these before touching anything, in order.
 
-- each require() in the route, and what it becomes
-- each module.exports shape the route depends on, and what it becomes
-- every __dirname use, and what replaces it
-- what the skill says about route params and handler return values
+1. State the exact conversions the skill requires to move the GET /tickets/:id
+   route out of supporthub-api/migration/routes/tickets.js and into ESM
+   TypeScript in that same workspace: each require() and what it becomes, each
+   module.exports shape the route depends on and what it becomes, every
+   __dirname use and what replaces it, and what changes about route params and
+   handler return values.
+
+2. For each conversion above, say what breaks if it is done wrong, and whether
+   that break shows up at compile time or at run time.
+
+3. In what order does the skill require the validation gates to run, and what
+   does each one catch that the gate before it cannot?
+
+4. This checkpoint migrates the route while the workspace stays on Express 4.
+   What does the skill say about doing that upgrade in the same milestone, and
+   what is its reason?
 
 Do not create, edit or delete any file yet. Read the repository freely with
 read-only commands such as ls, find, rg, sed and cat; do not run tests, builds,
