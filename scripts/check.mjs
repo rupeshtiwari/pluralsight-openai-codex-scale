@@ -1229,6 +1229,43 @@ const CHECKS = {
    * without it.
    */
   /**
+   * Module 2 clip 3 stays inside the Codex panel.
+   *
+   * Its fourth bullet -- "Verify Slack and Linear drafts preserve the evidence
+   * and priority from the triage decision" -- reads as though it needs the
+   * destinations open. Gate 1 measured what the plugins render in-thread and it
+   * is enough: Linear reported its issue key, a link, and the priority it had
+   * set; Slack rendered the message body with a clickable link.
+   *
+   * So the step is verified from the reply. Sending an author to a browser would
+   * cost screen time, leave the surface the clip is about, and put a destination
+   * on camera that this demo deliberately does not write to -- the drafts stay
+   * drafts, and Gate 1's scratch-workspace run is the only place anything was
+   * actually posted.
+   *
+   * Proven red on an instruction to open either destination.
+   */
+  'm2-c3-verifies-in-thread': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const FILE = 'module2/m2-c3-schedule-triage.md';
+    const src = read(FILE);
+    const step4 = src.slice(src.indexOf('## Step 4 '));
+    const body = step4.slice(0, step4.indexOf('\n---'));
+    let ok = true;
+    const OPEN = /\b(open|switch to|go to|visit)\b[^.\n]{0,40}\b(slack|linear)\b/i;
+    for (const line of body.split('\n')) {
+      const m = line.match(OPEN);
+      if (m && !/do not open/i.test(line)) {
+        ok = reject(`${FILE}: step 4 says "${m[0]}" -- it is verified from Codex's in-thread reply, which Gate 1 measured as sufficient. A browser switch leaves the surface the clip is about`);
+      }
+    }
+    if (!/Do not open Slack or Linear/i.test(body)) {
+      ok = reject(`${FILE}: step 4 does not tell the author to stay in the Codex panel. Without it the bullet reads as though the destinations have to be opened`);
+    }
+    return ok;
+  },
+
+  /**
    * C6 step 1 asks for the conversions in a turn that creates nothing, in both
    * the runbook and the saved file.
    *
