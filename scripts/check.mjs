@@ -1260,18 +1260,38 @@ const CHECKS = {
    * skill. Line 1 is asserted separately because Run B is defined as this file
    * without it.
    */
+  /**
+   * Every C6 prompt block matches its saved copy, in order, and the toggle is on
+   * the first line of the first one.
+   *
+   * It used to compare a single block located by its opening line. Step 1 now
+   * sends two prompts -- state the conversions, then apply them -- because two
+   * measured runs collapsed a combined turn into the create and skipped the
+   * reasoning the clip exists to show. A one-block comparison would have gone on
+   * passing while the second prompt drifted between the runbook and the saved
+   * file, which is the exact defect this check was written for.
+   */
   'c6-prompt-saved': () => {
-    const block = (file) => {
-      const s = read(file);
-      const i = s.indexOf('Read framework-skill/node-express-migration/SKILL.md');
-      if (i < 0) return null;
-      const j = s.indexOf('\n```', i);
-      return j < 0 ? null : s.slice(i, j);
-    };
-    const a = block('module1/m1-c6-migrate-one-express-route.md');
-    const b = block('plans/prompts/m1-c6-migrate-route.md');
-    if (a === null || b === null || a !== b) return false;
-    return b.split('\n')[0] === 'Read framework-skill/node-express-migration/SKILL.md and follow its guidance.';
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const TOGGLE = 'Read framework-skill/node-express-migration/SKILL.md and follow its guidance.';
+    const prompts = (f) => [...read(f).matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
+    const rb = prompts('module1/m1-c6-migrate-one-express-route.md');
+    const saved = prompts('plans/prompts/m1-c6-migrate-route.md');
+    if (rb.length === 0) return reject('m1-c6: no prompt blocks found -- the runbook shape changed');
+    if (rb.length !== saved.length) {
+      return reject(`m1-c6 has ${rb.length} prompts, plans/prompts/m1-c6-migrate-route.md has ${saved.length}`);
+    }
+    let ok = true;
+    rb.forEach((body, i) => {
+      if (body !== saved[i]) ok = reject(`m1-c6 prompt ${i + 1} differs from the saved copy`) && ok;
+    });
+    if (saved[0].split('\n')[0] !== TOGGLE) {
+      ok = reject('the first saved C6 prompt does not open on the skill line -- Run B is that line removed, so it has to be line 1 of prompt 1');
+    }
+    if (saved.slice(1).some((b) => b.includes(TOGGLE))) {
+      ok = reject('a later C6 prompt also carries the skill line -- removing line 1 of prompt 1 would then not make Run B skill-off');
+    }
+    return ok;
   },
 
   /**
@@ -1579,6 +1599,51 @@ const CHECKS = {
   },
 
   /**
+   * Clip 6 step 1 asks for the conversions in a turn that creates nothing.
+   *
+   * The conversions were instruction three of seven in a single prompt that also
+   * said "Then create ...". Two measured runs produced both files correctly and
+   * skipped the reasoning outright -- "Implemented the GET /tickets/:id migration
+   * slice", and "Done. I added the migrated GET-only router." Neither carried any
+   * of the three registered tells.
+   *
+   * The cause is not ordering. A turn holding both a *state* and a *create*
+   * instruction resolves to the create: the file is the evident deliverable, and
+   * anything before it compresses into a summary. Moving the sentence earlier
+   * leaves it in the same turn as the file.
+   *
+   * So step 1 sends two prompts. This asserts the shape that makes the reasoning
+   * an output: the first prompt asks for the conversions and forbids writing, and
+   * it does not also ask for the files. That matters beyond the clip -- prompt 1
+   * is the only turn Run A and Run B differ in, so if it ever absorbs the create
+   * again the negative control has nothing left to compare.
+   *
+   * Proven red three ways: the two prompts recombined into one, the first prompt
+   * losing its no-writing instruction, and the conversion request dropped.
+   */
+  'c6-step1-asks-for-conversions-alone': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const RUNBOOK = 'module1/m1-c6-migrate-one-express-route.md';
+    const src = read(RUNBOOK);
+    const step1 = src.slice(src.indexOf('## Step 1 '), src.indexOf('## Step 2 '));
+    const blocks = [...step1.matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
+    if (blocks.length < 2) {
+      return reject(`${RUNBOOK}: step 1 sends ${blocks.length} prompt(s). The conversions need a turn of their own -- combined with the create, two measured runs skipped them entirely and returned only a summary`);
+    }
+    const first = blocks[0];
+    if (!/\bconversions\b/i.test(first)) {
+      return reject(`${RUNBOOK}: step 1's first prompt never asks for the conversions, which are its Highlight and the only turn Run A and Run B differ in`);
+    }
+    if (!/Do not create, edit or delete any file/i.test(first)) {
+      return reject(`${RUNBOOK}: step 1's first prompt does not forbid writing -- without that it can produce the files and compress the reasoning into a summary, which is the failure this split exists to prevent`);
+    }
+    if (/\bcreate supporthub-api\//i.test(first)) {
+      return reject(`${RUNBOOK}: step 1's first prompt also asks for a file to be created -- a turn with a deliverable in it resolves to the deliverable`);
+    }
+    return true;
+  },
+
+  /**
    * Clip 6 step 1 proves its two files exist, by name, before anything else.
    *
    * Two measured runs reported both files created and all five migration gates
@@ -1663,11 +1728,13 @@ const CHECKS = {
     let ok = true;
 
     for (const f of [RUNBOOK, SAVED]) {
-      const s = read(f);
-      const i = s.indexOf('Read framework-skill/node-express-migration/SKILL.md');
-      if (i < 0) { ok = reject(`${f}: no C6 prompt block found -- the shape changed`); continue; }
-      const j = s.indexOf('\n```', i);
-      const prompt = j < 0 ? s.slice(i) : s.slice(i, j);
+      // All of the clip's prompts, joined. Step 1 sends two -- state the
+      // conversions, then apply them -- so the target path is in one and the
+      // constraints are in the other, and reading only the block that opens on
+      // the skill line would miss every constraint.
+      const blocks = [...read(f).matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
+      if (blocks.length === 0) { ok = reject(`${f}: no C6 prompt block found -- the shape changed`); continue; }
+      const prompt = blocks.join('\n');
 
       if (!/supporthub-api\/migration\/routes\//.test(prompt)) {
         ok = reject(`${f}: the C6 prompt never names a file under supporthub-api/migration/routes/ -- it has to say where the migrated route lands`);

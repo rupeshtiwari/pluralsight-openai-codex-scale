@@ -186,23 +186,46 @@ implements changes.
 > Confirm the exact control in your installed Codex panel before running this demo,
 > and use the label you actually see.
 
-**Prompt.** Saved at `plans/prompts/m1-c6-migrate-route.md`. Send that file rather than retyping
-this, so Run B can be it minus its first line and nothing else.
+**Two prompts, in order, in one Codex thread.** Both are saved at
+`plans/prompts/m1-c6-migrate-route.md`. Send that file's blocks rather than retyping them, so Run B
+can be it minus one line and nothing else.
+
+They used to be a single prompt, and two measured runs produced both files correctly while skipping
+the conversions entirely — one opened *"Implemented the GET /tickets/:id migration slice"*, the
+other *"Done. I added the migrated GET-only router."* A turn holding both a *state* and a *create*
+instruction resolves to the create: the file is the evident deliverable, and everything before it
+reads as preamble to be compressed into a summary. The conversions are this step's Highlight and the
+only thing Run A and Run B differ in, so they get their own turn.
+
+**Prompt 1 — state the conversions.** Writes nothing.
 
 ```text
 Read framework-skill/node-express-migration/SKILL.md and follow its guidance.
 
-Migrate ONLY the GET /tickets/:id route inside supporthub-api/migration. This
-service migrates in place, so the migrated file belongs in that same workspace.
+State the exact conversions the skill requires to move the GET /tickets/:id route
+out of supporthub-api/migration/routes/tickets.js and into ESM TypeScript in that
+same workspace:
 
-Before editing, state the exact conversions the skill requires for this slice:
-each require() and what it becomes, each module.exports shape and what it
-becomes, every __dirname use and what replaces it, and what the skill says about
-route params and handler return values.
+- each require() in the route, and what it becomes
+- each module.exports shape the route depends on, and what it becomes
+- every __dirname use, and what replaces it
+- what the skill says about route params and handler return values
 
-Then create supporthub-api/migration/routes/ticketRead.mts as ESM TypeScript,
-reaching the CommonJS service and auth modules through the compat layer already
-present in supporthub-api/migration/compat.
+Do not create, edit or delete any file yet. Read the repository freely with
+read-only commands such as ls, find, rg, sed and cat; do not run tests, builds,
+or installs.
+```
+
+Read the reply before sending the second. This is the Highlight, and it is on screen alone.
+
+**Prompt 2 — apply them.** Byte-identical in Run A and Run B.
+
+```text
+Now apply exactly the conversions you listed.
+
+Create supporthub-api/migration/routes/ticketRead.mts as ESM TypeScript, reaching
+the CommonJS service and auth modules through the compat layer already present in
+supporthub-api/migration/compat.
 
 It must preserve the legacy behavior exactly:
 - x-api-key auth, 401 when the header is missing, 403 when the key is invalid
@@ -221,7 +244,8 @@ Do not modify plans/migration-plan.md.
 Do not create or modify any file under supporthub-api/modern.
 ```
 
-**Expected result.** A stated conversion list, then exactly two new files and nothing modified.
+**Expected result.** From prompt 1, a conversion list and **no files at all** — `git status` is
+still clean after it. From prompt 2, exactly two new files and nothing modified.
 The conversions should distinguish `module.exports = requireApiKey` (a single value) from
 `module.exports = { get, create }` (a named bag), because both arrive through the same
 `legacyRequire` bridge and neither can be imported as the other shape.
@@ -229,8 +253,10 @@ The conversions should distinguish `module.exports = requireApiKey` (a single va
 On `__dirname` the honest answer for this slice is *none in the route*. The one that matters lives
 in `services/ticketService.js`, which stays CommonJS behind the bridge until its own checkpoint.
 
-**Highlight.** The two different `module.exports` shapes in the same service. They convert
-differently, and getting it wrong produces `undefined` at runtime with no compile error.
+**Highlight.** Prompt 1's reply, on screen with no code beside it: the two different
+`module.exports` shapes in the same service. They convert differently, and getting it wrong produces
+`undefined` at runtime with no compile error. Giving the list its own turn is what puts it there
+alone — in a combined turn it was absent entirely, twice.
 
 **Decision produced.** One route is migrated under the skill's guidance, and the change is bounded.
 
@@ -255,20 +281,25 @@ and that is deliberate.** An earlier version scoped to `supporthub-api/` instead
 about the run that also rewrote `plans/migration-plan.md` — a filter that removes noise by naming
 what to look at removes signal with it.
 
-PASS if `ls` lists both files, exactly two new paths appear under `supporthub-api/migration/`,
-nothing is shown as modified, the last command prints `0`, **and the reply stated the conversions
-before the code**. The conversion list is this step's Highlight — without it there is nothing to
-point at — and a measured run produced both files correctly while opening straight on
-*"Implemented the GET /tickets/:id migration slice"* with no conversions named at all.
+PASS if prompt 1 produced a conversion list and wrote nothing, `ls` then lists both files, exactly
+two new paths appear under `supporthub-api/migration/`, nothing is shown as modified, and the last
+command prints `0`.
+
+**Check prompt 1's half before sending prompt 2**, with the same `git status --short --
+':!plans/prompts'`. It must still be clean: a prompt 1 that writes files has ignored the instruction
+that makes the reasoning visible, and prompt 2 then has nothing to apply.
 
 FAIL if:
 
 - **`ls` cannot find either file.** Nothing was written. A reported gate pass is not a gate pass —
   a run cannot have linted, type-checked, built and tested files that are not on disk. Repeat
   Step 1; do not go on.
-- **the reply names no conversions.** The files can be right and the step still fail: the prompt
-  asks for the conversions *before* editing, and they are what the Highlight and EO2d rest on.
-  Repeat Step 1. This matters twice over during the skill-on/skill-off runs — see
+- **prompt 1 names no conversions**, or writes files. The artifacts can be right and the step still
+  fail: the conversions are the Highlight and what EO2d rests on. Two measured runs of a combined
+  single prompt returned *"Implemented the GET /tickets/:id migration slice"* and *"Done. I added
+  the migrated GET-only router."* — both with correct files and no reasoning, which is why the turn
+  is split. Repeat Step 1. This matters twice over during the skill-on/skill-off runs, where the
+  conversion list is the entire comparison surface — see
   [m1-c6-framework-skill-evidence.md](m1-c6-framework-skill-evidence.md).
 - nothing is listed by `git status` even though `ls` found the files — they exist but are ignored,
   which means the paths are wrong.
