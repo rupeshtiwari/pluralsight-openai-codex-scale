@@ -1983,6 +1983,259 @@ const CHECKS = {
     return ok;
   },
 
+  /**
+   * Every baseline priority is derivable from the rubric and the fixtures.
+   *
+   * incident-2001 sat at P0 for the life of this repository and could not be
+   * derived. The rubric's affected-user column cannot separate P0 from P1 --
+   * P0 says "Any number", which subsumes P1's "100 or more" -- and the
+   * workaround column cannot either, since P1 admits "None, or manual only".
+   * The sole discriminator is the Impact column: P0 is "unavailable; data loss
+   * or corruption", P1 is "degraded or failing for many users". The fixture's
+   * own evidence describes a subset of status updates failing, which is
+   * degraded. So the rubric applied literally -- which is what step 2's prompt
+   * demands -- yields P1, and the walk's Codex said so, quoting the row.
+   *
+   * Step 4 calls this file "the rubric-derived baseline". This makes that true
+   * rather than asserted. Bands are read from docs/triage-rubric.md rather than
+   * hardcoded, so lowering the P1 threshold (which is exactly what C5's seeded
+   * diff does) cannot leave this check silently measuring the old one.
+   */
+  'baseline-priorities-derive-from-rubric': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const rubric = read('docs/triage-rubric.md');
+    // | **P1** | impact | 100 or more | workaround | response |
+    const row = (p) => {
+      const m = rubric.match(new RegExp(`^\\|\\s*\\*\\*${p}\\*\\*\\s*\\|([^|]*)\\|([^|]*)\\|`, 'm'));
+      return m && { impact: m[1].trim(), users: m[2].trim() };
+    };
+    const rows = {};
+    for (const p of ['P0', 'P1', 'P2', 'P3']) {
+      rows[p] = row(p);
+      if (!rows[p]) return reject(`docs/triage-rubric.md has no ${p} row in the priority table -- the baseline cannot be derived from a rubric that does not define its bands`);
+    }
+    // Bands come from the rubric text: "100 or more", "10 to 99", "Fewer than 10".
+    const band = (spec) => {
+      let m = spec.match(/(\d+)\s*or more/i);
+      if (m) return [Number(m[1]), Infinity];
+      m = spec.match(/(\d+)\s*to\s*(\d+)/i);
+      if (m) return [Number(m[1]), Number(m[2])];
+      m = spec.match(/fewer than\s*(\d+)/i);
+      if (m) return [0, Number(m[1]) - 1];
+      if (/any number/i.test(spec)) return [0, Infinity];
+      return null;
+    };
+    const base = JSON.parse(read('automation/triage/baseline-manual-sweep.json'));
+    const { issues } = JSON.parse(read('automation/sentry-fixtures/issues.json'));
+    let ok = true;
+    for (const f of base.findings) {
+      if (f.priority === 'deferred') {
+        if (f.confidence !== 'low') {
+          ok = reject(`baseline ${f.id} is deferred but its confidence is "${f.confidence}". The rubric defers on low confidence; deferring a high-confidence finding is a judgement the rubric does not license`);
+        }
+        continue;
+      }
+      const r = rows[f.priority];
+      if (!r) { ok = reject(`baseline ${f.id} has priority "${f.priority}", which the rubric does not define`); continue; }
+      const b = band(r.users);
+      if (!b) { ok = reject(`the rubric's ${f.priority} affected-user column reads "${r.users}", which is not a band this check can read`); continue; }
+      if (f.affectedUsers < b[0] || f.affectedUsers > b[1]) {
+        ok = reject(`baseline ${f.id} is ${f.priority} with ${f.affectedUsers} affected users, outside the rubric's ${f.priority} band of "${r.users}"`);
+      }
+      // The band alone cannot justify P0: its column subsumes every other, so
+      // the Impact column is the whole derivation. Read that from the SOURCE
+      // issues, not from the baseline's own evidence string -- the first draft
+      // of this clause tested the baseline's prose and passed a restored P0,
+      // because the sentence earns its P1 by saying the impact is "rather than
+      // unavailable". A summary that argues for a verdict cannot be the
+      // verification of it.
+      if (f.priority === 'P0') {
+        const ids = [f.id, ...(f.merged || [])];
+        const sourced = issues.filter((i) => ids.includes(i.id));
+        if (sourced.length === 0) {
+          ok = reject(`baseline ${f.id} is P0 but matches no issue in the sentry fixture, so its impact cannot be checked against the rubric's P0 row -- "${r.impact}"`);
+        } else if (!sourced.some((i) => /\bunavailable\b|\bdata loss\b|\bcorrupt/i.test(`${i.userImpact || ''}`))) {
+          ok = reject(`baseline ${f.id} is P0, but no source issue among ${ids.join(', ')} reports what the rubric's P0 row requires -- "${r.impact}". P0's affected-user column is "${r.users}", which cannot separate it from P1, so the impact claim is the entire derivation and it has to come from the evidence rather than the baseline's own summary`);
+        }
+      }
+    }
+    return ok;
+  },
+
+  /**
+   * The evidence fixtures state facts, never the finding a later step audits.
+   *
+   * automation/github-seed/commits.json carried a `note` on every commit --
+   * "Touches changeStatus, the frame both evt-1042 and evt-1043 share", "Touches
+   * no application code on the failing path", "the evidence for evt-1099 is too
+   * thin to correlate" -- and a top-level comment saying the real root cause was
+   * older than the misleading one. All three of C2 step 3's findings were
+   * written into the data step 2 reads. The walk's Codex rejected d4e5f6a in
+   * almost the words of the note.
+   *
+   * This is section 11a one level down: a prompt may not impose the rule a later
+   * step audits, and a fixture may not state the finding.
+   *
+   * Asserted as a shape, not a vocabulary: record fields are whitelisted, and a
+   * file-level comment may describe the file's contract but may not mention any
+   * individual record -- reasoning about a specific sha or issue id is what an
+   * answer key does.
+   */
+  /**
+   * C2 step 4's expected result names the same priorities the baseline holds.
+   *
+   * The step tells the author what to expect in prose and then verifies against
+   * automation/triage/baseline-manual-sweep.json. Those are two statements of
+   * one fact, in two files, and they drifted the moment the baseline's
+   * incident-2001 moved off P0 -- leaving the runbook telling the author to
+   * expect a priority the verification would reject.
+   */
+  'runbook-expects-the-baseline-it-compares-to': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const base = JSON.parse(read('automation/triage/baseline-manual-sweep.json'));
+    // Each runbook, and the heading its expected result sits under. C2 step 4
+    // produces the corrected report; C3 step 2 runs the scheduled sweep and
+    // prints the baseline table beside it, on camera.
+    const SECTIONS = [
+      ['module2/m2-c2-manual-triage.md', '## Step 4'],
+      ['module2/m2-c3-schedule-triage.md', '## Step 2'],
+    ];
+    let ok = true;
+    for (const [file, heading] of SECTIONS) {
+      const doc = read(file);
+      const from = doc.indexOf(heading);
+      if (from < 0) { ok = reject(`${file}: no "${heading}" section, so its expected result cannot be checked against the baseline`); continue; }
+      const next = doc.indexOf('\n## ', from + 1);
+      const section = doc.slice(from, next < 0 ? doc.length : next);
+
+      let named = 0;
+      for (const f of base.findings) {
+        const m = section.match(new RegExp(`\`${f.id}\`[^.\\n]{0,40}?\\b(P[0-3]|deferred)\\b`));
+        if (!m) continue;
+        named += 1;
+        if (m[1] !== f.priority) {
+          ok = reject(`${file} ${heading}: the expected result says ${f.id} is ${m[1]}, the baseline it is compared against holds ${f.priority}`);
+        }
+      }
+      if (named === 0) {
+        ok = reject(`${file} ${heading}: names no baseline finding with a priority, so the author has no expectation to judge a take by before running the verification`);
+      } else if (named !== base.findings.length) {
+        ok = reject(`${file} ${heading}: names ${named} of the baseline's ${base.findings.length} findings with a priority`);
+      }
+
+      // Any transcribed table of the baseline is output that appears on camera,
+      // so every field in it has to be what the command actually prints.
+      for (const block of section.matchAll(/```text\n([\s\S]*?)\n```/g)) {
+        for (const line of block[1].split('\n')) {
+          const row = line.match(/^\s*(\S+)\s+(P[0-3]|deferred)\s+users=(\d+)\s+route=(true|false)\s*$/);
+          if (!row) continue;
+          const [, id, priority, users, route] = row;
+          const f = base.findings.find((x) => x.id === id);
+          if (!f) { ok = reject(`${file} ${heading}: a transcribed table row names ${id}, which the baseline does not hold`); continue; }
+          if (priority !== f.priority) ok = reject(`${file} ${heading}: the transcribed table shows ${id} at ${priority}; the baseline prints ${f.priority}, and this block is on camera`);
+          if (Number(users) !== f.affectedUsers) ok = reject(`${file} ${heading}: the transcribed table shows ${id} at ${users} users; the baseline prints ${f.affectedUsers}`);
+          if ((route === 'true') !== Boolean(f.route)) ok = reject(`${file} ${heading}: the transcribed table shows ${id} route=${route}; the baseline prints ${Boolean(f.route)}`);
+        }
+      }
+    }
+    return ok;
+  },
+
+  'fixtures-carry-no-answer-key': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const FILES = [
+      ['automation/github-seed/commits.json', 'commits',
+        ['sha', 'message', 'author', 'committedAt', 'filesChanged'], (c) => c.sha],
+      ['automation/sentry-fixtures/issues.json', 'issues',
+        ['id', 'title', 'culprit', 'firstSeen', 'lastSeen', 'affectedUsers', 'occurrences',
+          'release', 'stack', 'workaround', 'userImpact'], (i) => i.id],
+    ];
+    let ok = true;
+    for (const [file, key, allowed, idOf] of FILES) {
+      const doc = JSON.parse(read(file));
+      const records = doc[key] || [];
+      for (const rec of records) {
+        for (const k of Object.keys(rec)) {
+          if (!allowed.includes(k)) {
+            ok = reject(`${file}: ${idOf(rec)} carries a "${k}" field. The evidence fixtures hold facts about each record; a field that reasons about one hands the agent a finding a later step is supposed to reach. Allowed: ${allowed.join(', ')}`);
+          }
+        }
+      }
+      const comment = doc._comment || '';
+      for (const rec of records) {
+        const id = idOf(rec);
+        if (comment.includes(id)) {
+          ok = reject(`${file}: the file comment names ${id}. A comment may describe what the file is; naming a record means reasoning about it, and the agent reads this file`);
+        }
+      }
+    }
+    return ok;
+  },
+
+  /**
+   * Every fixture stack frame opens on real code.
+   *
+   * The sentry fixture promised frames "cross-referenced against real code" and
+   * mostly could not be: changeStatus was given as ticketService.ts:196 when it
+   * starts at 244, the route frame pointed at a line that is not a handler, and
+   * evt-1043 named a bulkImport function that does not exist anywhere in the
+   * repository. An agent that takes the promise seriously reports the real
+   * sites instead -- the measured walk cited :253 and :70, correcting the
+   * fixture -- and then the runbook's Highlight, which is a stack frame, does
+   * not match what is on screen.
+   *
+   * A frame must name a file that exists and a symbol that exists in it, at a
+   * line that either contains the symbol or falls inside its definition. A frame
+   * may carry '?' for the line: evt-1099 has none captured, and that absence is
+   * the evidence for deferring it.
+   */
+  'fixture-stack-frames-resolve': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const doc = JSON.parse(read('automation/sentry-fixtures/issues.json'));
+    let ok = true;
+    for (const issue of doc.issues) {
+      for (const frame of issue.stack || []) {
+        const m = frame.match(/^at\s+([\w.$]+)\s+\(([^:]+):(\d+|\?)\)$/);
+        if (!m) { ok = reject(`${issue.id}: frame "${frame}" is not "at <symbol> (<file>:<line|?>)"`); continue; }
+        const [, symbol, file, lineSpec] = m;
+        let src;
+        try { src = read(file); } catch { ok = reject(`${issue.id}: frame "${frame}" names ${file}, which does not exist`); continue; }
+        const lines = src.split('\n');
+        // The last segment is what a stack frame shows for a method call.
+        const leaf = symbol.split('.').pop();
+        const declared = lines.findIndex((l) => new RegExp(`\\b(?:function|const|let|class)\\s+${leaf}\\b|\\b${leaf}\\s*[:(]`).test(l));
+        if (declared < 0 && !src.includes(leaf)) {
+          ok = reject(`${issue.id}: frame "${frame}" names ${symbol}, which does not appear in ${file}. bulkImport was such a frame -- an agent that opens it finds nothing`);
+          continue;
+        }
+        if (lineSpec === '?') continue;
+        const n = Number(lineSpec);
+        if (n < 1 || n > lines.length) {
+          ok = reject(`${issue.id}: frame "${frame}" points at line ${n}, but ${file} has ${lines.length} lines`);
+          continue;
+        }
+        const onLine = lines[n - 1].includes(leaf);
+        // Otherwise the line must fall inside the symbol's definition, taken as
+        // running to the next top-level declaration.
+        let inside = false;
+        if (!onLine) {
+          const start = lines.findIndex((l) => new RegExp(`^\\s*(?:export\\s+)?(?:async\\s+)?function\\s+${leaf}\\b`).test(l));
+          if (start >= 0) {
+            let end = lines.length;
+            for (let i = start + 1; i < lines.length; i += 1) {
+              if (/^\}/.test(lines[i])) { end = i + 1; break; }
+            }
+            inside = n - 1 > start && n - 1 < end;
+          }
+        }
+        if (!onLine && !inside) {
+          ok = reject(`${issue.id}: frame "${frame}" points at ${file}:${n}, which neither mentions ${leaf} nor falls inside its definition. Open it and the frame lands somewhere unrelated`);
+        }
+      }
+    }
+    return ok;
+  },
+
   'c6-step1-proves-its-files-exist': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const RUNBOOK = 'module1/m1-c6-migrate-one-express-route.md';
