@@ -1439,6 +1439,41 @@ const CHECKS = {
   },
 
   /**
+   * Every cut procedure branches before it commits.
+   *
+   * The walk leaves a checkpoint branch dirty. Committing there and then
+   * branching lands the work on the checkpoint and leaves it pointing at it, so
+   * the starting state a clip opens on becomes the end state that clip produces
+   * -- silently, and only visible the next time someone walks it.
+   *
+   * Step 3 of the walkthrough had the right order and said why. Step 9 had the
+   * two lines reversed and was about to be run that way. Nothing compared them,
+   * because the two blocks are forty lines apart and both look reasonable read
+   * on their own.
+   *
+   * Proven red by swapping the lines back in either block.
+   */
+  'cut-blocks-branch-before-committing': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const FILE = 'module1/walkthrough-c5-c6.md';
+    const src = read(FILE);
+    let ok = true;
+    let seen = 0;
+    for (const b of src.matchAll(/```bash\n([\s\S]*?)\n```/g)) {
+      const lines = b[1].split('\n').map((l) => l.trim());
+      const branch = lines.findIndex((l) => /^git checkout -b demo\//.test(l));
+      const commit = lines.findIndex((l) => /^git commit\b/.test(l));
+      if (branch < 0 || commit < 0) continue;
+      seen += 1;
+      if (commit < branch) {
+        ok = reject(`${FILE}: \`${lines[branch]}\` comes after \`${lines[commit]}\` -- that commits the walk onto the checkpoint branch and leaves it there, so the state the clip starts from becomes the state it produces. Branch first`);
+      }
+    }
+    if (seen === 0) return reject(`${FILE}: no cut block found -- the walkthrough shape changed`);
+    return ok;
+  },
+
+  /**
    * demo/m1-c6-start must descend from demo/m1-c5-captured.
    *
    * module1/walkthrough-c5-c6.md opens on this as "the one mis-cut in the chain

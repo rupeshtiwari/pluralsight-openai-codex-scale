@@ -226,6 +226,12 @@ check "all" "no runnable block checks out a missing branch" \
   "Show the commands as indented prose with the dependency named, instead of a runnable bash block." \
   "Which markdown bash blocks check out a demo branch that does not exist?"
 
+check "all" "cut procedures branch before they commit" \
+  'node "${ROOT}/scripts/check.mjs" cut-blocks-branch-before-committing' \
+  "Committing a walk on the checkpoint branch and then branching leaves that checkpoint pointing at the finished state, so the clip starts where it should end. Step 9 of the walkthrough had exactly that order and was about to be run." \
+  "Put git checkout -b before git add and git commit in every cut block." \
+  "Which cut block in module1/walkthrough-c5-c6.md commits before it branches?"
+
 check "all" "no verification reads an agent-written file at a fixed offset" \
   'node "${ROOT}/scripts/check.mjs" no-fixed-offsets-into-agent-files' \
   "C6 step 4 ran grep -A4 against the plan Codex had just written, and the recorded exception sat below line 4 -- a correct run and an empty one printed the same thing. Sweeping found two more in C3 against plans/ExecPlan.md." \
