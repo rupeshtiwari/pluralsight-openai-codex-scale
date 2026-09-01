@@ -71,7 +71,7 @@ Objectives: **TO2, EO2c, EO2d** · Checkpoint: `demo/m1-c6-start`, branched from
 
 | # | Demo bullet | Repo artifact | Command / prompt | Expected evidence | Status |
 |---|---|---|---|---|---|
-| 1 | Apply an equivalent Node.js and TypeScript framework skill to migrate one Express route slice | `framework-skill/node-express-migration/SKILL.md`, `m1-c6-framework-skill-evidence.md` | Step 1 prompt with the skill line | Conversions named per file; one route migrated | READY |
+| 1 | Apply an equivalent Node.js and TypeScript framework skill to migrate one Express route slice | `framework-skill/node-express-migration/SKILL.md` | Step 1's two prompts | Conversions named per file; one route migrated | READY |
 | 2 | Run ESLint, TypeScript type-checking, build validation, and focused Vitest tests immediately after | `supporthub-api/migration/{eslint.config.js,tsconfig.json,vitest.config.mts}` | `npm run lint:migration && typecheck:migration && build:migration && test:route:migration` | Four gates green on the baseline before migration | **PASS** |
 | 3 | Inspect the diff and verify the CommonJS-to-ESM compatibility contract before accepting | `docs/commonjs-esm-compatibility.md`, `supporthub-api/migration/compat/*.mts` | `git diff --no-index` legacy against migrated, contract comparison | Four status codes and nine fields identical; no CommonJS construct remains | READY |
 | 4 | Record the checkpoint so the migration can continue or roll back from a known state | `plans/migration-plan.md` | Step 4 prompt, `git rev-parse --short HEAD` | Behavioral exception recorded; rollback commit named | READY |
@@ -139,13 +139,13 @@ walk C5  →  m1-c5-captured  →  m1-c6-start  →  walk C6  →  m1-c6-capture
    done          done            done          next
 ```
 
-**The C6 toggle pre-check passed on 2026-08-31.** Codex did not load the skill unasked, so Run A and
-Run B can form a control. The same run established that four other guidance sources reach both runs
-without being asked for; the floor is recorded in
-[m1-c6-framework-skill-evidence.md](../module1/m1-c6-framework-skill-evidence.md) and Run B must not
-be described as a no-guidance run.
+**The C6 skill-on / skill-off comparison has been retired.** Three runs produced no reasoning that
+only the skill contains, in either direction, and two prompt rewrites chasing it produced no
+evidence. EO2d is demonstrated by the skill's guidance appearing in Step 1's stated conversions and
+Step 2's gate order, and is **disclosed to Curriculum as demonstrated rather than measured.** The
+skill and Step 1 are unchanged.
 
-**Two measurements need Codex and are not scriptable.**
+**One measurement needs Codex and is not scriptable.**
 
 1. **C3 bundling rate.** Run the Step 2 prompt five times against `demo/m1-c3-start` and count how
    often Codex bundles an architectural change into the cleanup diff. Four of five means the live
@@ -168,7 +168,3 @@ be described as a no-guidance run.
    | 4–5 of 5 | Live path is primary; `m1-c3-captured` is insurance |
    | 2–3 of 5 | Live path is a coin flip; rehearse from the captured branch and keep the live attempt |
    | 0–1 of 5 | Seed is too weak. Strengthen it before walking C3 — a demo that usually shows nothing to remove does not teach EO1c |
-
-2. **The skill-off run.** `module1/m1-c6-framework-skill-evidence.md` is scaffolded with the toggle
-   named and the comparison reserved. Filling it from expectation would destroy the only thing it is
-   for.

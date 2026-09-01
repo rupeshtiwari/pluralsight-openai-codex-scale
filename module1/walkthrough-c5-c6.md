@@ -75,11 +75,8 @@ committing anything.
 |---|---|---|
 | C5 | The batched plan exactly as Codex produced it, before rejection | `plans/captured/m1-c5-plan-batched.md` |
 | C5 | The split plan after the rejection, before any hand-editing | `plans/captured/m1-c5-plan-split.md` |
-| C6 | Run A transcript, verbatim and unedited | Run A block in `m1-c6-framework-skill-evidence.md` |
-| C6 | Run B transcript, verbatim and unedited | Run B block in `m1-c6-framework-skill-evidence.md` |
 
-Paste them as they came back. Tidying a transcript destroys the only thing it is for — if Run B is
-messier than Run A, that *is* the finding.
+Paste them as they came back. Tidying a captured plan destroys the only thing it is for.
 
 ---
 
@@ -126,8 +123,8 @@ concession.
 
 **Never hand-edit the plan to make the check pass.** The committed plan is what
 `plans/captured/m1-c5-plan-split.md` claims Codex produced, and it is what C6 inherits. A hand-forced
-two-way split is a manufactured artifact — the same defect as filling the skill-off run from
-expectation, and invisible afterwards. If you re-prompt, capture the second reply, not the first.
+two-way split is a manufactured artifact, and invisible afterwards. If you re-prompt, capture the
+second reply, not the first.
 
 **Two attempts is the limit.** If Codex reliably returns three substantive checkpoints, the bullet
 claims something the tool does not naturally do, and forcing two on camera is theatre. That is a
@@ -189,39 +186,21 @@ node scripts/check.mjs c6-start-opens-on-split
 This must pass. If it reports the batched milestone, the branch was cut from the wrong parent —
 delete it and redo step 5. Do not walk C6 against a branch that fails this.
 
-### 7. Walk C6 — Run A, then Run B
-
-Both runs start from `demo/m1-c6-start` with a clean tree, and **each starts in a fresh Codex
-thread**. Run B in Run A's thread is not skill-off; it is skill-remembered, and it would reproduce
-guidance it was never given.
+### 7. Walk C6
 
 Once the branch exists, from your working clone:
 
     git checkout demo/m1-c6-start
     ./module1/scripts/demo_reset.sh
 
-Run A sends `plans/prompts/m1-c6-migrate-route.md` as-is. Reset. Run B sends the same file with its
-first line and the blank line after it removed, and nothing else changed.
+Send Step 1's two prompts from `plans/prompts/m1-c6-migrate-route.md` rather than retyping them, then
+walk steps 2 to 4 from the runbook.
 
-**Order does not matter. Sitting does.** With a fresh thread each, nothing carries from one run into
-the other, so A-then-B and B-then-A are equally valid.
-
-**If you re-run one, re-run both.** The temptation on a second take is to redo only the run that
-looked worse. That introduces a second difference between them — a different session, a different
-day, possibly a different model build — on top of the one line the control is meant to isolate. The
-comparison would then measure that difference too, and it would flatter whichever run was redone.
-Replace both captures together, or neither.
-
-Before either run, confirm the toggle pre-check in `m1-c6-framework-skill-evidence.md` has been done
-and passed. If the skill loads unasked, these two runs cannot form a control and there is no point
-performing them.
-
-### 8. Fill the evidence artifact
-
-Paste both transcripts verbatim into their reserved blocks, then fill the comparison table and the
-assessment from what is actually in them. Tick one of the three verdict boxes.
-
-A Run B materially as good as Run A is a real result. Record it as one.
+**This used to be a skill-on / skill-off pair, and that comparison has been retired.** Three runs
+produced no reasoning that only the skill contains, in either direction, and two prompt rewrites
+chasing it produced no evidence. EO2d is demonstrated by the skill's guidance appearing in Step 1's
+stated conversions and Step 2's gate order, and disclosed to Curriculum as demonstrated rather than
+measured. The skill itself is unchanged and still read on camera.
 
 ### 9. Cut `demo/m1-c6-captured`
 
