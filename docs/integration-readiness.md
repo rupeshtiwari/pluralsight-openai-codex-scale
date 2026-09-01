@@ -125,43 +125,25 @@ go.
 
 ## Author preparation
 
-**There is no verification script yet.** A script at scripts/verify_integrations.sh was referenced
-here as author preparation but was never written, so anyone following this document went looking for
-a file that does not exist. Its name is written without backticks above because it is not a path in
-this repository, and writing it as one is what let the gap sit unnoticed.
+**`scripts/verify_integrations.sh` exists now.** It was referenced here before it was written, and
+deliberately left unwritten until Gate 1's three answers were recorded — a script reporting
+"integrations ready" against an unconfirmed contract would have been a false PASS on the gate that
+decides Module 2's shape.
 
-It is deliberately still unwritten. What it would assert depends on gate 1: until the same-thread
-scheduling behaviour is known, a script that reports "integrations ready" would be asserting on a
-contract nobody has confirmed — a false PASS on the one gate that decides Module 2's shape. Verify
-the integrations by hand against the Gate 1 results table above, and write the script once the three
-answers are recorded.
+Its scope is the point. It asserts the fixtures parse and carry their seeded ids, that C2 starts
+without its own answer on disk, that the rubric defines P0–P3 with the P1 threshold intact, that
+`.env.example` declares every key the demo needs, and that `.env`/`.env.local` are untracked. It
+reads no configuration *values* — `.env.local` holds real tokens and the script must be safe to run
+with a recording in progress.
 
-Whatever replaces it is author preparation: **not narrated, and not on camera.**
+**It does not check plugin reachability, and says so in its own output.** Nothing in it talks to
+Sentry, Slack, Linear or GitHub. A shell cannot ask the Codex desktop app whether its plugins
+answer, and a script claiming otherwise would be asserting on a contract it never tested.
+Reachability is established on camera by C2 step 1, where a viewer sees the response.
 
-On camera, integration readiness is established inside Codex in compact form:
-
-```text
-INTEGRATION READINESS
-
-  > Sentry   read     PASS
-
-  > GitHub   read     PASS
-
-  > Slack    route    PASS
-
-  > Linear   route    PASS
+```bash
+./scripts/verify_integrations.sh
 ```
 
-## Credentials
-
-Every value lives in `.env.example` as a shape, never a secret. `.env` and `.env.local` are ignored
-and must never be committed.
-
-Two Sentry values do different jobs, and the runbook says which in one line each:
-
-| Variable | Job |
-|---|---|
-| `SENTRY_DSN` | sends application errors **into** Sentry |
-| `SENTRY_AUTH_TOKEN` | read-only API access to **look issues up** |
-
-No token value is ever printed on screen.
+Proven to fail on each thing it claims: a leftover corrected sweep, an altered P1 threshold, a key
+dropped from `.env.example`, and a seeded fixture id removed.

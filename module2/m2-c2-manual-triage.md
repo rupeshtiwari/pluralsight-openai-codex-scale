@@ -213,6 +213,8 @@ Produce the corrected triage report:
   priority
 
 For each finding state whether it should be routed. Route nothing yet.
+
+Write the corrected report to automation/triage/corrected-sweep.json.
 ```
 
 **Expected result.** Four findings: `incident-2001` at P0 with 500 users, `incident-2002` at P2,
@@ -223,16 +225,26 @@ For each finding state whether it should be routed. Route nothing yet.
 **Highlight.** The combined 500-user count, the rejected correlation stated in writing, and
 `evt-1099` deferred rather than prioritized.
 
-**Verification.** Compare against the recorded baseline:
+**The output path is named on purpose.** Gate 1 established that Codex persists a mid-thread
+correction to disk, not only to conversation context — it edited four files to record one. An
+unnamed output lands somewhere nobody chose, and a correction that survives to the next take makes
+this step's before-and-after false: Codex would appear to *arrive* at a standard it had already been
+given. Naming the file is what lets `./module2/scripts/demo_reset.sh` guarantee its absence, and
+what `m2-c2-starts-without-the-correction` asserts before a take.
+
+**Verification.** Compare what was produced against the recorded baseline:
 
 ```bash
 BASE=automation/triage/baseline-manual-sweep.json
+OUT=automation/triage/corrected-sweep.json
+node scripts/json.mjs table "$OUT" findings id:16 priority:9 users=affectedUsers:4 route=route
 node scripts/json.mjs table "$BASE" findings id:16 priority:9 users=affectedUsers:4 route=route
-node scripts/json.mjs fields "$BASE" "rejected=rejectedCorrelations.0.commit"
+node scripts/json.mjs fields "$OUT" "rejected=rejectedCorrelations.0.commit"
 ```
 
-PASS if the corrected report matches those four priorities and the rejected commit. FAIL if any
-priority differs or the duplicates are still separate.
+PASS if `corrected-sweep.json` exists, its four priorities and rejected commit match the baseline's,
+and the two tables read identically. FAIL if the file is absent — the report went somewhere
+unnamed — or if any priority differs, or the duplicates are still separate.
 
 **Recovery.** `./module2/scripts/demo_reset.sh`.
 
