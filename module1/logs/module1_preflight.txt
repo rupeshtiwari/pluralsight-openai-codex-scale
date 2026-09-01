@@ -84,6 +84,10 @@ $ node "${ROOT}/scripts/check.mjs" cut-blocks-branch-before-committing
 
 RESULT PASS  [all] cut procedures branch before they commit
 
+$ node "${ROOT}/scripts/check.mjs" runbooks-probe-agent-identity
+
+RESULT PASS  [all] every prep block proves the agent is in this checkout
+
 $ node "${ROOT}/scripts/check.mjs" every-check-is-wired
 
 RESULT PASS  [all] every check is run by some preflight
@@ -238,7 +242,9 @@ $ grep -q "Not yet reviewed" plans/migration-plan.md
 RESULT PASS  [c5] that milestone is unreviewed
 
 $ node "${ROOT}/scripts/check.mjs" c6-start-descends-from-c5-captured
-
+  local demo/m1-c5-captured is 05494d6, origin has fc2579a — the local one is not what was published
+    git fetch origin --prune && git branch -f demo/m1-c5-captured origin/demo/m1-c5-captured
+  note: the published refs are correct; only the local branches above differ
 RESULT PASS  [c6] this clip's checkpoint descends from m1-c5-captured
 
 $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
