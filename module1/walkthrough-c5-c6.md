@@ -225,11 +225,24 @@ A Run B materially as good as Run A is a real result. Record it as one.
 
 ### 9. Cut `demo/m1-c6-captured`
 
+Same order as step 3, and for the same reason: **branch first, then commit.** The walk leaves the
+tree dirty on `m1-c6-start`, and committing before branching lands the migrated route on that
+branch and leaves it there — C6's own starting checkpoint would then open on a finished migration,
+and every later walk would begin from the end state. This block had the two lines the other way
+round until a walk was about to run it.
+
 ```bash
+git checkout -b demo/m1-c6-captured
 git add -A
 git commit -m "C6 captured: one route migrated under framework guidance"
-git checkout -b demo/m1-c6-captured
 git push -u origin demo/m1-c6-captured
+```
+
+Then confirm the checkpoint you started from did not move:
+
+```bash
+git rev-parse --short demo/m1-c6-start origin/demo/m1-c6-start   # must be equal
+node scripts/check.mjs c6-start-descends-from-c5-captured
 ```
 
 Then verify from a fresh clone:
