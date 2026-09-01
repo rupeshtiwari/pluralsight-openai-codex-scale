@@ -16,6 +16,8 @@ Step 1  READY
 
   pass  framework skill present
         $ [ -f framework-skill/node-express-migration/SKILL.md ]
+  pass  step 1 states the conversions in a turn of its own
+        $ node "${ROOT}/scripts/check.mjs" c6-step1-states-conversions-first
   pass  saved C6 prompts match the runbook
         $ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
   pass  the runbook's plan greps resolve on the start branch
@@ -78,7 +80,7 @@ SHARED GATES  19 of 19 pass
 
 Every gate is green. This clip can be recorded.
 
-PASS: 32   FAIL: 0
+PASS: 33   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 
