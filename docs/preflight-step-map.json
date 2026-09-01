@@ -139,6 +139,9 @@
       2,
       3,
       4
+    ],
+    "no route has migrated yet": [
+      1
     ]
   },
   "m2-c2": {
@@ -159,6 +162,10 @@
     "rubric P1 threshold is 100": [
       3,
       4
+    ],
+    "C2 starts without its own answer on disk": [
+      2,
+      4
     ]
   },
   "m2-c3": {
@@ -177,6 +184,9 @@
     ],
     "no draft is pre-approved": [
       3,
+      4
+    ],
+    "step 4 is verified in-thread, not in a browser": [
       4
     ]
   },

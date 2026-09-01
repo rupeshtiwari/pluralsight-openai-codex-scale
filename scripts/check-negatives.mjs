@@ -333,6 +333,40 @@ let failures = 0;
 const pass = (m) => process.stdout.write(`  ok    ${m}\n`);
 const fail = (m) => { failures += 1; process.stdout.write(`  FAIL  ${m}\n`); };
 
+/**
+ * every-check-is-wired reads the two preflight scripts, so the pair IS the
+ * artifact: the honest control is the real files, and the honest negative is one
+ * invocation removed from them. Its other two branches -- an exemption with an
+ * empty reason, an exemption for a check that no longer exists, and a check that
+ * is both wired and exempted -- read an EXEMPT literal inside scripts/check.mjs
+ * that CHECK_ROOT cannot relocate. All three were proven red by hand: blanking
+ * c6-start-opens-on-split's reason reports "exempted with no reason given";
+ * exempting the retired skill-tells-unique reports "exempted but no longer
+ * exists"; and exempting no-route-migrated while a preflight still runs it
+ * reports "both wired and exempted -- drop the exemption, it is stale".
+ */
+{
+  const M1 = 'module1/scripts/preflight_check.sh';
+  const M2 = 'module2/scripts/preflight_check.sh';
+  const control = { [M1]: readFileSync(M1, 'utf8'), [M2]: readFileSync(M2, 'utf8') };
+  // The check this was written for: it sat in check.mjs wired to nothing while
+  // the C2 absence guarantee rested on it.
+  const unwired = 'm2-c2-starts-without-the-correction';
+  const stripped = control[M2]
+    .split('\n')
+    .filter((l) => !(l.includes('check.mjs') && l.includes(unwired)))
+    .join('\n');
+  if (stripped === control[M2]) {
+    throw new Error(`${unwired} is not invoked in ${M2} -- the negative case cannot remove it`);
+  }
+  SYNTHETIC_CASES.push({
+    check: 'every-check-is-wired',
+    what: `${unwired} is written but no preflight runs it`,
+    control,
+    negative: { ...control, [M2]: stripped },
+  });
+}
+
 process.stdout.write('PROVING EACH CHECK FAILS ON ITS NEGATIVE CASE\n\n');
 
 for (const c of CASES) {
