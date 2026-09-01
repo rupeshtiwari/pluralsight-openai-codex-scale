@@ -1217,42 +1217,6 @@ const CHECKS = {
     return bad === 0;
   },
 
-  /**
-   * The skill-off tells must stay unique to the skill.
-   *
-   * The toggle pre-check judges whether Codex read SKILL.md by looking for
-   * phrasings that exist nowhere else, because a model's own account of its
-   * retrieval is not reliable. If one of those phrasings is copied into another
-   * document, it stops being evidence and nothing says so -- the pre-check would
-   * keep reporting a load that never happened. Only SKILL.md and the evidence
-   * artifact that quotes them as tells may contain them.
-   */
-  'skill-tells-unique': () => {
-    const TELLS = [
-      'emit failures that',
-      'a later gate cannot substitute for an earlier one',
-      'Never combine a route migration with a dependency upgrade',
-    ];
-    const ALLOWED = new Set([
-      'framework-skill/node-express-migration/SKILL.md',
-      'module1/m1-c6-framework-skill-evidence.md',
-    ]);
-    const files = globSync('**/*.md', { cwd: ROOT })
-      .filter((f) => !f.includes('node_modules') && !f.includes('/dist/') && !f.includes('/logs/'));
-    let ok = true;
-    for (const tell of TELLS) {
-      const hits = files.filter((f) => readFileSync(join(ROOT, f), 'utf8').includes(tell));
-      if (!hits.includes('framework-skill/node-express-migration/SKILL.md')) {
-        process.stderr.write(`  tell missing from the skill: "${tell}"\n`);
-        ok = false;
-      }
-      for (const h of hits.filter((f) => !ALLOWED.has(f))) {
-        process.stderr.write(`  tell leaked into ${h}: "${tell}"\n`);
-        ok = false;
-      }
-    }
-    return ok;
-  },
 
   /**
    * The saved Run A prompt must match the runbook's, byte for byte, and open on
@@ -1265,19 +1229,20 @@ const CHECKS = {
    * without it.
    */
   /**
-   * Every C6 prompt block matches its saved copy, in order, and the toggle is on
-   * the first line of the first one.
+   * Every C6 prompt block matches its saved copy, in order.
    *
-   * It used to compare a single block located by its opening line. Step 1 now
-   * sends two prompts -- state the conversions, then apply them -- because two
-   * measured runs collapsed a combined turn into the create and skipped the
-   * reasoning the clip exists to show. A one-block comparison would have gone on
-   * passing while the second prompt drifted between the runbook and the saved
-   * file, which is the exact defect this check was written for.
+   * Step 1 is sent from plans/prompts/m1-c6-migrate-route.md rather than retyped,
+   * so the runbook and that file are two places an author can paste from. When
+   * they drift, Codex gets different instructions depending on which one was
+   * open -- the defect c2-prompts-saved was written for, in the clip that had
+   * already suffered it.
+   *
+   * This used to assert the skill-on/skill-off toggle as well: that line 1 of
+   * prompt 1 was the skill line and appeared in no other block. That comparison
+   * has been retired, so those assertions are gone and only parity remains.
    */
   'c6-prompt-saved': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
-    const TOGGLE = 'Read framework-skill/node-express-migration/SKILL.md and follow its guidance.';
     const prompts = (f) => [...read(f).matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
     const rb = prompts('module1/m1-c6-migrate-one-express-route.md');
     const saved = prompts('plans/prompts/m1-c6-migrate-route.md');
@@ -1289,40 +1254,9 @@ const CHECKS = {
     rb.forEach((body, i) => {
       if (body !== saved[i]) ok = reject(`m1-c6 prompt ${i + 1} differs from the saved copy`) && ok;
     });
-    if (saved[0].split('\n')[0] !== TOGGLE) {
-      ok = reject('the first saved C6 prompt does not open on the skill line -- Run B is that line removed, so it has to be line 1 of prompt 1');
-    }
-    if (saved.slice(1).some((b) => b.includes(TOGGLE))) {
-      ok = reject('a later C6 prompt also carries the skill line -- removing line 1 of prompt 1 would then not make Run B skill-off');
-    }
     return ok;
   },
 
-  /**
-   * The skill must not load unless a prompt asks for it. This is the precondition
-   * the whole negative control rests on: an ambient directive in AGENTS.md would
-   * load the skill in BOTH runs, make them identical, and quietly turn
-   * m1-c6-framework-skill-evidence.md into a comparison of nothing. It has been
-   * wrong once already -- AGENTS.md used to say "Consult it before migrating any
-   * route" -- and the damage is invisible until both runs come back the same.
-   */
-  'skill-not-ambient': () => {
-    const t = read('AGENTS.md');
-    if (!/Do not consult it unless the prompt asks you to\./.test(t)) return false;
-    // Affirmative directives that would contradict the opt-out. Every pattern is
-    // anchored to a sentence start, because AGENTS.md explains the rule as well as
-    // stating it: the opt-out's own "Do not consult it", and the sentence "An
-    // instruction here to always consult it would make both runs identical", must
-    // not trip a check whose whole subject they are. Prose about a prohibition is
-    // not the prohibition.
-    const DIRECTIVES = [
-      /(?:^|[.!?]\s|\n)\s*Consult\b/i,
-      /(?:^|[.!?]\s|\n)\s*Always consult\b/i,
-      /\bbefore migrating any route\b/i,
-      /(?:^|[.!?]\s|\n)\s*Read\s+framework-skill/i,
-    ];
-    return !DIRECTIVES.some((re) => re.test(t));
-  },
 
   /**
    * Clip 2 writes nothing, so its two checkpoints must be the same commit.
@@ -1752,72 +1686,6 @@ const CHECKS = {
     return ok;
   },
 
-  /**
-   * Clip 6 step 1 asks for the conversions in a turn that creates nothing.
-   *
-   * The conversions were instruction three of seven in a single prompt that also
-   * said "Then create ...". Two measured runs produced both files correctly and
-   * skipped the reasoning outright -- "Implemented the GET /tickets/:id migration
-   * slice", and "Done. I added the migrated GET-only router." Neither carried any
-   * of the three registered tells.
-   *
-   * The cause is not ordering. A turn holding both a *state* and a *create*
-   * instruction resolves to the create: the file is the evident deliverable, and
-   * anything before it compresses into a summary. Moving the sentence earlier
-   * leaves it in the same turn as the file.
-   *
-   * So step 1 sends two prompts. This asserts the shape that makes the reasoning
-   * an output: the first prompt asks for the conversions and forbids writing, and
-   * it does not also ask for the files. That matters beyond the clip -- prompt 1
-   * is the only turn Run A and Run B differ in, so if it ever absorbs the create
-   * again the negative control has nothing left to compare.
-   *
-   * Proven red three ways: the two prompts recombined into one, the first prompt
-   * losing its no-writing instruction, and the conversion request dropped.
-   */
-  'c6-step1-asks-for-conversions-alone': () => {
-    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
-    const RUNBOOK = 'module1/m1-c6-migrate-one-express-route.md';
-    const src = read(RUNBOOK);
-    const step1 = src.slice(src.indexOf('## Step 1 '), src.indexOf('## Step 2 '));
-    const blocks = [...step1.matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
-    if (blocks.length < 2) {
-      return reject(`${RUNBOOK}: step 1 sends ${blocks.length} prompt(s). The conversions need a turn of their own -- combined with the create, two measured runs skipped them entirely and returned only a summary`);
-    }
-    const first = blocks[0];
-    if (!/\bconversions\b/i.test(first)) {
-      return reject(`${RUNBOOK}: step 1's first prompt never asks for the conversions, which are its Highlight and the only turn Run A and Run B differ in`);
-    }
-    if (!/Do not create, edit or delete any file/i.test(first)) {
-      return reject(`${RUNBOOK}: step 1's first prompt does not forbid writing -- without that it can produce the files and compress the reasoning into a summary, which is the failure this split exists to prevent`);
-    }
-    if (/\bcreate supporthub-api\//i.test(first)) {
-      return reject(`${RUNBOOK}: step 1's first prompt also asks for a file to be created -- a turn with a deliverable in it resolves to the deliverable`);
-    }
-    // It must ask why, not only what. A measured run answered a conversions-only
-    // prompt completely and correctly and carried none of the three tells -- it
-    // could not have, because the conversions are in
-    // docs/commonjs-esm-compatibility.md and plans/migration-plan.md, which Run B
-    // reaches without the skill. A lookup-shaped prompt makes Run A and Run B
-    // produce the same list and the comparison read as "the skill adds little",
-    // which is the misreading section 14 exists to prevent. The skill's unique
-    // content is rationale, so the prompt has to ask for rationale.
-    const RATIONALE = [
-      [/what breaks if it is done wrong/i, 'which failures each conversion causes, and whether they are compile-time or run-time'],
-      [/what does each one catch that the gate before it cannot/i, 'why the validation gates are ordered as they are'],
-      [/what is its reason/i, 'why the dependency upgrade belongs to a separate milestone'],
-    ];
-    // Collapsed, because prompts are hard-wrapped: a regex written against the
-    // sentence as it reads does not match the sentence as it is stored. That
-    // exact mistake cost c5-step4-audits-the-plan-file a round, and it cost this
-    // assertion one too, on its first run.
-    const flat = first.replace(/\s+/g, ' ');
-    const missing = RATIONALE.filter(([re]) => !re.test(flat)).map(([, what]) => what);
-    if (missing.length) {
-      return reject(`${RUNBOOK}: step 1's first prompt asks what but not why -- it never asks ${missing.join('; nor ')}. The conversions are already in the compatibility doc and the migration plan, so a lookup-shaped prompt is answerable without the skill and the skill-on/skill-off comparison measures nothing`);
-    }
-    return true;
-  },
 
   /**
    * Clip 6 step 1 proves its two files exist, by name, before anything else.
@@ -1930,27 +1798,20 @@ const CHECKS = {
     if (!/git status --porcelain supporthub-api\/modern/.test(rb)) {
       ok = reject(`${RUNBOOK}: step 1's verification never proves supporthub-api/modern stayed untouched -- add "git status --porcelain supporthub-api/modern | wc -l" and require 0`);
     }
-    // Every on-camera `git status --short` must EXCLUDE plans/prompts and nothing
-    // else. Two ways to get this wrong, and both have happened.
+    // No on-camera `git status --short` may narrow to a path. One fix scoped it
+    // to supporthub-api/, which was quiet about a measured run that also rewrote
+    // plans/migration-plan.md -- Step 4's job, done early, invisible. A filter
+    // that removes noise by naming what to look at removes the signal with it.
     //
-    // Bare: the skill-on/skill-off runs move plans/prompts aside, so a bare status
-    // lists three deletions that are apparatus, and a PASS clause counting listed
-    // paths counts the wrong ones.
-    //
-    // Narrowed to a directory: the first fix scoped to supporthub-api/, which was
-    // quiet about a measured run that also rewrote plans/migration-plan.md -- Step
-    // 4's job, done early, invisible. A filter that removes noise by naming what to
-    // look at removes signal with it. Exclude the apparatus; keep everything else.
-    //
-    // The prepare block's unscoped status is deliberate and runs before the move, so
-    // only the ON-CAMERA half is checked.
+    // It briefly carried `-- ':!plans/prompts'` because the retired skill-on /
+    // skill-off runs moved that directory aside and its deletions polluted the
+    // count. Nothing moves it now, so the exclusion is vestigial and the bare
+    // form is both correct and the widest.
     const camera = rb.slice(rb.indexOf('# ON-CAMERA'));
     for (const m of camera.matchAll(/^git status --short(.*)$/gm)) {
       const args = m[1].trim();
-      if (!args) {
-        ok = reject(`${RUNBOOK}: on-camera \`git status --short\` with no pathspec -- moving plans/prompts aside pollutes the step's own evidence. Use --  ':!plans/prompts'`);
-      } else if (!/:!plans\/prompts/.test(args)) {
-        ok = reject(`${RUNBOOK}: on-camera \`git status --short ${args}\` narrows to a path instead of excluding the apparatus -- it goes blind to everything outside it, which is how a run that also rewrote plans/migration-plan.md passed step 1. Use --  ':!plans/prompts'`);
+      if (args && !/^--\s*'?:!/.test(args)) {
+        ok = reject(`${RUNBOOK}: on-camera \`git status --short ${args}\` narrows to a path -- it goes blind to everything outside it, which is how a run that also rewrote plans/migration-plan.md passed step 1. Leave it bare, or exclude with -- ':!<path>'`);
       }
     }
     return ok;

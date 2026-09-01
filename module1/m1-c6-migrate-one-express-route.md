@@ -24,6 +24,14 @@ changes something a caller depends on — a status code, a field name, an auth r
 | EO2c | Apply validation checks (lint, type-check, focused tests) after each migration milestone rather than batching cleanup |
 | EO2d | Use the ASP.NET Core skill or equivalent framework skill to apply platform-specific migration guidance |
 
+**How EO2d is demonstrated.** The skill is read on camera in Step 1, and its guidance shows up in
+two places a viewer can see: the conversions Codex states before it edits, and the gate order Step 2
+runs them in. That is a demonstration, not a measurement. An A/B control — the same prompt with and
+without the skill line, compared for reasoning only the skill contains — was built and retired: three
+runs produced no such reasoning either way, and two prompt rewrites chasing it produced no evidence.
+**This is disclosed to Curriculum as demonstrated rather than measured.** Do not narrate it as proof
+that the skill changed the outcome.
+
 ## Terms used here
 
 - **Framework skill** — a reference file an agent consults for platform-specific rules, kept in
@@ -87,11 +95,6 @@ npm install                     # only on a fresh checkout
 npm test                        # Tests  25 passed (25)
 git status --short              # must print nothing at all
 ```
-
-Run that **before** moving `plans/prompts` aside for the skill-on/skill-off runs, which
-[m1-c6-framework-skill-evidence.md](m1-c6-framework-skill-evidence.md) covers. After the move a bare
-`git status` shows three deleted entries and this check no longer means what it says; the step
-verifications below are workspace-scoped for the same reason.
 
 **Pulling? Use `./scripts/sync.sh`.** It resets both modules, then pulls. Plain `git pull` after a
 run aborts with *"Your local changes to the following files would be overwritten by merge"*, because
@@ -187,23 +190,23 @@ implements changes.
 > and use the label you actually see.
 
 **Two prompts, in order, in one Codex thread.** Both are saved at
-`plans/prompts/m1-c6-migrate-route.md`. Send that file's blocks rather than retyping them, so Run B
-can be it minus one line and nothing else.
+`plans/prompts/m1-c6-migrate-route.md`. Send that file's blocks rather than retyping them, so the
+two places an author can paste from cannot drift apart.
 
 They used to be a single prompt, and two measured runs produced both files correctly while skipping
 the conversions entirely — one opened *"Implemented the GET /tickets/:id migration slice"*, the
 other *"Done. I added the migrated GET-only router."* A turn holding both a *state* and a *create*
 instruction resolves to the create: the file is the evident deliverable, and everything before it
-reads as preamble to be compressed into a summary. The conversions are this step's Highlight and the
-only thing Run A and Run B differ in, so they get their own turn.
+reads as preamble to be compressed into a summary. The conversions are this step's Highlight, so
+they get their own turn.
 
 **Prompt 1 — state the conversions and why they are required.** Writes nothing.
 
 Questions 2 to 4 are the ones that matter for EO2d, and they were not there at first. A measured run
 answered a conversions-only prompt completely and correctly — both export shapes distinguished, the
 honest *"no `__dirname` in the route"*, `Request<{ id: string }>`, the send-then-return rule — and
-carried none of the three tells the evidence artifact looks for. It could not have. **The
-conversions are in the compatibility doc and the migration plan**, which Codex reaches whether or
+stated no reasoning at all. **The conversions are in the compatibility doc and the migration
+plan**, which Codex reaches whether or
 not the skill is loaded, so a prompt asking only *what* asks for something the repository already
 supplies. The skill's unique contribution is *why*: which failures are compile-time and which are
 run-time, why the gate order cannot be permuted, and why the upgrade is a separate milestone. Those
@@ -238,7 +241,7 @@ or installs.
 
 Read the reply before sending the second. This is the Highlight, and it is on screen alone.
 
-**Prompt 2 — apply them.** Byte-identical in Run A and Run B.
+**Prompt 2 — apply them.**
 
 ```text
 Now apply exactly the conversions you listed.
@@ -288,7 +291,7 @@ hard to un-read once it is in your head.
 ```bash
 ls -l supporthub-api/migration/routes/ticketRead.mts \
       supporthub-api/migration/tests/contracts/ticket-read.route.test.mts
-git status --short -- ':!plans/prompts'
+git status --short
 git status --porcelain supporthub-api/modern | wc -l    # must be 0
 ```
 
@@ -319,9 +322,7 @@ FAIL if:
   fail: the conversions are the Highlight and what EO2d rests on. Two measured runs of a combined
   single prompt returned *"Implemented the GET /tickets/:id migration slice"* and *"Done. I added
   the migrated GET-only router."* — both with correct files and no reasoning, which is why the turn
-  is split. Repeat Step 1. This matters twice over during the skill-on/skill-off runs, where the
-  conversion list is the entire comparison surface — see
-  [m1-c6-framework-skill-evidence.md](m1-c6-framework-skill-evidence.md).
+  is split. Repeat Step 1.
 - nothing is listed by `git status` even though `ls` found the files — they exist but are ignored,
   which means the paths are wrong.
 - `plans/migration-plan.md` appears. Recording the checkpoint is **Step 4's** job, and a run that
@@ -395,7 +396,7 @@ service behaved. This step compares the two directly, before anything is accepte
 ```bash
 git diff --no-index supporthub-api/migration/routes/tickets.js \
                     supporthub-api/migration/routes/ticketRead.mts
-git status --short -- ':!plans/prompts'
+git status --short
 grep -oE '\b(200|401|403|404)\b' \
   supporthub-api/migration/tests/contracts/ticket-read.route.test.mts | sort -u | wc -l
 npm run test:migration

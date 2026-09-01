@@ -93,15 +93,12 @@
     "framework skill present": [
       1
     ],
-    "Run A prompt saved and matching the runbook": [
+    "saved C6 prompts match the runbook": [
       1
     ],
     "the runbook's plan greps resolve on the start branch": [
       1,
       4
-    ],
-    "step 1 asks for the conversions in a turn of its own": [
-      1
     ],
     "step 1 proves its two files exist": [
       1
@@ -112,12 +109,6 @@
     "the route migrates in place": [
       1,
       3
-    ],
-    "skill is opt-in, not ambient": [
-      1
-    ],
-    "skill-off tells still unique to the skill": [
-      1
     ],
     "express 4 in migration workspace": [
       1
