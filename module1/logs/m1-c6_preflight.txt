@@ -30,6 +30,8 @@ Step 1  READY
         $ node "${ROOT}/scripts/check.mjs" skill-tells-unique
   pass  express 4 in migration workspace
         $ [ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/migration\"]})).version" | cut -d. -f1)" = "4" ]
+  pass  this clip's checkpoint descends from m1-c5-captured
+        $ node "${ROOT}/scripts/check.mjs" c6-start-descends-from-c5-captured
   pass  this clip's starting checkpoint exists
         $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
 
@@ -43,6 +45,8 @@ Step 2  READY
         $ npm run lint:migration && npm run typecheck:migration && npm run build:migration && npm run test:route:migration
   pass  route contract suite starts empty
         $ [ "$(npm run test:route:migration 2>&1 | grep -c "No test files found")" -eq 1 ]
+  pass  this clip's checkpoint descends from m1-c5-captured
+        $ node "${ROOT}/scripts/check.mjs" c6-start-descends-from-c5-captured
   pass  this clip's starting checkpoint exists
         $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
 
@@ -56,6 +60,8 @@ Step 3  READY
         $ node "${ROOT}/scripts/check.mjs" c6-migrates-in-place
   pass  compat modules present
         $ [ -f supporthub-api/migration/compat/dirname.mts ] && [ -f supporthub-api/migration/compat/legacyRequire.mts ]
+  pass  this clip's checkpoint descends from m1-c5-captured
+        $ node "${ROOT}/scripts/check.mjs" c6-start-descends-from-c5-captured
   pass  this clip's starting checkpoint exists
         $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
 
@@ -65,6 +71,8 @@ Step 4  READY
 
   pass  the runbook's plan greps resolve on the start branch
         $ node "${ROOT}/scripts/check.mjs" runbook-plan-greps-resolve
+  pass  this clip's checkpoint descends from m1-c5-captured
+        $ node "${ROOT}/scripts/check.mjs" c6-start-descends-from-c5-captured
   pass  this clip's starting checkpoint exists
         $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
 
@@ -74,7 +82,7 @@ SHARED GATES  17 of 17 pass
 
 Every gate is green. This clip can be recorded.
 
-PASS: 31   FAIL: 0
+PASS: 32   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c6_preflight.full.txt
 
