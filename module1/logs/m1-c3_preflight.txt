@@ -47,13 +47,13 @@ Step 4  READY
   pass  clip 3's prompt does not forbid the drift step 4 removes
         $ node "${ROOT}/scripts/check.mjs" c3-prompt-does-not-preempt-removal
 
-SHARED GATES  17 of 17 pass
+SHARED GATES  18 of 18 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 23   FAIL: 0
+PASS: 24   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c3_preflight.full.txt
 
