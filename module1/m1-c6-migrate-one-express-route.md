@@ -197,19 +197,39 @@ instruction resolves to the create: the file is the evident deliverable, and eve
 reads as preamble to be compressed into a summary. The conversions are this step's Highlight and the
 only thing Run A and Run B differ in, so they get their own turn.
 
-**Prompt 1 — state the conversions.** Writes nothing.
+**Prompt 1 — state the conversions and why they are required.** Writes nothing.
+
+Questions 2 to 4 are the ones that matter for EO2d, and they were not there at first. A measured run
+answered a conversions-only prompt completely and correctly — both export shapes distinguished, the
+honest *"no `__dirname` in the route"*, `Request<{ id: string }>`, the send-then-return rule — and
+carried none of the three tells the evidence artifact looks for. It could not have. **The
+conversions are in the compatibility doc and the migration plan**, which Codex reaches whether or
+not the skill is loaded, so a prompt asking only *what* asks for something the repository already
+supplies. The skill's unique contribution is *why*: which failures are compile-time and which are
+run-time, why the gate order cannot be permuted, and why the upgrade is a separate milestone. Those
+appear in no other file.
 
 ```text
 Read framework-skill/node-express-migration/SKILL.md and follow its guidance.
 
-State the exact conversions the skill requires to move the GET /tickets/:id route
-out of supporthub-api/migration/routes/tickets.js and into ESM TypeScript in that
-same workspace:
+Answer these before touching anything, in order.
 
-- each require() in the route, and what it becomes
-- each module.exports shape the route depends on, and what it becomes
-- every __dirname use, and what replaces it
-- what the skill says about route params and handler return values
+1. State the exact conversions the skill requires to move the GET /tickets/:id
+   route out of supporthub-api/migration/routes/tickets.js and into ESM
+   TypeScript in that same workspace: each require() and what it becomes, each
+   module.exports shape the route depends on and what it becomes, every
+   __dirname use and what replaces it, and what changes about route params and
+   handler return values.
+
+2. For each conversion above, say what breaks if it is done wrong, and whether
+   that break shows up at compile time or at run time.
+
+3. In what order does the skill require the validation gates to run, and what
+   does each one catch that the gate before it cannot?
+
+4. This checkpoint migrates the route while the workspace stays on Express 4.
+   What does the skill say about doing that upgrade in the same milestone, and
+   what is its reason?
 
 Do not create, edit or delete any file yet. Read the repository freely with
 read-only commands such as ls, find, rg, sed and cat; do not run tests, builds,
@@ -253,10 +273,11 @@ The conversions should distinguish `module.exports = requireApiKey` (a single va
 On `__dirname` the honest answer for this slice is *none in the route*. The one that matters lives
 in `services/ticketService.js`, which stays CommonJS behind the bridge until its own checkpoint.
 
-**Highlight.** Prompt 1's reply, on screen with no code beside it: the two different
-`module.exports` shapes in the same service. They convert differently, and getting it wrong produces
-`undefined` at runtime with no compile error. Giving the list its own turn is what puts it there
-alone — in a combined turn it was absent entirely, twice.
+**Highlight.** Prompt 1's reply, on screen with no code beside it — and specifically its answer to
+question 2. The two `module.exports` shapes convert differently, and getting it wrong produces
+`undefined` **at runtime, with no compile error**: the one failure in the list that no gate catches.
+Giving the list its own turn is what puts it there alone; in a combined turn it was absent entirely,
+twice.
 
 **Decision produced.** One route is migrated under the skill's guidance, and the change is bounded.
 
