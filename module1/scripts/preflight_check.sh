@@ -424,6 +424,12 @@ check "c5" "that milestone is unreviewed" \
 
 # ------------------------------------------------------------------- clip 6
 sect c6 "clip 6 - migrate one route"
+check "c6" "this clip's checkpoint descends from m1-c5-captured" \
+  'node "${ROOT}/scripts/check.mjs" c6-start-descends-from-c5-captured' \
+  "module1/walkthrough-c5-c6.md calls this the one mis-cut in the chain that fails silently: cut from anywhere but demo/m1-c5-captured, this clip opens on the combined milestone instead of the split. It was a hand-run merge-base command until it broke unnoticed." \
+  "git branch -f demo/m1-c6-start demo/m1-c5-captured" \
+  "Does demo/m1-c6-start descend from demo/m1-c5-captured, and do their trees match?"
+
 check "c6" "this clip's starting checkpoint exists" \
   'node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists' \
   "A clip cannot be ready when the checkout its first line performs does not resolve. m1-c6 reported READY while demo/m1-c6-start had never been cut, and neither had demo/m1-c5-captured, the branch it must be branched from." \

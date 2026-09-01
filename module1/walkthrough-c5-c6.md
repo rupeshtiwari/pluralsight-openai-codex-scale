@@ -44,6 +44,22 @@ Measured on the build branch, which is the state a mis-cut C6 would inherit:
 combining a route migration with a dependency upgrade. `c5-captured-opens-on-split` asserts the same
 thing from the other checkout, since both branches carry the post-rejection plan.
 
+**The ancestry itself is asserted too, and was not always.** For a while the merge-base command
+below was the only thing checking it, run by hand or not at all — and it broke without anyone
+noticing. Later doc fixes were cherry-picked onto *both* branches independently, which leaves
+identical trees and unrelated commits: the guard flipped to failing while the content stayed
+perfectly correct, so the next person to run it would have read a mis-cut that never happened.
+
+**Carry a change onto `demo/m1-c5-captured`, then move `demo/m1-c6-start` to it.** Never onto both:
+
+```bash
+git checkout demo/m1-c5-captured && git cherry-pick -x <commit>
+git branch -f demo/m1-c6-start demo/m1-c5-captured
+```
+
+`c6-start-descends-from-c5-captured` now checks the ancestry *and* that the two trees match, so
+neither a mis-cut nor a drift ahead of the split passes.
+
 Counting entries is not enough on its own, which is why the check also inspects each entry: a plan
 split into two where one half still batches both concerns passes a count and fails the objective.
 That case is in the negative suite.
