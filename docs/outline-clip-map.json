@@ -1,5 +1,5 @@
 {
-  "_comment": "Transcribed verbatim from the approved course outline (Course Organization section). This is the contract the runbooks are checked against by scripts/check.mjs clip-outline-alignment. Do not edit to match a runbook -- edit the runbook.",
+  "_comment": "Transcribed verbatim from the approved course outline (Course Organization section). This is the contract the runbooks are checked against by scripts/check.mjs clip-outline-alignment. Do not edit to match a runbook -- edit the runbook. Presentation clips carry runbook: null -- they have no runbook, and clip-outline-alignment skips them; they are here so the map covers the whole outline and outline-map-matches-source can check all of it.",
   "objectives": {
     "TO1": "Apply Codex to plan and execute a codebase refactoring operation using reviewable passes",
     "EO1a": "Construct a refactoring prompt that instructs Codex to map noisy modules, identify dead code, and propose one cleanup theme at a time before editing",
@@ -13,16 +13,31 @@
     "EO2d": "Use the ASP.NET Core skill or equivalent framework skill to apply platform-specific migration guidance",
     "TO3": "Apply Codex automations to run recurring bug triage across multiple data sources at team scale.",
     "EO3a": "Configure a bug triage automation using the Sentry, Slack, Linear, and GitHub plugins to sweep a defined time window",
-    "EO3b": "Evaluate a Codex-generated triage report for correct P0–P3 prioritization, deduplicated bug entries, and evidence-backed recommendations",
+    "EO3b": "Evaluate a Codex-generated triage report for correct P0\u2013P3 prioritization, deduplicated bug entries, and evidence-backed recommendations",
     "EO3c": "Convert a tested manual triage sweep into a scheduled automation using the same thread context",
     "EO3d": "Apply a routing workflow to draft Slack updates, Linear issues, or GitHub comments after triage approval",
     "TO4": "Demonstrate how to debug and trace Codex automations",
     "EO4a": "Use the Codex review pane to inspect uncommitted diffs from an automation run, including per-hunk staging and revert controls"
   },
   "clips": {
+    "m1-c1": {
+      "runbook": null,
+      "title": "Plan reviewable refactors with Codex",
+      "minutes": 3,
+      "objectives": [
+        "TO1",
+        "EO1d"
+      ],
+      "bullets": [
+        "Use Plan mode when discovery and architectural understanding should happen before implementation",
+        "Map the review flow from codebase evidence to bounded cleanup theme, implementation, validation, and diff review",
+        "Keep behavior preservation and architecture migrations as separate review decisions"
+      ]
+    },
     "m1-c2": {
       "runbook": "module1/m1-c2-map-noisy-typescript-modules.md",
-      "title": "Demo: Map noisy TypeScript modules with Codex before editing (6 minutes)",
+      "title": "Demo: Map noisy TypeScript modules with Codex before editing",
+      "minutes": 6,
       "objectives": [
         "TO1",
         "EO1a",
@@ -37,7 +52,8 @@
     },
     "m1-c3": {
       "runbook": "module1/m1-c3-execute-codex-refactor.md",
-      "title": "Demo: Execute a Codex refactor with ExecPlan checkpoints (6 minutes)",
+      "title": "Demo: Execute a Codex refactor with ExecPlan checkpoints",
+      "minutes": 6,
       "objectives": [
         "TO1",
         "EO1b",
@@ -50,9 +66,23 @@
         "Remove the architecture migration Codex bundled into the cleanup diff and log it as a separate ExecPlan task"
       ]
     },
+    "m1-c4": {
+      "runbook": null,
+      "title": "Plan a legacy Express migration with Codex checkpoints",
+      "minutes": 3,
+      "objectives": [
+        "TO2"
+      ],
+      "bullets": [
+        "Shift from the refactoring project to the legacy CommonJS JavaScript Express 4 service and define ESM TypeScript on Express 5 as the target",
+        "Separate inventory, CommonJS-to-ESM compatibility planning, validation, and rollback into explicit checkpoints before implementation",
+        "Treat behavioral exceptions and the CommonJS-to-ESM compatibility layer as deliberate migration decisions"
+      ]
+    },
     "m1-c5": {
       "runbook": "module1/m1-c5-inventory-legacy-express4.md",
-      "title": "Demo: Inventory a legacy Express 4 service with Codex (6 minutes)",
+      "title": "Demo: Inventory a legacy Express 4 service with Codex",
+      "minutes": 6,
       "objectives": [
         "TO2",
         "EO2a",
@@ -67,7 +97,8 @@
     },
     "m1-c6": {
       "runbook": "module1/m1-c6-migrate-one-express-route.md",
-      "title": "Demo: Migrate one Express route to TypeScript with framework guidance (6 minutes)",
+      "title": "Demo: Migrate one Express route to TypeScript with framework guidance",
+      "minutes": 6,
       "objectives": [
         "TO2",
         "EO2c",
@@ -80,9 +111,23 @@
         "Record the checkpoint so the Express 5 migration can continue or roll back from a known state"
       ]
     },
+    "m2-c1": {
+      "runbook": null,
+      "title": "Design reviewable Codex automations at team scale",
+      "minutes": 3,
+      "objectives": [
+        "TO3"
+      ],
+      "bullets": [
+        "Map the triage architecture from Sentry and GitHub evidence through correlation, P0\u2013P3 prioritization, review, approval, and routed drafts to Slack and Linear",
+        "Keep source evidence attached to each P0\u2013P3 recommendation so team decisions remain reviewable",
+        "Separate approved downstream actions from the triage decision itself"
+      ]
+    },
     "m2-c2": {
       "runbook": "module2/m2-c2-manual-triage.md",
-      "title": "Demo: Run a manual Codex triage sweep across Sentry and GitHub (6 minutes)",
+      "title": "Demo: Run a manual Codex triage sweep across Sentry and GitHub",
+      "minutes": 6,
       "objectives": [
         "TO3",
         "EO3a",
@@ -91,13 +136,14 @@
       "bullets": [
         "Configure Sentry and GitHub evidence sources, connect Slack and Linear routing destinations, and define the triage time window",
         "Run the sweep manually so the same thread context captures source evidence before scheduling",
-        "Inspect the report for P0–P3 priority, deduplicated bugs, and evidence-backed recommendations",
+        "Inspect the report for P0\u2013P3 priority, deduplicated bugs, and evidence-backed recommendations",
         "Correct weak prioritization or duplicate entries before automation is promoted"
       ]
     },
     "m2-c3": {
       "runbook": "module2/m2-c3-schedule-triage.md",
-      "title": "Demo: Schedule Codex triage and route work to Slack and Linear (6 minutes)",
+      "title": "Demo: Schedule Codex triage and route work to Slack and Linear",
+      "minutes": 6,
       "objectives": [
         "TO3",
         "EO3c",
@@ -110,9 +156,24 @@
         "Verify Slack and Linear drafts preserve the evidence and priority from the triage decision"
       ]
     },
+    "m2-c4": {
+      "runbook": null,
+      "title": "Debug Codex automations through review evidence",
+      "minutes": 3,
+      "objectives": [
+        "TO4",
+        "EO4a"
+      ],
+      "bullets": [
+        "Use automation inputs, generated changes, validation results, and review state as the debugging evidence chain",
+        "Distinguish a bad source assumption from a bad generated change before deciding what to rerun",
+        "Use per-hunk review to keep valid changes while rejecting unsafe or unrelated edits"
+      ]
+    },
     "m2-c5": {
       "runbook": "module2/m2-c5-inspect-automation-diffs.md",
-      "title": "Demo: Inspect automation diffs in the Codex review pane (6 minutes)",
+      "title": "Demo: Inspect automation diffs in the Codex review pane",
+      "minutes": 6,
       "objectives": [
         "TO4",
         "EO4a"
@@ -126,7 +187,8 @@
     },
     "m2-c6": {
       "runbook": "module2/m2-c6-recover-failed-automation.md",
-      "title": "Demo: Trace a failed Codex automation and recover safely (6 minutes)",
+      "title": "Demo: Trace a failed Codex automation and recover safely",
+      "minutes": 6,
       "objectives": [
         "TO4",
         "EO4a"
