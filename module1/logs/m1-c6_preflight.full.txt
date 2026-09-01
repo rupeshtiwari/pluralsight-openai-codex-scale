@@ -122,6 +122,10 @@ $ [ -f framework-skill/node-express-migration/SKILL.md ]
 
 RESULT PASS  [c6] framework skill present
 
+$ node "${ROOT}/scripts/check.mjs" c6-step1-states-conversions-first
+
+RESULT PASS  [c6] step 1 states the conversions in a turn of its own
+
 $ node "${ROOT}/scripts/check.mjs" c6-prompt-saved
 
 RESULT PASS  [c6] saved C6 prompts match the runbook
