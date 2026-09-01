@@ -102,6 +102,10 @@ $ node "${ROOT}/scripts/check.mjs" contract-tests-pass
 
 RESULT PASS  [all] contract tests (expect 25)
 
+$ node "${ROOT}/scripts/check.mjs" c6-start-descends-from-c5-captured
+
+RESULT PASS  [c6] this clip's checkpoint descends from m1-c5-captured
+
 $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists
 
 RESULT PASS  [c6] this clip's starting checkpoint exists
