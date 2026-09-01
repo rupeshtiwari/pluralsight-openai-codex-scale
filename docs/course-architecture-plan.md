@@ -555,6 +555,46 @@ seeded one without being told.
 revealed the defect; only writing down the condition each exists to detect, and watching it go red,
 does. See `scripts/check-negatives.mjs`.
 
+## 11d. A turn that produces an artifact will not also produce reasoning
+
+C6 step 1 asked for the conversions and then for the files, in one prompt. Twice, Codex produced
+both files correctly, passed all five gates, and said only *"Implemented the GET /tickets/:id
+migration slice"* — the second time, *"Done. I added the migrated GET-only router."* No conversions,
+and none of the three registered tells.
+
+The instinct is to blame ordering and move the sentence earlier. That does not survive contact:
+`Then create ...` is still in the same turn. **When a turn contains something to hand back, the
+hand-back becomes the answer and everything else becomes preamble to compress.** Asking for
+reasoning and an artifact together gets the artifact, every time, and the reasoning arrives as a
+summary of what was done rather than as the thinking that decided it.
+
+**So reasoning you intend to show gets its own turn, and that turn is forbidden to write.**
+
+```text
+State the exact conversions the skill requires ...
+
+Do not create, edit or delete any file yet.
+```
+
+Then, separately: *"Now apply exactly the conversions you listed."*
+
+Two things fall out of this beyond the clip.
+
+**The step's own verification gains a checkpoint.** `git status --short -- ':!plans/prompts'` runs
+after the first prompt as well: a turn asked to reason and forbidden to write must leave the tree
+clean, and one that writes has already collapsed back into the old shape.
+
+**The negative control becomes measurable.** C6's skill-on/skill-off comparison lives entirely in
+that first turn — later prompts are byte-identical between runs, and the gates prove the artifacts
+identical anyway. A combined turn left the two runs differing only in files that were the same, so
+there was nothing to measure. `c6-step1-asks-for-conversions-alone` asserts the split holds: two
+prompts, the first asking for conversions, forbidding writes, and not also asking for a file.
+
+Structurally this costs nothing. C5 already sends eight prompts across four steps and C2 four —
+more turns inside a step is the existing shape, and agent waits are edited out of the recording, so
+a six-minute clip is unaffected. What changes is that the Highlight is on screen alone instead of
+absent.
+
 ## 12. Nothing unexplained may show a badge on camera
 
 **Before recording, open every file the demo opens and account for every badge on every tab.** A
