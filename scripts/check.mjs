@@ -1080,6 +1080,10 @@ const CHECKS = {
     const map = JSON.parse(read('docs/outline-clip-map.json'));
     let ok = true;
     for (const [clip, c] of Object.entries(map.clips)) {
+      // Presentation clips are in the map so it covers the whole outline and
+      // outline-map-matches-source can check all of it. They have no runbook and
+      // nothing here applies to them.
+      if (!c.runbook) continue;
       const t = read(c.runbook);
       const i = t.indexOf('## Learning Objectives');
       const j = t.indexOf('\n## ', i + 1);
@@ -1435,6 +1439,92 @@ const CHECKS = {
       }
     }
     if (checked === 0) return reject('no runbook grep with an expected count was found — the verification block shape changed');
+    return ok;
+  },
+
+  /**
+   * docs/outline-clip-map.json matches the outline it claims to be transcribed
+   * from.
+   *
+   * clip-outline-alignment compares every runbook to that map, and the map's own
+   * comment calls it "transcribed verbatim from the outline's Course
+   * Organization section". Nothing checked that. The map was the authority for
+   * eight runbooks and was itself unverified -- the same shape as a check
+   * asserting a seeded string, one level up.
+   *
+   * Checked by hand once against the .docx: all nine objectives and all
+   * thirty-two bullets matched, and the only difference was the map folding
+   * "(6 minutes)" into the title. docs/outline-course-organization.txt is the
+   * extract that made that possible, and this keeps it true.
+   *
+   * Proven red on an edited objective, an edited bullet, a changed duration and
+   * a dropped clip.
+   */
+  'outline-map-matches-source': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const SRC = 'docs/outline-course-organization.txt';
+    const lines = read(SRC).split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
+    const norm = (v) => v.normalize('NFKC').replace(/’/g, "'").replace(/–/g, '-').trim();
+
+    const clips = {};
+    const objectives = {};
+    let mod = null;
+    let cur = null;
+    for (const l of lines) {
+      let m = l.match(/^Module (\d) – /);
+      if (m) { mod = m[1]; continue; }
+      m = l.match(/^([1-4])([a-d])\.\s+(.+)$/);
+      if (m) { objectives[`EO${m[1]}${m[2]}`] = m[3].trim(); continue; }
+      m = l.match(/^Terminal Objective:\s*(.+)$/);
+      if (m) { objectives[`TO${Object.keys(objectives).filter((k) => k.startsWith('TO')).length + 1}`] = m[1].trim(); continue; }
+      m = l.match(/^Clip (\d+):\s*(.+?)\s*\((\d+) minutes?\)$/);
+      if (m && mod) {
+        cur = `m${mod}-c${m[1]}`;
+        clips[cur] = { title: m[2].trim(), minutes: Number(m[3]), objectives: [], bullets: [] };
+        continue;
+      }
+      if (cur && l.startsWith('•')) {
+        const b = l.replace(/^•\s*/, '').trim();
+        if (b.startsWith('Learning Objectives:')) clips[cur].objectives = b.split(':')[1].split(',').map((x) => x.trim());
+        else clips[cur].bullets.push(b);
+      }
+    }
+
+    const map = JSON.parse(read('docs/outline-clip-map.json'));
+    let ok = true;
+    for (const [id, want] of Object.entries(objectives)) {
+      const got = map.objectives[id];
+      if (got === undefined) ok = reject(`${id} is in ${SRC} and missing from the map`);
+      else if (norm(got) !== norm(want)) {
+        ok = reject(`${id} wording differs from the outline\n      outline: ${want}\n      map    : ${got}`);
+      }
+    }
+    for (const id of Object.keys(map.objectives)) {
+      if (!(id in objectives)) ok = reject(`${id} is in the map and not in ${SRC}`);
+    }
+    for (const [id, want] of Object.entries(clips)) {
+      const got = map.clips[id];
+      if (!got) { ok = reject(`clip ${id} is in ${SRC} and missing from the map`); continue; }
+      if (norm(got.title) !== norm(want.title)) {
+        ok = reject(`${id} title differs\n      outline: ${want.title}\n      map    : ${got.title}`);
+      }
+      if (got.minutes !== want.minutes) ok = reject(`${id} is ${want.minutes} minutes in the outline, ${got.minutes} in the map`);
+      if (got.objectives.join(',') !== want.objectives.join(',')) {
+        ok = reject(`${id} objectives are ${want.objectives.join(',')} in the outline, ${got.objectives.join(',')} in the map`);
+      }
+      if (got.bullets.length !== want.bullets.length) {
+        ok = reject(`${id} has ${want.bullets.length} bullets in the outline, ${got.bullets.length} in the map`);
+        continue;
+      }
+      want.bullets.forEach((b, i) => {
+        if (norm(b) !== norm(got.bullets[i])) {
+          ok = reject(`${id} bullet ${i + 1} differs\n      outline: ${b}\n      map    : ${got.bullets[i]}`);
+        }
+      });
+    }
+    for (const id of Object.keys(map.clips)) {
+      if (!(id in clips)) ok = reject(`clip ${id} is in the map and not in ${SRC}`);
+    }
     return ok;
   },
 

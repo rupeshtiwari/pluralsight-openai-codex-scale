@@ -1,0 +1,103 @@
+# Course Organization, verbatim from the approved outline
+#
+# Extracted from the .docx the outline lives in, so docs/outline-clip-map.json
+# can be checked against its source instead of being trusted. The map is a
+# transcription; nothing verified it until this file existed, and a
+# transcription nobody checks is exactly the shape of defect this repository
+# keeps finding. scripts/check.mjs outline-map-matches-source compares them.
+#
+# Do not edit to fix a mismatch. Re-extract from the outline, or change the map.
+
+Course Organization
+This section is completed by the Author
+1
+Terminal Objective: Apply Codex to plan and execute a codebase refactoring operation using reviewable passes
+1a. Construct a refactoring prompt that instructs Codex to map noisy modules, identify dead code, and propose one cleanup theme at a time before editing
+1b. Apply the ExecPlan pattern to maintain a running log of intended changes, behavior contracts, and validation checks across a multi-session refactor
+1c. Evaluate a Codex-generated refactoring diff to confirm that public behavior is preserved and that architecture migrations are separated into discrete tasks
+1d. Explain when to use Plan mode before committing Codex to implementation
+Terminal Objective: Demonstrate how to orchestrate a legacy-to-modern stack migration with Codex using incremental checkpoints.
+2a. Direct Codex to inventory a legacy system's routing, data models, auth, build tooling, tests, and external contracts before proposing a migration plan
+2b. Evaluate a Codex-generated migration plan for compatibility layers, explicit behavioral exceptions, and rollback visibility
+2c. Apply validation checks (lint, type-check, focused tests) after each migration milestone rather than batching cleanup
+2d. Use the ASP.NET Core skill or equivalent framework skill to apply platform-specific migration guidance
+Module 1 – Refactoring and migrating codebases with Codex
+Clip 1: Plan reviewable refactors with Codex (3 minutes)
+•  Use Plan mode when discovery and architectural understanding should happen before implementation
+•  Map the review flow from codebase evidence to bounded cleanup theme, implementation, validation, and diff review
+•  Keep behavior preservation and architecture migrations as separate review decisions
+•  Learning Objectives: TO1, EO1d
+Clip 2: Demo: Map noisy TypeScript modules with Codex before editing (6 minutes)
+•  Open the TypeScript service in Codex and ask it to map modules, dependencies, public behavior, and dead-code candidates
+•  Constrain Codex to propose one cleanup theme before editing any files
+•  Inspect repository evidence and reject unrelated architectural changes before implementation
+•  Confirm Plan mode produces a bounded, reviewable first pass
+•  Learning Objectives: TO1, EO1a, EO1d
+Clip 3: Demo: Execute a Codex refactor with ExecPlan checkpoints (6 minutes)
+•  Create an ExecPlan that records intended changes, behavior contracts, validation checks, and progress across the refactor
+•  Let Codex implement one bounded cleanup pass and run Vitest plus TypeScript validation
+•  Inspect the generated diff and confirm public behavior is preserved
+•  Remove the architecture migration Codex bundled into the cleanup diff and log it as a separate ExecPlan task
+•  Learning Objectives: TO1, EO1b, EO1c
+Clip 4: Plan a legacy Express migration with Codex checkpoints (3 minutes)
+•  Shift from the refactoring project to the legacy CommonJS JavaScript Express 4 service and define ESM TypeScript on Express 5 as the target
+•  Separate inventory, CommonJS-to-ESM compatibility planning, validation, and rollback into explicit checkpoints before implementation
+•  Treat behavioral exceptions and the CommonJS-to-ESM compatibility layer as deliberate migration decisions
+•  Learning Objectives: TO2
+Clip 5: Demo: Inventory a legacy Express 4 service with Codex (6 minutes)
+•  Direct Codex to inventory the legacy CommonJS JavaScript Express 4 service across Express routes, data models, auth, build tooling, tests, and external contracts
+•  Review the generated migration plan for the CommonJS-to-ESM compatibility layer, explicit behavioral exceptions, and rollback visibility
+•  Split the ESM TypeScript Express 5 migration into incremental milestones that can be validated independently
+•  Reject the milestone that batches route migration with dependency upgrades and have Codex split it into two checkpoints
+•  Learning Objectives: TO2, EO2a, EO2b
+Clip 6: Demo: Migrate one Express route to TypeScript with framework guidance (6 minutes)
+•  Apply an equivalent Node.js and TypeScript framework skill to migrate one Express route slice from JavaScript to TypeScript
+•  Run ESLint, TypeScript type-checking, build validation, and focused Vitest tests immediately after the route migration
+•  Inspect the diff and verify the CommonJS-to-ESM compatibility contract before accepting the route change
+•  Record the checkpoint so the Express 5 migration can continue or roll back from a known state
+•  Learning Objectives: TO2, EO2c, EO2d
+30 Mins
+2
+Terminal Objective: Apply Codex automations to run recurring bug triage across multiple data sources at team scale.
+3a. Configure a bug triage automation using the Sentry, Slack, Linear, and GitHub plugins to sweep a defined time window
+3b. Evaluate a Codex-generated triage report for correct P0–P3 prioritization, deduplicated bug entries, and evidence-backed recommendations
+3c. Convert a tested manual triage sweep into a scheduled automation using the same thread context
+3d. Apply a routing workflow to draft Slack updates, Linear issues, or GitHub comments after triage approval
+Terminal Objective:  Demonstrate how to debug and trace Codex automations
+4a. Use the Codex review pane to inspect uncommitted diffs from an automation run, including per-hunk staging and revert controls
+Module 2 – Automating and debugging Codex workflows at team scale
+Clip 1: Design reviewable Codex automations at team scale (3 minutes)
+•  Map the triage architecture from Sentry and GitHub evidence through correlation, P0–P3 prioritization, review, approval, and routed drafts to Slack and Linear
+•  Keep source evidence attached to each P0–P3 recommendation so team decisions remain reviewable
+•  Separate approved downstream actions from the triage decision itself
+•  Learning Objectives: TO3
+Clip 2: Demo: Run a manual Codex triage sweep across Sentry and GitHub (6 minutes)
+•  Configure Sentry and GitHub evidence sources, connect Slack and Linear routing destinations, and define the triage time window
+•  Run the sweep manually so the same thread context captures source evidence before scheduling
+•  Inspect the report for P0–P3 priority, deduplicated bugs, and evidence-backed recommendations
+•  Correct weak prioritization or duplicate entries before automation is promoted
+•  Learning Objectives: TO3, EO3a, EO3b
+Clip 3: Demo: Schedule Codex triage and route work to Slack and Linear (6 minutes)
+•  Convert the tested manual sweep into a scheduled Codex automation using the same thread context
+•  Run the scheduled workflow and compare its report with the validated manual pattern
+•  Approve selected findings before drafting Slack updates or Linear issues
+•  Verify Slack and Linear drafts preserve the evidence and priority from the triage decision
+•  Learning Objectives: TO3, EO3c, EO3d
+Clip 4: Debug Codex automations through review evidence (3 minutes)
+•  Use automation inputs, generated changes, validation results, and review state as the debugging evidence chain
+•  Distinguish a bad source assumption from a bad generated change before deciding what to rerun
+•  Use per-hunk review to keep valid changes while rejecting unsafe or unrelated edits
+•  Learning Objectives: TO4, EO4a
+Clip 5: Demo: Inspect automation diffs in the Codex review pane (6 minutes)
+•  Open an automation run that produced uncommitted changes and inspect the diff in the Codex review pane
+•  Review changed files and hunks against the triage evidence that caused the automation to act
+•  Use source control to stage valid hunks individually and revert an unrelated or incorrect hunk
+•  Confirm only approved changes remain before the repository is committed
+•  Learning Objectives: TO4, EO4a
+Clip 6: Demo: Trace a failed Codex automation and recover safely (6 minutes)
+•  Start from a failed automation result and trace the source evidence, generated change, and validation outcome
+•  Use the review pane to isolate the incorrect hunk instead of discarding the entire run
+•  Revert the bad change, preserve valid work, and rerun with corrected context
+•  Verify the recovered run produces a clean reviewable diff before acceptance
+•  Learning Objectives: TO4, EO4a
+30 Mins
