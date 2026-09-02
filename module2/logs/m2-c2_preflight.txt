@@ -63,14 +63,16 @@ Step 4  READY
         $ node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric
   pass  step 4 expects the baseline it compares against
         $ node "${ROOT}/scripts/check.mjs" runbook-expects-the-baseline-it-compares-to
+  pass  step 4 names every key it then compares
+        $ node "${ROOT}/scripts/check.mjs" c2-step4-names-the-keys-it-compares
 
-SHARED GATES  4 of 4 pass
+SHARED GATES  6 of 6 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 14   FAIL: 0
+PASS: 17   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c2_preflight.full.txt
 

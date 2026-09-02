@@ -27,6 +27,14 @@ $ [ -z "$(git diff --cached --name-only)" ]
 
 RESULT PASS  [all] nothing left staged
 
+$ node "${ROOT}/scripts/check.mjs" runbooks-probe-agent-identity
+
+RESULT PASS  [all] every prep block proves the agent is in this checkout
+
+$ node "${ROOT}/scripts/check.mjs" preflight-checks-run-after-their-definition
+
+RESULT PASS  [all] every preflight calls check after defining it
+
 $ ./scripts/verify_integrations.sh
 MODULE 2 INTEGRATION PREPARATION
 Fixtures, rubric and config shape - not plugin reachability
