@@ -736,6 +736,27 @@ for (const [check, rb, saved] of [
   })();
   SYNTHETIC_CASES.push(
     {
+      check: 'checks-do-not-match-tool-output',
+      what: "an assertion greps npm test for Vitest's banner again — the form that failed on a machine whose suite was passing",
+      control: pfCtl,
+      negative: {
+        ...pfCtl,
+        [M2P]: pfCtl[M2P].replace("  'npm test' \\\n",
+          '  \'[ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]\' \\\n'),
+      },
+    },
+    {
+      check: 'checks-do-not-match-tool-output',
+      what: 'an assertion greps a runner for the words it prints when it finds nothing to run',
+      control: pfCtl,
+      negative: {
+        ...pfCtl,
+        [M1P]: pfCtl[M1P].replace(
+          '  \'[ -z "$(ls supporthub-api/migration/tests/contracts/*.test.mts 2>/dev/null)" ]\' \\\n',
+          '  \'[ "$(npm run test:route:migration 2>&1 | grep -c "No test files found")" -eq 1 ]\' \\\n'),
+      },
+    },
+    {
       check: 'preflight-checks-run-after-their-definition',
       what: `a check block is spliced in above check(), which is defined at line ${defLine + 1} — the shell says "check: command not found" and the run continues without it`,
       control: pfCtl,
