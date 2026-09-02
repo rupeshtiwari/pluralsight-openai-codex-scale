@@ -38,6 +38,17 @@ a human between the finding and the send.
 - Slack and Linear are connected, with the demo channel and demo project available
 - the conversation containing the validated manual sweep is open
 
+**Walk clip 2 first, and stay in its thread.** This is the one cross-clip dependency in the course.
+Step 1 schedules *from the conversation*, not from a fresh prompt — that is the whole point of the
+step, and it is what carries clip 2's corrections into the automation. So the four steps of
+`m2-c2-manual-triage.md` have to have been walked in the Codex conversation you record this clip in,
+and that conversation has to still be open. A new thread loses the context this clip is about, and
+no reset or checkout restores it.
+
+Practically: record clip 2, then record this clip in the same session without closing the
+conversation. If you have to come back to it later, re-walk clip 2's four steps first — they take a
+few minutes and produce the thread this clip needs.
+
 ```bash
 git status --short
 ```
@@ -62,7 +73,8 @@ command that fixes it. Do not record against a failing preflight.
 what carries the corrections forward. A new prompt would start from the same naive reasoning that
 had to be fixed by hand.
 
-**Starting state.** Branch `demo/m2-c3-start`. The validated triage conversation is open.
+**Starting state.** Branch `demo/m2-c2-start` — Module 2 runs from one seed. The conversation in
+which you just walked clip 2 is open, and this step continues it.
 
 **Navigation.** Codex Desktop, in the conversation holding the corrected triage. Open the
 conversation's overflow menu and choose the scheduling option. Do not open a new conversation —
