@@ -56,9 +56,9 @@ $ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
 
 RESULT PASS  [all] runbooks match the approved outline
 
-$ node "${ROOT}/scripts/check.mjs" demo-checkout-refs-exist
+$ node "${ROOT}/scripts/check.mjs" demo-branch-refs-exist
 
-RESULT PASS  [all] no runnable block checks out a missing branch
+RESULT PASS  [all] every demo branch a runbook names exists
 
 $ node "${ROOT}/scripts/check.mjs" cut-blocks-branch-before-committing
 
