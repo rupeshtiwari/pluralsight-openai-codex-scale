@@ -261,20 +261,31 @@ runtime a learner installs.
 
 ## 5. Checkpoint branches
 
-`main` = stable learner-facing branch. 16 demo branches, frozen after choreography lock.
+`main` = stable learner-facing branch. This table was written as a plan for sixteen branches and is
+now a record of what was actually cut, which is fewer: Module 1 needs distinct starting trees because
+each clip's state is produced by walking the one before it, and Module 2 does not.
 
 | Start branch | Working-tree state at record time |
 |---|---|
 | `demo/m1-c2-start` | noisy API, all tests green, zero edits |
-| `demo/m1-c3-start` | m1-c2-complete + approved cleanup theme in ExecPlan |
+| `demo/m1-c3-start` | same tree as m1-c2, which writes nothing |
 | `demo/m1-c5-start` | legacy Express 4 service present, untouched |
 | `demo/m1-c6-start` | split checkpoints recorded, skill installed, no route migrated |
-| `demo/m2-c2-start` | fixtures seeded, no triage run yet |
-| `demo/m2-c3-start` | validated manual triage baseline present |
-| `demo/m2-c5-start` | `run-3001` produced — 2 uncommitted hunks, 1 valid 1 invalid |
-| `demo/m2-c6-start` | `run-3002` failed run committed as evidence |
+| `demo/m2-c2-start` | fixtures seeded, no triage run yet — **all four Module 2 clips start here** |
 
-Each has a matching `-complete` branch reproducing the exact accepted end state.
+**Module 2 runs from one seed.** It has no per-clip branches: the names demo/m2-c3-start,
+demo/m2-c5-start and demo/m2-c6-start have never existed, and are written without backticks here
+because they refer to nothing. Nothing needs them — C5 and C6 apply `run-3001.patch` and
+`run-3002.patch` live in their prep blocks rather than carrying them on a branch, and C3 continues
+C2's conversation rather than its tree. Three runbooks nevertheless opened with *Starting state.
+Branch demo/m2-cN-start*, and the preflight reported every clip READY on `demo/m2-c2-start`, so
+nothing failed — an author following the runbook would simply have checked out a branch that is not
+there. `demo-branch-refs-exist` reads prose as well as runnable blocks now;
+it previously read only `git checkout` inside a fence.
+
+Module 1's captured branches are `-captured`, not `-complete`: `demo/m1-c2-captured`,
+`demo/m1-c5-captured` and `demo/m1-c6-captured`. There is no captured branch for a clip nobody has
+walked yet, and none for Module 2.
 
 ---
 
