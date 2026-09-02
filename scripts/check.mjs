@@ -2307,6 +2307,41 @@ const CHECKS = {
     return ok;
   },
 
+  /**
+   * No preflight assertion matches a tool's human-readable output.
+   *
+   * "baseline gates green before seeding a failure" ran npm test and grepped for
+   * the literal line `Tests  25 passed (25)`. That is Vitest's formatting, not
+   * the result: it failed on an author's machine whose suite was passing 25 of
+   * 25, and the remediation it printed -- "npm install then npm test" -- named a
+   * cause the check cannot detect, so the author ran both, found them fine, and
+   * had nothing left to go on. A sibling check grepped the runner for the words
+   * "No test files found", which the next release is free to reword.
+   *
+   * A tool may be run for its exit status, and a machine-readable format may be
+   * parsed -- git --porcelain, node -p, json.mjs. What an assertion may not do
+   * is depend on the prose a tool prints for a human, because that string is not
+   * a contract and a failure to match it says nothing about the thing being
+   * checked.
+   */
+  'checks-do-not-match-tool-output': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    let ok = true;
+    for (const file of ['module1/scripts/preflight_check.sh', 'module2/scripts/preflight_check.sh']) {
+      const lines = read(file).split('\n');
+      lines.forEach((l, i) => {
+        // The assertion is the line after `check "<scope>" "<title>"`, or the
+        // remainder of that line when it is written inline.
+        const isAssertion = /^\s*'.*'\s*\\?\s*$/.test(l) || /^check\s+"[^"]+"\s+"[^"]+"\s+'/.test(l);
+        if (!isAssertion) return;
+        if (!/\b(npm|npx|yarn|pnpm)\b/.test(l)) return;
+        if (!/\|\s*grep/.test(l)) return;
+        ok = reject(`${file}:${i + 1} pipes a package-manager command into grep. Assert the exit status, or assert the state on disk -- matching a tool's printed prose fails when the tool rewords it, and the failure then says nothing about what the check is for: ${l.trim().slice(0, 78)}`);
+      });
+    }
+    return ok;
+  },
+
   'preflight-checks-run-after-their-definition': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     let ok = true;

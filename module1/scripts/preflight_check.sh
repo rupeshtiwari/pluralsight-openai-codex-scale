@@ -532,10 +532,10 @@ check "c6" "migration gates green on the baseline" \
   "One of lint:migration, typecheck:migration, build:migration or test:route:migration fails on the baseline. Show which, and the minimal fix."
 
 check "c6" "route contract suite starts empty" \
-  '[ "$(npm run test:route:migration 2>&1 | grep -c "No test files found")" -eq 1 ]' \
-  "Step 2 narrates nothing-to-run becoming four passing tests. A route contract file left behind by an unreset run makes that before-and-after false." \
+  '[ -z "$(ls supporthub-api/migration/tests/contracts/*.test.mts 2>/dev/null)" ]' \
+  "Step 2 narrates nothing-to-run becoming four passing tests. A route contract file left behind by an unreset run makes that before-and-after false. This asserts the files are absent. It used to grep the runner for the words \"No test files found\", which is the runner's phrasing rather than the state -- a wording the next Vitest release is free to change." \
   "./module1/scripts/demo_reset.sh" \
-  "supporthub-api/migration/tests contains a *.route.test.mts file before the demo starts. Show which, and where it came from."
+  "supporthub-api/migration/tests/contracts contains a *.test.mts file before the demo starts. Show which, and where it came from."
 
 check "c6" "express 4 in migration workspace" \
   '[ "$(node -p "require(require.resolve(\"express/package.json\",{paths:[\"./supporthub-api/migration\"]})).version" | cut -d. -f1)" = "4" ]' \

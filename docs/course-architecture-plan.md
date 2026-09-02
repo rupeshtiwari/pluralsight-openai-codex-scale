@@ -373,6 +373,37 @@ commands bare, without the `>` value prefix every other line carries, for exactl
 every repository-rooted path in backticks resolves. The paste-safety half is a convention, enforced
 by review.
 
+### A remediation must name the cause the check detected
+
+Twice now a printed fix has pointed somewhere unrelated to what actually failed.
+
+The first was a branch remediation that named a ref other than the stale one, and the rule from it
+stands: **a printed fix must never rewrite a branch other than the one that is actually stale, and
+should say which ref it believes is wrong and why.**
+
+The second was *baseline gates green before seeding a failure*. Its assertion ran `npm test` and
+grepped for the literal line `Tests  25 passed (25)`. On an author's machine the suite passed 25 of
+25 and the check failed anyway, because what it really tested was Vitest's formatting. It then
+printed `npm install then npm test` — a remedy for a red baseline, which was never the condition it
+detected. The author ran both, found them fine, and was left with a FAIL and nowhere to go. **A
+remediation for a cause the check cannot detect is worse than none**: it spends the reader's time
+and it certifies the wrong diagnosis.
+
+Both instances share a root. **An assertion that tests something other than what its title claims
+will always print a misleading remediation**, because the remediation was written for the title. So
+the fix is at the assertion:
+
+- **Run a tool for its exit status, or read the state on disk.** `npm test` passing *is* the gates
+  being green; `ls` on the contracts directory *is* the suite being empty.
+- **Parse only machine-readable output** — `git status --porcelain`, `node -p`, `scripts/json.mjs`.
+  Those are contracts. A runner's summary line is prose, and the next release may reword it.
+- **Then write the remediation for what the assertion can actually be false about**, and let the
+  transcript carry the detail: every check logs its command and full output above the verdict.
+
+`checks-do-not-match-tool-output` enforces the mechanical part — no preflight assertion may pipe a
+package-manager command into `grep`. Matching the remediation to the cause stays a matter of review,
+and the question to ask of any new check is: *if this fires, is the printed fix true?*
+
 ## 11. What a prompt may forbid
 
 **Forbid writes, not reads.** A prompt constraint has to name the thing it is actually protecting.
