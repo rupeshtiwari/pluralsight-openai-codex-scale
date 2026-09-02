@@ -1273,7 +1273,12 @@ const CHECKS = {
     };
     const wired = new Set();
     for (const f of ['module1/scripts/preflight_check.sh', 'module2/scripts/preflight_check.sh']) {
-      for (const m of read(f).matchAll(/check\.mjs["']?\s+([a-z0-9-]+)/g)) wired.add(m[1]);
+      // The closing quote is required: without it this also matches the prose in
+      // a check's own Codex-prompt line ("Which named checks in
+      // scripts/check.mjs are invoked by neither preflight script?"), which is
+      // harmless when asking whether a check is wired and a false failure when
+      // asking whether a wiring resolves.
+      for (const m of read(f).matchAll(/scripts\/check\.mjs"\s+([a-z0-9-]+)/g)) wired.add(m[1]);
     }
     let ok = true;
     for (const name of Object.keys(CHECKS)) {
@@ -1289,6 +1294,16 @@ const CHECKS = {
     }
     for (const name of Object.keys(EXEMPT)) {
       if (!(name in CHECKS)) ok = reject(`${name} is exempted but no longer exists -- remove the exemption`);
+    }
+    // And the inverse, which this check did not cover until it happened: a
+    // preflight invoking a name check.mjs no longer defines. Rewriting one check
+    // in place deleted its neighbour, and both preflights then aborted that
+    // check with "unknown check" -- while this one stayed green, because it only
+    // asked whether every CHECK was wired, never whether every wiring resolved.
+    for (const name of wired) {
+      if (!(name in CHECKS)) {
+        ok = reject(`a preflight runs "${name}", which scripts/check.mjs does not define. The run prints "unknown check" and the gate it was standing in for silently stops being enforced`);
+      }
     }
     return ok;
   },
@@ -2236,72 +2251,97 @@ const CHECKS = {
    * stderr when you run these; this check is the part a machine can do.
    */
   /**
-   * C2 step 4's prompt names every key its verification then reads.
+   * C2 step 4 specifies its output shape as a file, and requires it before it
+   * compares.
    *
-   * Walk 2 matched the baseline on all four priorities and user counts, and
-   * showed `route=absent` for every finding. Codex had answered the question --
-   * it wrote `routedNow` and a nested `routing.routed`, all false -- but that
-   * answers "was this routed", while the baseline's `route` records "should this
-   * be routed". Both correct, for different questions, and the whole difference
-   * was a key the prompt never named.
+   * Three walks, three shapes. Walk 1 wrote `routedNow` and a nested
+   * `routing.routed`; walk 2 the same; walk 3 `routingDecision.shouldRoute`,
+   * and by then `priority` had moved too, so the comparison read `absent` in
+   * three columns of four. The prompt named those keys in prose every time
+   * after the first fix, and the first version of this check confirmed it did
+   * -- which is the defect: it asserted the prompt while the artifact is what
+   * step 4 compares. Naming a key in a sentence does not make an agent use it.
    *
-   * This is section 11c with a JSON key in place of a grep: an assertion tests
-   * the contract value rather than the identifier it happened to see first. When
-   * the contract value IS an identifier, the prompt has to state it, and the
-   * three places that must agree -- prompt, verification selector, baseline --
-   * are checked against each other here.
+   * So the contract moved out of the prose and into
+   * automation/triage/corrected-sweep.template.json, a file Codex reads, and
+   * this check binds the three things that must agree at preflight time: the
+   * template carries every key the verification selects, the baseline holds
+   * them, and the prompt points at the template. The artifact itself cannot be
+   * checked before it exists -- that is the on-camera `require` lines' job, and
+   * this asserts they are there and cover what the tables then read.
    */
-  'c2-step4-names-the-keys-it-compares': () => {
+  'c2-step4-specifies-the-shape-it-compares': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const RUNBOOK = 'module2/m2-c2-manual-triage.md';
+    const TEMPLATE = 'automation/triage/corrected-sweep.template.json';
     const doc = read(RUNBOOK);
     const from = doc.indexOf('## Step 4');
     if (from < 0) return reject(`${RUNBOOK}: no step 4`);
-    const next = doc.indexOf('\n## ', from + 1);
-    const step = doc.slice(from, next < 0 ? doc.length : next);
+    const nextH = doc.indexOf('\n## ', from + 1);
+    const step = doc.slice(from, nextH < 0 ? doc.length : nextH);
     const prompt = (step.match(/```text\n([\s\S]*?)\n```/) || [, ''])[1];
     if (!prompt.trim()) return reject(`${RUNBOOK}: step 4 has no prompt block`);
 
-    const base = JSON.parse(read('automation/triage/baseline-manual-sweep.json'));
-    const finding = base.findings[0] || {};
     let ok = true;
+    if (!prompt.includes(TEMPLATE)) {
+      ok = reject(`${RUNBOOK}: step 4's prompt does not point at ${TEMPLATE}. Three walks produced three different shapes from a prose list of key names; the template exists because a file Codex reads specifies a schema and a sentence does not`);
+    }
 
-    // Every field the verification selects out of $OUT's findings.
-    const selectors = new Set();
+    let template;
+    try { template = JSON.parse(read(TEMPLATE)); } catch (e) {
+      return reject(`${TEMPLATE} is missing or does not parse (${e.message}) -- step 4 sends Codex to read it`);
+    }
+    const tFinding = (template.findings || [])[0];
+    if (!tFinding) return reject(`${TEMPLATE} has no example finding, so it specifies nothing`);
+    const base = JSON.parse(read('automation/triage/baseline-manual-sweep.json'));
+    const bFinding = base.findings[0] || {};
+
+    // Everything the verification selects out of the produced report.
+    const perFinding = new Set();
+    const topLevel = new Set();
     for (const m of step.matchAll(/json\.mjs table "\$OUT"\s+(\S+)\s+([^\n]*)/g)) {
-      selectors.add(m[1]);
+      topLevel.add(m[1]);
       for (const spec of m[2].trim().split(/\s+/)) {
         const field = spec.replace(/^[^=]+=/, '').replace(/:\d+$/, '');
-        if (field) selectors.add(field);
+        if (field) perFinding.add(field);
       }
     }
-    // `fields` reads the same file by the same keys and drifts the same way.
     for (const m of step.matchAll(/json\.mjs fields "\$OUT"\s+([^\n]*)/g)) {
       for (const spec of m[1].match(/"[^"]+"/g) || []) {
-        const field = spec.slice(1, -1).replace(/^[^=]+=/, '');
-        // A path selector is satisfied by its root: the prompt names the
-        // structure, not every index into it.
-        if (field) selectors.add(field.split('.')[0]);
+        const field = spec.slice(1, -1).replace(/^[^=]+=/, '').split('.')[0];
+        if (field) topLevel.add(field);
       }
     }
-    if (selectors.size === 0) {
-      return reject(`${RUNBOOK}: step 4's verification reads no fields out of $OUT, so nothing ties the prompt to the comparison`);
+    if (perFinding.size === 0) {
+      return reject(`${RUNBOOK}: step 4's verification reads no per-finding fields out of $OUT`);
     }
-    // Naming a key means naming it as a key: quoted, or introduced as the first
-    // token of a schema line. A bare substring is not enough -- walk 2's prompt
-    // said "state whether it should be routed", and `includes('route')` matches
-    // the word "routed", so a substring test would have passed on the very
-    // prompt that produced route=absent.
-    const names = (field) => new RegExp(`(["'\`]${field}["'\`])|(^\\s{2,}${field}\\s{2,}\\S)`, 'm').test(prompt);
-    for (const field of selectors) {
-      if (!names(field)) {
-        ok = reject(`${RUNBOOK}: step 4 compares "${field}" but its prompt never names it. Codex will pick its own key, the table prints ${field}=absent, and that reads as a wrong decision rather than a differently named one`);
-      }
-      // A selector may name a top-level key or a per-finding one; the baseline
-      // holds rejectedCorrelations at the top and priority inside each finding.
-      const inBaseline = field in base || field in finding;
-      if (!inBaseline) {
-        ok = reject(`${RUNBOOK}: step 4 compares "${field}", which the baseline it compares against does not hold`);
+    for (const key of perFinding) {
+      if (!(key in tFinding)) ok = reject(`${RUNBOOK}: step 4 compares the per-finding key "${key}", which ${TEMPLATE} does not carry -- Codex is shown a shape that lacks a key the comparison then selects`);
+      if (!(key in bFinding)) ok = reject(`${RUNBOOK}: step 4 compares "${key}", which the baseline it compares against does not hold`);
+    }
+    for (const key of topLevel) {
+      if (!(key in template)) ok = reject(`${RUNBOOK}: step 4 reads the top-level key "${key}", which ${TEMPLATE} does not carry`);
+      if (!(key in base)) ok = reject(`${RUNBOOK}: step 4 reads the top-level key "${key}", which the baseline does not hold`);
+    }
+
+    // The shape has to be asserted on camera, before the tables are read.
+    const required = new Set();
+    let firstRequire = Infinity;
+    for (const m of step.matchAll(/json\.mjs require "\$OUT"\s+(\S+)\s+([^\n]*)/g)) {
+      firstRequire = Math.min(firstRequire, m.index);
+      for (const key of m[2].trim().split(/\s+/)) if (key) required.add(key);
+    }
+    if (required.size === 0) {
+      return reject(`${RUNBOOK}: step 4 never runs "json.mjs require" against $OUT. Without it a renamed key prints a column of absent, which reads as a wrong decision rather than a differently shaped file, and nothing on screen says what to re-prompt with`);
+    }
+    const firstTable = step.search(/json\.mjs table "\$OUT"/);
+    if (firstTable >= 0 && firstRequire > firstTable) {
+      ok = reject(`${RUNBOOK}: step 4 compares the tables before it requires the shape. The shape answers a different question with a different recovery, and it has to reach the screen first`);
+    }
+    for (const key of [...perFinding, ...topLevel]) {
+      if (key === 'findings') continue;
+      if (!required.has(key)) {
+        ok = reject(`${RUNBOOK}: step 4 compares "${key}" but never requires it, so a report missing that key reaches the tables and prints absent`);
       }
     }
     return ok;

@@ -198,11 +198,11 @@ check "c2" "C2 starts without its own answer on disk" \
   "./module2/scripts/demo_reset.sh removes it." \
   "Is automation/triage/corrected-sweep.json present before the take, and is the recorded baseline unmodified?"
 
-check "c2" "step 4 names every key it then compares" \
-  'node "${ROOT}/scripts/check.mjs" c2-step4-names-the-keys-it-compares' \
-  "Walk 2 matched the baseline on all four priorities and user counts and showed route=absent for every finding. Codex had answered -- it wrote routedNow and routing.routed, all false -- but that answers 'was this routed' while the baseline's route records 'should this be routed'. Two correct answers to different questions, and the whole difference was a key the prompt never named." \
-  "Name the key in step 4's prompt as a key, not in prose. node scripts/check.mjs c2-step4-names-the-keys-it-compares says which one." \
-  "Which fields does m2-c2 step 4 read out of the corrected report, and does its prompt name each one?"
+check "c2" "step 4 specifies the shape it compares" \
+  'node "${ROOT}/scripts/check.mjs" c2-step4-specifies-the-shape-it-compares' \
+  "Three walks produced three shapes -- route, then routedNow with a nested routing.routed, then routingDecision.shouldRoute with priority renamed too. The prompt named the keys in prose each time, and the first version of this check confirmed that it did, which was the defect: it asserted the prompt while the artifact is what step 4 compares. The contract now lives in automation/triage/corrected-sweep.template.json, a file Codex reads." \
+  "Keep the template, the baseline and step 4's selectors on the same keys, and keep the require lines above the tables. node scripts/check.mjs c2-step4-specifies-the-shape-it-compares says which key and which file." \
+  "Do m2-c2 step 4's template, baseline and verification selectors agree on the same keys?"
 
 check "c2" "every baseline priority derives from the rubric" \
   'node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric' \

@@ -373,6 +373,46 @@ commands bare, without the `>` value prefix every other line carries, for exactl
 every repository-rooted path in backticks resolves. The paste-safety half is a convention, enforced
 by review.
 
+### Prose does not specify a schema, and a check on the prompt is not a check on the artifact
+
+C2 step 4 writes a JSON report and compares it against the baseline. Three walks produced three
+shapes. Walk 1: `routedNow`, with a nested `routing.routed`. Walk 2: the same. Walk 3:
+`routingDecision.shouldRoute`, and by then `priority` had moved too, so three of the four compared
+columns were missing.
+
+The fix after walk 2 was to name the keys in the prompt, with `c2-step4-names-the-keys-it-compares`
+holding prompt, selector and baseline to the same names. Walk 3 failed anyway, and the check passed
+while it did — **it confirmed the prompt named the keys, and the artifact is what gets compared.**
+Naming a key in a sentence does not make an agent use it. An agent paraphrases prose; it copies a
+file.
+
+Two changes, and they answer different questions.
+
+**The contract moved out of the prose and into a file.**
+`automation/triage/corrected-sweep.template.json` carries the shape with placeholder values — no
+priority, no count, no routing decision, so it states a schema and not an answer. The prompt sends
+Codex to read it. `c2-step4-specifies-the-shape-it-compares` binds the three things that *can* be
+checked before a take: the template carries every key the verification selects, the baseline holds
+them, and the prompt points at the template.
+
+**The artifact is checked on camera, because it cannot be checked before it exists.**
+`json.mjs require` runs before the tables and names which required keys are missing and which keys
+the report actually carries. Walk 3's file would have printed `priority: MISSING from 4 of 4` and
+`keys actually present: affectedUsers, id, priorityLevel, routingDecision` instead of three columns
+of `absent`. A missing key and a wrong value are different failures with different recoveries —
+re-prompt for the first, reset for the second — so the shape reaches the screen first, and step 4's
+Recovery now carries a re-prompt that keeps the reasoning and fixes only the names.
+
+**The general rule.** A precondition check can only assert the inputs: the prompt, the fixtures, the
+template, the selectors. When a step's verification compares an artifact the agent produces, the
+artifact needs its own assertion *in the step*, and that assertion has to say what is wrong rather
+than render a value that happens to look wrong. Otherwise the preflight goes green, the take fails,
+and the screen shows a column that reads like a bad decision.
+
+**A smaller fix underneath, which earned its place on its first run.** `json.mjs` rendered `none`
+for both an absent key and an explicit null, so walk 2 printed `route=none` and read as a value.
+Absent renders `absent` now, and walk 3 said the key was missing.
+
 ### A remediation must name the cause the check detected
 
 Twice now a printed fix has pointed somewhere unrelated to what actually failed.

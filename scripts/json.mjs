@@ -9,6 +9,7 @@
  *   node scripts/json.mjs table <file> <path> <spec...>  aligned columns, one row per element
  *   node scripts/json.mjs files <glob> <spec...>         aligned columns, one row per file
  *   node scripts/json.mjs fields <file> <label=path...>  aligned "label : value" lines
+ *   node scripts/json.mjs require <file> <path> <key...>  name the keys that are missing
  *
  * <path> is dot notation, e.g. issues or groups.0.id
  *
@@ -95,6 +96,44 @@ try {
     process.stdout.write(String(checks[path]()) + '\n');
     process.exit(0);
   }
+  // Which required keys the produced artifact actually carries.
+  //
+  // Naming keys in a prompt does not make an agent use them: three C2 walks
+  // produced route, then routedNow with a nested routing.routed, then
+  // routingDecision.shouldRoute -- and by the third, priority had moved too.
+  // A table selecting absent keys prints a column of `absent` and leaves the
+  // author guessing which keys DID land. This says so, and fails.
+  if (cmd === 'require') {
+    let doc;
+    try { doc = load(file); } catch (e) {
+      process.stderr.write(`  ${file} does not exist or does not parse: ${e.message}\n`);
+      process.exit(1);
+    }
+    const at = path === '.' ? doc : dig(doc, path);
+    if (at === undefined || at === null) {
+      process.stderr.write(`  ${file} has no "${path}" -- the report was written in a different shape entirely\n`);
+      process.exit(1);
+    }
+    const rows = Array.isArray(at) ? at : [at];
+    const present = new Set();
+    for (const r of rows) for (const k of Object.keys(r || {})) present.add(k);
+    let missing = 0;
+    for (const key of rest) {
+      const n = rows.filter((r) => r && key in r).length;
+      if (n === rows.length) {
+        process.stdout.write(INDENT + `${key}: present in all ${rows.length}\n`);
+      } else {
+        missing += 1;
+        process.stdout.write(INDENT + `${key}: MISSING from ${rows.length - n} of ${rows.length}\n`);
+      }
+    }
+    if (missing) {
+      process.stdout.write(INDENT + `keys actually present: ${[...present].sort().join(', ')}\n`);
+      process.stdout.write(INDENT + 'Re-prompt with the missing key names rather than reading the table below.\n');
+    }
+    process.exit(missing ? 1 : 0);
+  }
+
   if (cmd === 'table') {
     for (const row of dig(load(file), path)) process.stdout.write(line(rest, (f) => dig(row, f)));
     process.exit(0);

@@ -68,9 +68,12 @@ else
   $FMT item "corrected-sweep.json absent - C2 starts without its own answer"
 fi
 
+# corrected-sweep.template.json is the shape C2 step 4 sends Codex to read; the
+# take fails at the shape check if it is missing or malformed.
 for f in automation/sentry-fixtures/issues.json \
          automation/github-seed/commits.json \
-         automation/triage/baseline-manual-sweep.json; do
+         automation/triage/baseline-manual-sweep.json \
+         automation/triage/corrected-sweep.template.json; do
   if node "${ROOT}/scripts/json.mjs" valid "$f" >/dev/null 2>&1; then
     $FMT item "$(basename "$f") valid"
   else
