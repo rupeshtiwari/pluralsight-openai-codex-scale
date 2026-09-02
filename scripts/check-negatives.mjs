@@ -364,6 +364,17 @@ const fail = (m) => { failures += 1; process.stdout.write(`  FAIL  ${m}\n`); };
     what: `${unwired} is written but no preflight runs it`,
     control,
     negative: { ...control, [M2]: stripped },
+  }, {
+    // The inverse, which the check did not cover until it happened: rewriting a
+    // check in place deleted its neighbour, both preflights aborted that step
+    // with "unknown check", and this check stayed green.
+    check: 'every-check-is-wired',
+    what: 'a preflight runs a check scripts/check.mjs no longer defines, so the gate silently stops being enforced',
+    control,
+    negative: {
+      ...control,
+      [M2]: control[M2].replace(`scripts/check.mjs" ${unwired}`, 'scripts/check.mjs" a-check-that-was-deleted'),
+    },
   });
 }
 
@@ -775,39 +786,87 @@ for (const [check, rb, saved] of [
 
   const RB = 'module2/m2-c2-manual-triage.md';
   const BASE = 'automation/triage/baseline-manual-sweep.json';
-  const keyCtl = { [RB]: readFileSync(RB, 'utf8'), [BASE]: readFileSync(BASE, 'utf8') };
+  const TPL = 'automation/triage/corrected-sweep.template.json';
+  const shapeCtl = {
+    [RB]: readFileSync(RB, 'utf8'),
+    [BASE]: readFileSync(BASE, 'utf8'),
+    [TPL]: readFileSync(TPL, 'utf8'),
+  };
+  const dropKey = (files, key) => {
+    const t = JSON.parse(files[TPL]);
+    delete t.findings[0][key];
+    return { ...files, [TPL]: JSON.stringify(t, null, 2) + '\n' };
+  };
   SYNTHETIC_CASES.push(
     {
-      check: 'c2-step4-names-the-keys-it-compares',
-      what: 'the prompt asks for the decision in prose — "state whether it should be routed" — instead of naming the key, which is walk 2\'s prompt and produced route=absent for all four findings',
-      control: keyCtl,
+      check: 'c2-step4-specifies-the-shape-it-compares',
+      what: 'the template stops carrying "route", so Codex is shown a shape without the key the comparison then selects',
+      control: shapeCtl,
+      negative: dropKey(shapeCtl, 'route'),
+    },
+    {
+      check: 'c2-step4-specifies-the-shape-it-compares',
+      what: 'the template renames priority the way walk 3 did, to priorityLevel',
+      control: shapeCtl,
+      negative: (() => {
+        const t = JSON.parse(shapeCtl[TPL]);
+        t.findings[0].priorityLevel = t.findings[0].priority;
+        delete t.findings[0].priority;
+        return { ...shapeCtl, [TPL]: JSON.stringify(t, null, 2) + '\n' };
+      })(),
+    },
+    {
+      check: 'c2-step4-specifies-the-shape-it-compares',
+      what: 'the prompt goes back to listing key names in prose instead of pointing at the template — the form that produced three different shapes in three walks',
+      control: shapeCtl,
       negative: {
-        ...keyCtl,
-        [RB]: keyCtl[RB]
-          .replace('  route          true if the finding should be routed, false if not\n', '')
-          .replace('"route" records the decision, not an action. Route nothing yet.',
-            'For each finding state whether it should be routed. Route nothing yet.'),
+        ...shapeCtl,
+        [RB]: shapeCtl[RB].replace('automation/triage/corrected-sweep.template.json and write your report to\nautomation/triage/corrected-sweep.json using exactly that structure',
+          'the finding list and write your report to\nautomation/triage/corrected-sweep.json with keys id, priority, affectedUsers and route'),
       },
     },
     {
-      check: 'c2-step4-names-the-keys-it-compares',
-      what: 'the prompt stops naming "affectedUsers" while the verification still selects it',
-      control: keyCtl,
+      check: 'c2-step4-specifies-the-shape-it-compares',
+      what: 'the verification stops requiring the shape, so a renamed key reaches the tables and prints absent with nothing on screen saying what to re-prompt with',
+      control: shapeCtl,
       negative: {
-        ...keyCtl,
-        [RB]: keyCtl[RB].replace('  affectedUsers  the count, combined where findings were merged\n', ''),
+        ...shapeCtl,
+        [RB]: shapeCtl[RB]
+          .replace('node scripts/json.mjs require "$OUT" findings id priority affectedUsers route\n', '')
+          .replace('node scripts/json.mjs require "$OUT" . rejectedCorrelations\n', ''),
       },
     },
     {
-      check: 'c2-step4-names-the-keys-it-compares',
-      what: 'the verification selects a key the baseline it compares against does not hold',
-      control: keyCtl,
+      check: 'c2-step4-specifies-the-shape-it-compares',
+      what: 'the tables are read before the shape is required, so the author meets four absent rows before the line that explains them',
+      control: shapeCtl,
       negative: {
-        ...keyCtl,
-        [RB]: keyCtl[RB].replace('users=affectedUsers:4', 'users=userCount:4').replace('  affectedUsers  the count', '  userCount      the count'),
+        ...shapeCtl,
+        [RB]: shapeCtl[RB].replace(
+          'node scripts/json.mjs require "$OUT" findings id priority affectedUsers route\nnode scripts/json.mjs require "$OUT" . rejectedCorrelations\nnode scripts/json.mjs table "$OUT"',
+          'node scripts/json.mjs table "$OUT"')
+          .replace('node scripts/json.mjs fields "$OUT" "rejected=rejectedCorrelations.0.commit"',
+            'node scripts/json.mjs require "$OUT" findings id priority affectedUsers route\nnode scripts/json.mjs require "$OUT" . rejectedCorrelations\nnode scripts/json.mjs fields "$OUT" "rejected=rejectedCorrelations.0.commit"'),
       },
+    },
+    {
+      check: 'c2-step4-specifies-the-shape-it-compares',
+      what: 'a selector names a key the baseline does not hold',
+      control: shapeCtl,
+      negative: (() => {
+        const t = JSON.parse(shapeCtl[TPL]);
+        t.findings[0].userCount = 0;
+        return {
+          ...shapeCtl,
+          [TPL]: JSON.stringify(t, null, 2) + '\n',
+          [RB]: shapeCtl[RB]
+            .replace(/users=affectedUsers:4/g, 'users=userCount:4')
+            .replace('require "$OUT" findings id priority affectedUsers route', 'require "$OUT" findings id priority userCount route'),
+        };
+      })(),
     },
   );
+
 }
 
 process.stdout.write('PROVING EACH CHECK FAILS ON ITS NEGATIVE CASE\n\n');
