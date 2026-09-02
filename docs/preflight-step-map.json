@@ -203,6 +203,9 @@
     ],
     "step 4 is verified in-thread, not in a browser": [
       4
+    ],
+    "drafts carry the priority their finding was triaged at": [
+      4
     ]
   },
   "m2-c5": {
@@ -212,21 +215,13 @@
     "run-3001 touches exactly two files": [
       2
     ],
-    "run-3001 declares one valid and one invalid hunk": [
-      3,
-      4
+    "each seeded hunk traces to a finding, or provably does not": [
+      2
     ]
   },
   "m2-c6": {
     "run-3002 patch applies": [
       1
-    ],
-    "run-3002 records a bad source assumption": [
-      1
-    ],
-    "run-3002 carries work worth preserving": [
-      2,
-      3
     ],
     "run-3003 is the corrected rerun": [
       3,
@@ -234,6 +229,10 @@
     ],
     "baseline gates green before seeding a failure": [
       4
+    ],
+    "run-3002 records the reason it chose its commit": [
+      1,
+      2
     ]
   }
 }

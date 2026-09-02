@@ -29,7 +29,10 @@ LEARNING OBJECTIVES
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT PASS  [all] working tree clean
+RESULT FAIL  [all] working tree clean
+WHY IT MATTERS  The review demos seed changes with a patch; leftover edits make the diff unreadable.
+HOW TO FIX      ./module2/scripts/demo_reset.sh
+CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
 
 $ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
 
@@ -39,69 +42,67 @@ $ [ -z "$(git diff --cached --name-only)" ]
 
 RESULT PASS  [all] nothing left staged
 
-$ node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json
+$ ./scripts/verify_integrations.sh
+MODULE 2 INTEGRATION PREPARATION
+Fixtures, rubric and config shape - not plugin reachability
 
-RESULT PASS  [c2] sentry fixtures valid
+FIXTURES
 
-$ [ "$(node "${ROOT}/scripts/json.mjs" count automation/sentry-fixtures/issues.json issues)" -eq 5 ]
+  > issues.json parses: PASS
 
-RESULT PASS  [c2] five sentry issues in window
+  > issues.json parses: PASS
 
-$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/sentry-fixtures/issues.json shared-frame)" -ge 1 ]
+  > commits.json parses: PASS
 
-RESULT PASS  [c2] duplicate pair shares a stack frame
+  > baseline-manual-sweep.json parses: PASS
 
-$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/github-seed/commits.json misleading-newer)" -eq 1 ]
+  > evt-1042 seeded: PASS
 
-RESULT PASS  [c2] misleading commit is nearer in time than the real cause
+  > evt-1043 seeded: PASS
 
-$ grep -qF "| **P1** | Core workflow degraded or failing for many users | 100 or more |" docs/triage-rubric.md
+  > evt-1088 seeded: PASS
 
-RESULT PASS  [c2] rubric P1 threshold is 100
+  > evt-1099 seeded: PASS
 
-$ node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json
+  > baseline names incident-2001: PASS
 
-RESULT PASS  [c3] triage baseline present
+STARTING STATE
 
-$ [ "$(node "${ROOT}/scripts/json.mjs" count automation/triage/baseline-manual-sweep.json findings)" -eq 4 ]
+  > C2 starts without its own answer on disk: PASS
 
-RESULT PASS  [c3] baseline has four findings
+TRIAGE RUBRIC
 
-$ [ "$(node "${ROOT}/scripts/json.mjs" rows automation/triage/baseline-manual-sweep.json findings route | grep -c "route=true")" -eq 2 ]
+  > P0-P3 all defined: PASS
 
-RESULT PASS  [c3] exactly two findings are routable
+  > P1 affected-user threshold present: PASS
 
-$ [ "$(grep -l "\"status\": \"draft\"" automation/slack-drafts/*.json automation/linear-drafts/*.json | wc -l | tr -d " ")" -eq 3 ]
+CONFIG SHAPE
 
-RESULT PASS  [c3] all routing payloads are drafts
+  > .env.example declares every key the demo needs: PASS
 
-$ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-drafts/*.json | grep -cv "null")" -eq 0 ]
+  > .env and .env.local untracked: PASS
 
-RESULT PASS  [c3] no draft is pre-approved
+WHAT THIS DOES NOT COVER
 
-$ git apply --check automation/runs/run-3001.patch
+  > Plugin reachability - Sentry, Slack, Linear and GitHub
+    answering.
 
-RESULT PASS  [c5] run-3001 patch applies
+  > That is C2 step 1's on-camera readiness step, and cannot
+    be asserted from a shell.
 
-$ [ "$(grep -c "^diff --git" automation/runs/run-3001.patch)" -eq 2 ]
+  > Gate results are recorded in
+    docs/integration-readiness.md.
 
-RESULT PASS  [c5] run-3001 touches exactly two files
-
-$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3001.json one-of-each)" -eq 1 ]
-
-RESULT PASS  [c5] run-3001 declares one valid and one invalid hunk
+  PASS: Fixtures, rubric and config shape are ready. Reachability is still C2 step 1's job.
+RESULT PASS  [all] fixtures, rubric and config shape are ready
 
 $ git apply --check automation/runs/run-3002.patch
 
 RESULT PASS  [c6] run-3002 patch applies
 
-$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3002.json has-valid-hunk)" -ge 1 ]
+$ node "${ROOT}/scripts/json.mjs" get automation/runs/run-3002.json correlation.chosenBecause | grep -q .
 
-RESULT PASS  [c6] run-3002 carries work worth preserving
-
-$ grep -q "bad source assumption" automation/runs/run-3002.json
-
-RESULT PASS  [c6] run-3002 records a bad source assumption
+RESULT PASS  [c6] run-3002 records the reason it chose its commit
 
 $ grep -q "\"chose\": \"a1b2c3d\"" automation/runs/run-3003.json
 
@@ -120,9 +121,12 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 1-4  EO4a  trace, revert bad hunk, rerun corrected
 
 PER-CLIP TRANSCRIPTS
-  m2-c2  READY  logs/m2-c2_preflight.txt
-  m2-c3  READY  logs/m2-c3_preflight.txt
-  m2-c5  READY  logs/m2-c5_preflight.txt
-  m2-c6  READY  logs/m2-c6_preflight.txt
+  m2-c6  NOT READY (1)  logs/m2-c6_preflight.txt
 
-VERDICT  READY - Module 2 can be run.
+FAILED CHECKS
+  [all] working tree clean
+    why it matters : The review demos seed changes with a patch; leftover edits make the diff unreadable.
+    how to fix     : ./module2/scripts/demo_reset.sh
+    codex prompt   : Show me every uncommitted change in this repository and what produced it.
+
+VERDICT  NOT READY - 1 check(s) failed.

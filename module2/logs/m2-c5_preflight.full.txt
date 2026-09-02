@@ -17,7 +17,10 @@ SCOPE
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT PASS  [all] working tree clean
+RESULT FAIL  [all] working tree clean
+WHY IT MATTERS  The review demos seed changes with a patch; leftover edits make the diff unreadable.
+HOW TO FIX      ./module2/scripts/demo_reset.sh
+CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
 
 $ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
 
@@ -35,6 +38,6 @@ $ [ "$(grep -c "^diff --git" automation/runs/run-3001.patch)" -eq 2 ]
 
 RESULT PASS  [c5] run-3001 touches exactly two files
 
-$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3001.json one-of-each)" -eq 1 ]
+$ node "${ROOT}/scripts/check.mjs" seeded-run-hunks-trace-to-findings
 
-RESULT PASS  [c5] run-3001 declares one valid and one invalid hunk
+RESULT PASS  [c5] each seeded hunk traces to a finding, or provably does not

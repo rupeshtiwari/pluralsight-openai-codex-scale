@@ -72,14 +72,14 @@
     {
       "id": "incident-2002",
       "title": "PriorityMappingError: unrecognized severity 'SEV2'",
-      "culprit": "ticketService.toPriority",
+      "culprit": "priority.normalizePriority",
       "firstSeen": "2025-03-03T11:47:19.000Z",
       "lastSeen": "2025-03-03T21:15:40.000Z",
       "affectedUsers": 61,
       "occurrences": 140,
       "release": "supporthub@2025.03.01",
       "stack": [
-        "at toPriority (supporthub-api/modern/src/services/ticketService.ts:85)"
+        "at normalizePriority (supporthub-api/modern/src/utils/priority.ts:25)"
       ],
       "workaround": "An agent can set the priority manually after the ticket is created.",
       "userImpact": "Pager-bridge tickets land at default priority instead of their real one."

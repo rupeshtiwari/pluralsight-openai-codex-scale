@@ -1,21 +1,19 @@
 {
-  "_comment": "Seeded automation run for the review demo. Produces uncommitted changes: one valid, one not.",
+  "_comment": "A scheduled run as the automation recorded it. Fields are what the run knows: what it was given, what it touched, how its gates came out. Which hunks survive review is the demo.",
   "runId": "run-3001",
   "startedAt": "2025-03-04T06:00:00.000Z",
   "trigger": "scheduled",
-  "sourceFindings": ["incident-2002"],
+  "sourceFindings": [
+    "incident-2002"
+  ],
   "status": "completed",
   "patch": "run-3001.patch",
   "hunks": [
     {
-      "file": "supporthub-api/modern/src/utils/priority.ts",
-      "verdict": "valid",
-      "why": "incident-2002 reports unrecognized severity SEV2. Adding the pager-bridge severity mapping addresses the reported finding directly."
+      "file": "supporthub-api/modern/src/utils/priority.ts"
     },
     {
-      "file": "docs/triage-rubric.md",
-      "verdict": "invalid",
-      "why": "Lowers the P1 affected-user threshold from 100 to 50. No finding asked for this. It edits the standard the automation is judged against so its own prioritization would qualify."
+      "file": "docs/triage-rubric.md"
     }
   ]
 }
