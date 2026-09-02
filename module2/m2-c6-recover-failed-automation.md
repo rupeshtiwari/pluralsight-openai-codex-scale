@@ -34,7 +34,7 @@ harder question is which part failed, and why.
 ## Before you start
 
 - Codex Desktop and VS Code are both open on the repository
-- the working tree is clean on `demo/m2-c6-start`
+- the working tree is clean on `demo/m2-c2-start`, which all four Module 2 clips start from
 
 Seed the failed run:
 
@@ -64,7 +64,7 @@ command that fixes it. Do not record against a failing preflight.
 validation said. Reading them in that order finds the cause. Reading only the error message finds
 the symptom.
 
-**Starting state.** Branch `demo/m2-c6-start` with `run-3002.patch` applied.
+**Starting state.** Branch `demo/m2-c2-start` with `run-3002.patch` applied.
 
 **Navigation.** Codex Desktop, review pane for the run.
 

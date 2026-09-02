@@ -33,7 +33,7 @@ Both arrived in the same run. Accepting or rejecting the run as a whole gets one
 ## Before you start
 
 - Codex Desktop and VS Code are both open on the repository
-- the working tree is clean on `demo/m2-c5-start`
+- the working tree is clean on `demo/m2-c2-start`, which all four Module 2 clips start from
 
 Seed the automation's output:
 
@@ -62,7 +62,7 @@ command that fixes it. Do not record against a failing preflight.
 review pane shows the diff as changes to real files, which is the only description that cannot be
 optimistic.
 
-**Starting state.** Branch `demo/m2-c5-start` with `run-3001.patch` applied.
+**Starting state.** Branch `demo/m2-c2-start` with `run-3001.patch` applied.
 
 **Navigation.** Codex Desktop. Open the **review pane** for the run — the view that lists changed
 files with their diffs. Do not read the run's summary text instead; the summary is the claim, the

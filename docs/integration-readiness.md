@@ -50,7 +50,7 @@ conversation, not an implementation problem.
 
 Validate scheduling in a **scratch workspace**, not the demo one. Test schedules created during
 validation would otherwise fire against the demo checkpoints later — a schedule discovering
-`demo/m2-c3-start` weeks from now is an ugly surprise.
+`demo/m2-c2-start` weeks from now is an ugly surprise.
 
 ### Gate 1 procedure
 
