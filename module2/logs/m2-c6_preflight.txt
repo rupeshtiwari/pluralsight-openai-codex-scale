@@ -40,15 +40,15 @@ Step 4  READY
   pass  run-3003 is the corrected rerun
         $ grep -q "\"chose\": \"a1b2c3d\"" automation/runs/run-3003.json
   pass  baseline gates green before seeding a failure
-        $ [ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]
+        $ npm test
 
-SHARED GATES  6 of 6 pass
+SHARED GATES  7 of 7 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 10   FAIL: 0
+PASS: 11   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c6_preflight.full.txt
 

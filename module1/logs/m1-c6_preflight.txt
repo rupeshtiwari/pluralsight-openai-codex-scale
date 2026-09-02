@@ -44,7 +44,7 @@ Step 2  READY
   pass  migration gates green on the baseline
         $ npm run lint:migration && npm run typecheck:migration && npm run build:migration && npm run test:route:migration
   pass  route contract suite starts empty
-        $ [ "$(npm run test:route:migration 2>&1 | grep -c "No test files found")" -eq 1 ]
+        $ [ -z "$(ls supporthub-api/migration/tests/contracts/*.test.mts 2>/dev/null)" ]
   pass  this clip's checkpoint descends from m1-c5-captured
         $ node "${ROOT}/scripts/check.mjs" c6-start-descends-from-c5-captured
   pass  this clip's starting checkpoint exists
