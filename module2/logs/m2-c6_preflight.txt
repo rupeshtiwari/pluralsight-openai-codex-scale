@@ -5,37 +5,35 @@ Demo: Trace a failed Codex automation and recover safely (6 minutes)
 
 RUNBOOK      module2/m2-c6-recover-failed-automation.md
 OBJECTIVES   TO4, EO4a
-READINESS    READY
+READINESS    NOT READY - 1 of 8 checks failed
 
 STEPS
 -----
 
-Step 1  READY
+Step 1  BLOCKED
   Start from a failed automation result and trace the source evidence, generated change, and validation outcome
   EO4a       inspect an automation run's uncommitted diff and its inputs
 
   pass  run-3002 patch applies
         $ git apply --check automation/runs/run-3002.patch
-  pass  run-3002 records a bad source assumption
-        $ grep -q "bad source assumption" automation/runs/run-3002.json
+  pass  run-3002 records the reason it chose its commit
+        $ node "${ROOT}/scripts/json.mjs" get automation/runs/run-3002.json correlation.chosenBecause | grep -q .
 
-Step 2  READY
+Step 2  BLOCKED
   Use the review pane to isolate the incorrect hunk instead of discarding the entire run
   EO4a       review hunks against the evidence that caused the run
 
-  pass  run-3002 carries work worth preserving
-        $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3002.json has-valid-hunk)" -ge 1 ]
+  pass  run-3002 records the reason it chose its commit
+        $ node "${ROOT}/scripts/json.mjs" get automation/runs/run-3002.json correlation.chosenBecause | grep -q .
 
-Step 3  READY
+Step 3  BLOCKED
   Revert the bad change, preserve valid work, and rerun with corrected context
   EO4a       per-hunk revert keeps valid work; rerun on corrected context
 
-  pass  run-3002 carries work worth preserving
-        $ [ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3002.json has-valid-hunk)" -ge 1 ]
   pass  run-3003 is the corrected rerun
         $ grep -q "\"chose\": \"a1b2c3d\"" automation/runs/run-3003.json
 
-Step 4  READY
+Step 4  BLOCKED
   Verify the recovered run produces a clean reviewable diff before acceptance
   TO4        trace and debug to a clean reviewable diff
 
@@ -44,14 +42,21 @@ Step 4  READY
   pass  baseline gates green before seeding a failure
         $ [ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]
 
-SHARED GATES  4 of 4 pass
+SHARED GATES  3 of 4 pass
 
   These gate every step above. A failure here blocks the whole clip.
+    FAIL  working tree clean
 
-Every gate is green. This clip can be recorded.
+WHAT TO FIX
+-----------
 
-PASS: 9   FAIL: 0
+working tree clean   [all]
+  why  The review demos seed changes with a patch; leftover edits make the diff unreadable.
+  fix  ./module2/scripts/demo_reset.sh
+  ask  Show me every uncommitted change in this repository and what produced it.
+
+PASS: 7   FAIL: 1
 
 Full command output for this run: module2/logs/m2-c6_preflight.full.txt
 
-VERDICT  READY - this clip can be recorded.
+VERDICT  NOT READY - 1 check(s) failed above.

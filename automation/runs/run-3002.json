@@ -1,5 +1,5 @@
 {
-  "_comment": "Seeded FAILED automation run for the recovery demo. Wrong source correlation produced a wrong change.",
+  "_comment": "A scheduled run that failed, as the automation recorded it. It logs the commit it correlated to and the reason it gave; it does not know that reason was wrong. Naming the fault is the demo.",
   "runId": "run-3002",
   "startedAt": "2025-03-04T07:00:00.000Z",
   "trigger": "scheduled",
@@ -10,27 +10,20 @@
   "patch": "run-3002.patch",
   "correlation": {
     "chose": "d4e5f6a",
-    "chosenBecause": "committed 17 minutes before the first occurrence of evt-1042",
-    "correct": "a1b2c3d",
-    "faultType": "bad source assumption"
+    "chosenBecause": "committed 17 minutes before the first occurrence of evt-1042"
   },
   "hunks": [
     {
-      "file": "supporthub-api/modern/src/services/ticketService.ts",
-      "verdict": "valid",
-      "why": "Guards ALLOWED_TRANSITIONS against a status value that was never validated, which is the root cause incident-2001 reports. This work is correct and must survive the recovery."
+      "file": "supporthub-api/modern/src/services/ticketService.ts"
     },
     {
-      "file": "supporthub-api/modern/package.json",
-      "verdict": "invalid",
-      "why": "Pins express to 4.21.0 in the modern workspace, which runs Express 5. It follows from correlating a dependency bump with a fault in changeStatus, which the bump never touched."
+      "file": "supporthub-api/modern/package.json"
     }
   ],
   "validation": {
     "lint": "not run",
     "typecheck": "not run",
     "build": "fail",
-    "test": "fail",
-    "note": "The downgrade breaks the Express 5 service. The guard in ticketService.ts is sound; only the dependency hunk is at fault."
+    "test": "fail"
   }
 }

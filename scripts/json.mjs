@@ -78,13 +78,11 @@ try {
         const c = Object.fromEntries(d.commits.map((x) => [x.sha, x.committedAt]));
         return c['d4e5f6a'] > c['a1b2c3d'] ? 1 : 0;
       },
-      // exactly one valid and one invalid hunk
-      'one-of-each': () => {
-        const v = d.hunks.map((h) => h.verdict).sort();
-        return v.length === 2 && v[0] === 'invalid' && v[1] === 'valid' ? 1 : 0;
-      },
-      // at least one hunk worth preserving
-      'has-valid-hunk': () => d.hunks.filter((h) => h.verdict === 'valid').length,
+      // The seeded runs used to declare a verdict per hunk, and the preflight
+      // read it. That verdict is what C5 step 2 and C6 step 2 exist to reach, in
+      // a file the agent also reads -- so it is gone, and the scenario shape is
+      // derived from the patch and the baseline instead, by
+      // seeded-run-hunks-trace-to-findings in scripts/check.mjs.
     };
     if (!(path in checks)) { process.stderr.write(`unknown check: ${path}\n`); process.exit(2); }
     process.stdout.write(String(checks[path]()) + '\n');
