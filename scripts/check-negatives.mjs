@@ -722,6 +722,73 @@ for (const [check, rb, saved] of [
   );
 }
 
+{
+  const M1P = 'module1/scripts/preflight_check.sh';
+  const M2P = 'module2/scripts/preflight_check.sh';
+  const pfCtl = { [M1P]: readFileSync(M1P, 'utf8'), [M2P]: readFileSync(M2P, 'utf8') };
+  const defLine = pfCtl[M2P].split('\n').findIndex((l) => /^\s*check\s*\(\s*\)\s*\{/.test(l));
+  const spliced = (() => {
+    const lines = pfCtl[M2P].split('\n');
+    // Exactly what happened: a block anchored on the first literal occurrence of
+    // `check "all" ` in the file, which was a sentence in a comment.
+    lines.splice(5, 0, 'check "all" "spliced into a comment" \\', "  'true' \\", '  "why" "fix" "ask"');
+    return lines.join('\n');
+  })();
+  SYNTHETIC_CASES.push(
+    {
+      check: 'preflight-checks-run-after-their-definition',
+      what: `a check block is spliced in above check(), which is defined at line ${defLine + 1} — the shell says "check: command not found" and the run continues without it`,
+      control: pfCtl,
+      negative: { ...pfCtl, [M2P]: spliced },
+    },
+    {
+      check: 'preflight-checks-run-after-their-definition',
+      what: 'the splice leaves a bare unquoted invocation behind, which is prose the shell will try to run',
+      control: pfCtl,
+      negative: {
+        ...pfCtl,
+        [M2P]: pfCtl[M2P].replace(/^check "all" "working tree clean"/m, 'check "all" gates every clip, check "cN" gates one\ncheck "all" "working tree clean"'),
+      },
+    },
+  );
+
+  const RB = 'module2/m2-c2-manual-triage.md';
+  const BASE = 'automation/triage/baseline-manual-sweep.json';
+  const keyCtl = { [RB]: readFileSync(RB, 'utf8'), [BASE]: readFileSync(BASE, 'utf8') };
+  SYNTHETIC_CASES.push(
+    {
+      check: 'c2-step4-names-the-keys-it-compares',
+      what: 'the prompt asks for the decision in prose — "state whether it should be routed" — instead of naming the key, which is walk 2\'s prompt and produced route=absent for all four findings',
+      control: keyCtl,
+      negative: {
+        ...keyCtl,
+        [RB]: keyCtl[RB]
+          .replace('  route          true if the finding should be routed, false if not\n', '')
+          .replace('"route" records the decision, not an action. Route nothing yet.',
+            'For each finding state whether it should be routed. Route nothing yet.'),
+      },
+    },
+    {
+      check: 'c2-step4-names-the-keys-it-compares',
+      what: 'the prompt stops naming "affectedUsers" while the verification still selects it',
+      control: keyCtl,
+      negative: {
+        ...keyCtl,
+        [RB]: keyCtl[RB].replace('  affectedUsers  the count, combined where findings were merged\n', ''),
+      },
+    },
+    {
+      check: 'c2-step4-names-the-keys-it-compares',
+      what: 'the verification selects a key the baseline it compares against does not hold',
+      control: keyCtl,
+      negative: {
+        ...keyCtl,
+        [RB]: keyCtl[RB].replace('users=affectedUsers:4', 'users=userCount:4').replace('  affectedUsers  the count', '  userCount      the count'),
+      },
+    },
+  );
+}
+
 process.stdout.write('PROVING EACH CHECK FAILS ON ITS NEGATIVE CASE\n\n');
 
 for (const c of CASES) {
