@@ -38,13 +38,13 @@ Step 4  READY
 
   no check of its own — gated by the shared checks below
 
-SHARED GATES  4 of 4 pass
+SHARED GATES  6 of 6 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 7   FAIL: 0
+PASS: 9   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c5_preflight.full.txt
 

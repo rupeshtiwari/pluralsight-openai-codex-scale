@@ -42,13 +42,13 @@ Step 4  READY
   pass  baseline gates green before seeding a failure
         $ [ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]
 
-SHARED GATES  4 of 4 pass
+SHARED GATES  6 of 6 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 8   FAIL: 0
+PASS: 10   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c6_preflight.full.txt
 
