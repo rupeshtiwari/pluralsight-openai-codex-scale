@@ -4,5 +4,5 @@
   "channel": "#supporthub-demo",
   "sourceFinding": "incident-2001",
   "approvedBy": null,
-  "text": "P0 — Status updates failing (incident-2001)\n\nImpact: 500 affected users, 1509 occurrences since 09:12 UTC.\nWorkaround: none.\nEvidence: evt-1042 and evt-1043 share the changeStatus frame in ticketService.ts.\nLikely cause: a1b2c3d, which changed that function on 01 Mar.\nProposed fix: validate the incoming status before indexing ALLOWED_TRANSITIONS.\n\nNot the express bump d4e5f6a — that landed closer to the first error but touches no code on the failing path."
+  "text": "P1 \u2014 Status updates failing (incident-2001)\n\nImpact: 500 affected users, 1509 occurrences since 09:12 UTC.\nWorkaround: none.\nEvidence: evt-1042 and evt-1043 share the changeStatus frame in ticketService.ts.\nLikely cause: a1b2c3d, which changed that function on 01 Mar.\nProposed fix: validate the incoming status before indexing ALLOWED_TRANSITIONS.\n\nNot the express bump d4e5f6a \u2014 that landed closer to the first error but touches no code on the failing path."
 }

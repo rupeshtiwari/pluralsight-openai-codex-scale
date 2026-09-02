@@ -552,7 +552,9 @@ for (const [check, rb, saved] of [
     },
   );
 
-  const keyCtl = load(COMMITS, ISSUES);
+  // The check widened to the seeded runs, so they belong in this control too.
+  const keyCtl = load(COMMITS, ISSUES, 'automation/runs/run-3001.json',
+    'automation/runs/run-3002.json', 'automation/runs/run-3003.json');
   SYNTHETIC_CASES.push(
     {
       check: 'fixtures-carry-no-answer-key',
@@ -572,7 +574,10 @@ for (const [check, rb, saved] of [
     },
   );
 
-  const frameCtl = load(ISSUES, SVC, RTE);
+  // incident-2002's frame now points at the real inbound mapping, so that
+  // file has to be in the control for the frames to resolve.
+  const PRI = 'supporthub-api/modern/src/utils/priority.ts';
+  const frameCtl = load(ISSUES, SVC, RTE, PRI);
   SYNTHETIC_CASES.push(
     {
       check: 'fixture-stack-frames-resolve',
@@ -597,6 +602,122 @@ for (const [check, rb, saved] of [
       negative: edit(frameCtl, ISSUES, (d) => {
         d.issues.find((i) => i.id === 'evt-1088').stack[0] = `at listTickets (${SVC}:99999)`;
       }),
+    },
+  );
+}
+
+/**
+ * The C3/C5/C6 fixture checks. Same pattern: controls are the real files,
+ * each negative restores one form of the answer key the walk exposed.
+ */
+{
+  const BASE = 'automation/triage/baseline-manual-sweep.json';
+  const ISSUES = 'automation/sentry-fixtures/issues.json';
+  const R1 = 'automation/runs/run-3001.json';
+  const R2 = 'automation/runs/run-3002.json';
+  const R3 = 'automation/runs/run-3003.json';
+  const LIN = 'automation/linear-drafts/incident-2001.json';
+  const SLK = 'automation/slack-drafts/incident-2001.json';
+  const LIN2 = 'automation/linear-drafts/incident-2002.json';
+  const load = (...fs) => Object.fromEntries(fs.map((f) => [f, readFileSync(f, 'utf8')]));
+  const edit = (files, f, fn) => {
+    const doc = JSON.parse(files[f]);
+    fn(doc);
+    return { ...files, [f]: JSON.stringify(doc, null, 2) + '\n' };
+  };
+
+  const traceCtl = load(BASE, ISSUES, R1, R2, R3);
+  SYNTHETIC_CASES.push(
+    {
+      check: 'seeded-run-hunks-trace-to-findings',
+      what: 'a hunk carries a verdict again — the field that was C5 step 2\'s answer, in a file the agent reads',
+      control: traceCtl,
+      negative: edit(traceCtl, R1, (d) => { d.hunks[0].verdict = 'valid'; d.hunks[0].why = 'the finding asks for it'; }),
+    },
+    {
+      check: 'seeded-run-hunks-trace-to-findings',
+      what: 'run-3001\'s unrequested hunk stops being the rubric, so the clip becomes an ordinary scope complaint rather than an automation editing the standard it is judged by',
+      control: traceCtl,
+      negative: edit(traceCtl, R1, (d) => { d.hunks[1].file = 'supporthub-api/modern/src/routes/tickets.ts'; }),
+    },
+    {
+      check: 'seeded-run-hunks-trace-to-findings',
+      what: 'both of run-3001\'s hunks are asked for, leaving step 2 nothing to reject',
+      control: traceCtl,
+      negative: edit(traceCtl, R1, (d) => { d.hunks[1].file = 'supporthub-api/modern/src/utils/priority.ts'; }),
+    },
+    {
+      check: 'seeded-run-hunks-trace-to-findings',
+      what: 'run-3002 keeps no hunk traceable to incident-2001, so the recovery has nothing to preserve and is just a revert',
+      control: traceCtl,
+      negative: edit(traceCtl, R2, (d) => { d.hunks[0].file = 'supporthub-api/modern/src/routes/health.ts'; }),
+    },
+    {
+      // The trace is only as good as the evidence it reads.
+      check: 'seeded-run-hunks-trace-to-findings',
+      what: 'incident-2002 points back at the dead ticketService.toPriority copy, so the fix that answers it is no longer traceable to it',
+      control: traceCtl,
+      negative: edit(traceCtl, ISSUES, (d) => {
+        d.issues.find((i) => i.id === 'incident-2002').stack = ['at toPriority (supporthub-api/modern/src/services/ticketService.ts:85)'];
+      }),
+    },
+  );
+
+  const keyCtl2 = load(R1, R2, R3, 'automation/github-seed/commits.json', ISSUES);
+  SYNTHETIC_CASES.push(
+    {
+      check: 'fixtures-carry-no-answer-key',
+      what: 'the failed run knows the right commit again — printed on camera by C6 step 1, a minute before step 2 asks Codex to work it out',
+      control: keyCtl2,
+      negative: edit(keyCtl2, R2, (d) => { d.correlation.correct = 'a1b2c3d'; }),
+    },
+    {
+      check: 'fixtures-carry-no-answer-key',
+      what: 'the failed run names its own fault type, which is step 2\'s conclusion',
+      control: keyCtl2,
+      negative: edit(keyCtl2, R2, (d) => { d.correlation.faultType = 'bad source assumption'; }),
+    },
+    {
+      check: 'fixtures-carry-no-answer-key',
+      what: 'the validation block explains which hunk is at fault instead of reporting the gates',
+      control: keyCtl2,
+      negative: edit(keyCtl2, R2, (d) => { d.validation.note = 'The guard is sound; only the dependency hunk is at fault.'; }),
+    },
+  );
+
+  const draftCtl = load(BASE, LIN, LIN2, SLK);
+  SYNTHETIC_CASES.push(
+    {
+      check: 'drafts-carry-the-triaged-priority',
+      what: 'the Linear draft is back at P0 while the baseline triaged P1 — the state both drafts shipped in',
+      control: draftCtl,
+      negative: edit(draftCtl, LIN, (d) => { d.priority = 'P0'; d.title = d.title.replace('P1:', 'P0:'); }),
+    },
+    {
+      check: 'drafts-carry-the-triaged-priority',
+      what: 'only the label is stale, so the field and the title agree and the drift hides in the metadata',
+      control: draftCtl,
+      negative: edit(draftCtl, LIN, (d) => { d.labels = d.labels.map((l) => (l === 'p1' ? 'p0' : l)); }),
+    },
+    {
+      check: 'drafts-carry-the-triaged-priority',
+      what: 'the Slack headline states a priority the triage did not reach',
+      control: draftCtl,
+      negative: edit(draftCtl, SLK, (d) => { d.text = d.text.replace('P1 —', 'P0 —'); }),
+    },
+    {
+      check: 'drafts-carry-the-triaged-priority',
+      what: 'a draft is pre-approved, which is not draft-only',
+      control: draftCtl,
+      negative: edit(draftCtl, SLK, (d) => { d.approvedBy = 'demo-operator'; }),
+    },
+    {
+      // The body argues about bands and must stay legal: incident-2002's draft
+      // explains it is P2 "rather than P1", and an over-eager scan rejects it.
+      check: 'drafts-carry-the-triaged-priority',
+      what: 'a draft body reasons about the band it did not land in — a false positive, and must NOT fire',
+      control: draftCtl,
+      negative: null,
     },
   );
 }

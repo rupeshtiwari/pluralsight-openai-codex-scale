@@ -5,8 +5,12 @@
   "project": "SupportHub reliability",
   "sourceFinding": "incident-2001",
   "approvedBy": null,
-  "title": "P0: changeStatus throws on unvalidated status values",
-  "priority": "P0",
-  "labels": ["bug", "p0", "triage-automation"],
+  "title": "P1: changeStatus throws on unvalidated status values",
+  "priority": "P1",
+  "labels": [
+    "bug",
+    "p1",
+    "triage-automation"
+  ],
   "description": "Affected users: 500\nOccurrences: 1509\nWorkaround: none\nConfidence: high\n\nEvidence\n- evt-1042 (412 users) and evt-1043 (88 users) are one fault, merged as incident-2001\n- both stacks pass through changeStatus in supporthub-api/modern/src/services/ticketService.ts\n\nCorrelated change\n- a1b2c3d 'Accept status values from the pager bridge without re-validating', 01 Mar\n\nRejected correlation\n- d4e5f6a 'Bump express 4.21.0 to 4.21.1'. Nearer in time, but a dependency bump touches no code on the failing path.\n\nProposed fix\n- Validate the stored status before indexing ALLOWED_TRANSITIONS."
 }
