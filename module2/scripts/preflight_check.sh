@@ -174,6 +174,12 @@ check "all" "every prep block proves the agent is in this checkout" \
   "Restore the prep block's identity probe: the project chip's branch, then pwd and git rev-parse --abbrev-ref HEAD against what the agent prints. node scripts/check.mjs runbooks-probe-agent-identity names the runbook and the missing half." \
   "Which runbook prep blocks do not make Codex print its absolute working directory and branch before the first prompt?"
 
+check "all" "no assertion matches a tool's printed prose" \
+  'node "${ROOT}/scripts/check.mjs" checks-do-not-match-tool-output' \
+  "The C6 baseline check ran npm test and grepped for the literal line 'Tests  25 passed (25)'. On an author's machine the suite passed 25 of 25 and the check failed anyway, because it tested Vitest's formatting rather than the result -- and then printed a remediation for a red baseline, which was never the condition it detected." \
+  "Assert the exit status, or assert the state on disk. Machine-readable output -- git --porcelain, node -p, scripts/json.mjs -- is fine to parse; a runner's summary line is not." \
+  "Which preflight assertions depend on the exact words a tool prints?"
+
 check "all" "every preflight calls check after defining it" \
   'node "${ROOT}/scripts/check.mjs" preflight-checks-run-after-their-definition' \
   "A new block was spliced into the middle of a prose comment because the insertion anchored on the first literal occurrence of a string that turned out to be a sentence. It escaped the comment and ran fifty lines above the function definition, so the author's terminal opened with 'check: command not found'. bash -n passed, and the runs meant to catch it discarded stderr." \
@@ -330,10 +336,10 @@ check "c6" "run-3003 is the corrected rerun" \
   "run-3003.json must correlate incident-2001 to a1b2c3d."
 
 check "c6" "baseline gates green before seeding a failure" \
-  '[ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]' \
-  "A red baseline makes the seeded failure indistinguishable from a pre-existing one." \
-  "npm install then npm test" \
-  "npm test does not report 25 passing tests. Show the failure."
+  'npm test' \
+  "A red baseline makes the seeded failure indistinguishable from a pre-existing one. This asserts the suite's exit status. It used to grep for the literal line \"Tests  25 passed (25)\", which is Vitest's formatting rather than the result -- so it failed on a machine whose suite was passing, and sent its author to npm install for a problem that was never there." \
+  "Run npm test and read the first failing test. The baseline must be green before clip 6 seeds its failure; the transcript above this line has the full output." \
+  "npm test fails on the unmodified baseline. Show which test and the minimal fix."
 
 log ""
 log "STEP TO OBJECTIVE COVERAGE"
