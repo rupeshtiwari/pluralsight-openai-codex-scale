@@ -27,13 +27,7 @@ mkdir -p "$(dirname "$LOG")"
 
 # Per-clip transcripts. The master log above covers the whole module; an author
 # about to record one clip wants the gates for that clip and nothing else. Every
-# check is already scoped -- check "all" "every prep block proves the agent is in this checkout" \
-  'node "${ROOT}/scripts/check.mjs" runbooks-probe-agent-identity' \
-  "Two folders on the recording machine shared the basename pluralsight-openai-codex-scale and Codex Desktop pointed at the wrong one, on a master branch this repository does not have. Two C6 Step 1 runs reported files created and gates green while nothing reached disk -- accurate reports about a different checkout. No verification downstream can see this, because they all read the terminal's checkout." \
-  "Restore the prep block's identity probe: the project chip's branch, then pwd and git rev-parse --abbrev-ref HEAD against what the agent prints. node scripts/check.mjs runbooks-probe-agent-identity names the runbook and the missing half." \
-  "Which runbook prep blocks do not make Codex print its absolute working directory and branch before the first prompt?"
-
-check "all" gates every clip, check "cN" gates one
+# check is already scoped -- check "all" gates every clip, check "cN" gates one
 # -- so the run is partitioned rather than repeated. Headers come from
 # docs/outline-clip-map.json so a clip's title and objectives cannot drift from
 # the approved outline.
@@ -174,6 +168,18 @@ check "all" "nothing left staged" '[ -z "$(git diff --cached --name-only)" ]' \
   "git diff --cached shows staged changes. Show me what they are."
 
 sect c2 "clip 2 - manual triage sweep"
+check "all" "every prep block proves the agent is in this checkout" \
+  'node "${ROOT}/scripts/check.mjs" runbooks-probe-agent-identity' \
+  "Two folders on the recording machine shared the basename pluralsight-openai-codex-scale and Codex Desktop pointed at the wrong one, on a master branch this repository does not have. Two C6 Step 1 runs reported files created and gates green while nothing reached disk -- accurate reports about a different checkout. No verification downstream can see this, because they all read the terminal's checkout." \
+  "Restore the prep block's identity probe: the project chip's branch, then pwd and git rev-parse --abbrev-ref HEAD against what the agent prints. node scripts/check.mjs runbooks-probe-agent-identity names the runbook and the missing half." \
+  "Which runbook prep blocks do not make Codex print its absolute working directory and branch before the first prompt?"
+
+check "all" "every preflight calls check after defining it" \
+  'node "${ROOT}/scripts/check.mjs" preflight-checks-run-after-their-definition' \
+  "A new block was spliced into the middle of a prose comment because the insertion anchored on the first literal occurrence of a string that turned out to be a sentence. It escaped the comment and ran fifty lines above the function definition, so the author's terminal opened with 'check: command not found'. bash -n passed, and the runs meant to catch it discarded stderr." \
+  "Move the invocation below check(). Read stderr when you run a preflight: a script that half-works still prints a verdict." \
+  "Does either preflight script call check before check() is defined?"
+
 check "all" "fixtures, rubric and config shape are ready" \
   './scripts/verify_integrations.sh' \
   "Every Module 2 clip reads these fixtures and this rubric. Running the preparation script from here means it cannot be the separate thing an author forgets -- and it deliberately does not claim plugin reachability, which is C2 step 1's on-camera job." \
@@ -185,6 +191,12 @@ check "c2" "C2 starts without its own answer on disk" \
   "Codex persists a mid-thread correction to disk, not only to conversation context -- Gate 1 measured it editing four files to record one. Step 4 writes automation/triage/corrected-sweep.json, and if that survives to the next take this clip starts from the answer it is supposed to reach." \
   "./module2/scripts/demo_reset.sh removes it." \
   "Is automation/triage/corrected-sweep.json present before the take, and is the recorded baseline unmodified?"
+
+check "c2" "step 4 names every key it then compares" \
+  'node "${ROOT}/scripts/check.mjs" c2-step4-names-the-keys-it-compares' \
+  "Walk 2 matched the baseline on all four priorities and user counts and showed route=absent for every finding. Codex had answered -- it wrote routedNow and routing.routed, all false -- but that answers 'was this routed' while the baseline's route records 'should this be routed'. Two correct answers to different questions, and the whole difference was a key the prompt never named." \
+  "Name the key in step 4's prompt as a key, not in prose. node scripts/check.mjs c2-step4-names-the-keys-it-compares says which one." \
+  "Which fields does m2-c2 step 4 read out of the corrected report, and does its prompt name each one?"
 
 check "c2" "every baseline priority derives from the rubric" \
   'node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric' \
