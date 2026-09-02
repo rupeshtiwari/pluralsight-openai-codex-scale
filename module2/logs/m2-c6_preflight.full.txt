@@ -121,5 +121,5 @@ $ npm test
  Test Files  4 passed (4)
       Tests  25 passed (25)
    Start at  <time>
-   Duration  <ms> (transform <ms>, setup <ms>, import <ms>, tests <ms>, environment <ms>)
+   Duration  <ms> (transform <ms>, setup <ms>, import <s>, tests <ms>, environment <ms>)
 RESULT PASS  [c6] baseline gates green before seeding a failure
