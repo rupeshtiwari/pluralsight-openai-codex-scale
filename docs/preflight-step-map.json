@@ -181,6 +181,9 @@
     ],
     "step 4 expects the baseline it compares against": [
       4
+    ],
+    "step 4 names every key it then compares": [
+      4
     ]
   },
   "m2-c3": {

@@ -39,7 +39,14 @@ const INDENT = '  ';
  * unreadable at recording resolution.
  */
 function render(v) {
-  if (v === null || v === undefined) return 'none';
+  // Absent and null are different answers and must not print the same. C2 step
+  // 4 compares a report Codex wrote against the baseline; Codex stored the
+  // routing decision under its own key, so `route` was missing entirely and the
+  // table printed `route=none` for all four findings -- which reads as "not
+  // routed" rather than "no such field", and sends the author looking for a
+  // wrong decision instead of a differently named one.
+  if (v === undefined) return 'absent';
+  if (v === null) return 'none';
   if (Array.isArray(v)) return v.map(render).join(', ');
   if (typeof v === 'object') return Object.entries(v).map(([k, x]) => `${k}=${render(x)}`).join(' ');
   return String(v);

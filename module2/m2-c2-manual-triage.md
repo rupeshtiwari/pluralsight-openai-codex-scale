@@ -258,16 +258,24 @@ Produce the corrected triage report:
 
 - merge evt-1042 and evt-1043 into incident-2001 with combined counts
 - correlate incident-2001 to the commit that touched a file in its stack, and
-  state explicitly that d4e5f6a was rejected as proximity in time only
+  record the rejection of d4e5f6a as proximity in time only, in a top-level
+  "rejectedCorrelations" array whose entries carry a "commit" key
 - price incident-2002 from the rubric using its affected-user band and its
   workaround
 - keep evt-1088 at the priority its impact justifies, not its occurrence count
 - mark evt-1099 deferred for insufficient evidence rather than assigning it a
   priority
 
-For each finding state whether it should be routed. Route nothing yet.
+Write the corrected report to automation/triage/corrected-sweep.json as a
+top-level "findings" array. Give every finding these keys, with exactly these
+names, alongside your evidence and recommendation:
 
-Write the corrected report to automation/triage/corrected-sweep.json.
+  id             the finding id
+  priority       P0, P1, P2, P3, or deferred
+  affectedUsers  the count, combined where findings were merged
+  route          true if the finding should be routed, false if not
+
+"route" records the decision, not an action. Route nothing yet.
 ```
 
 **Expected result.** Four findings: `incident-2001` at P1 with 500 users, `incident-2002` at P2,
@@ -277,6 +285,16 @@ Write the corrected report to automation/triage/corrected-sweep.json.
 
 **Highlight.** The combined 500-user count, the rejected correlation stated in writing, and
 `evt-1099` deferred rather than prioritized.
+
+**The field name is named on purpose too.** Walk 2 produced all four priorities
+and user counts matching the baseline, and a route column reading `absent` for every
+finding. Codex had answered the question — it wrote `routedNow` and `routing.routed`,
+all false — but it answered *was this routed*, while the baseline's `route` records
+*should this be routed*. Two correct answers to two different questions, and the only
+difference on screen was a key nobody had named. §11c says an assertion tests a
+contract value rather than the identifier it first saw; here the contract value **is**
+a key, so the prompt has to state it. `c2-step4-names-the-keys-it-compares` fails when
+the prompt, the verification and the baseline stop agreeing on one.
 
 **The output path is named on purpose.** Gate 1 established that Codex persists a mid-thread
 correction to disk, not only to conversation context — it edited four files to record one. An
