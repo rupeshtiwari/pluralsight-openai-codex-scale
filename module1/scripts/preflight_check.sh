@@ -231,11 +231,11 @@ check "all" "runbooks match the approved outline" \
   "Restore the runbook to match docs/outline-clip-map.json. Edit the runbook, never the map." \
   "Which runbook steps differ from their outline bullets?"
 
-check "all" "no runnable block checks out a missing branch" \
-  'node "${ROOT}/scripts/check.mjs" demo-checkout-refs-exist' \
-  "Four demo checkpoints do not exist yet and depend on walkthroughs. A runbook that hands out a checkout of one fails on its first line, in front of the camera." \
-  "Show the commands as indented prose with the dependency named, instead of a runnable bash block." \
-  "Which markdown bash blocks check out a demo branch that does not exist?"
+check "all" "every demo branch a runbook names exists" \
+  'node "${ROOT}/scripts/check.mjs" demo-branch-refs-exist' \
+  "Some demo checkpoints depend on a walkthrough having been run, and a runbook handing out a checkout of one fails on its first line in front of the camera. Reading only runnable blocks missed three more: m2-c3, m2-c5 and m2-c6 each opened with 'Starting state. Branch demo/m2-cN-start' for a branch that has never existed, while the preflight reported every clip READY on the single seed they actually run from." \
+  "Point the runbook at a branch that exists, or show the commands as indented prose with the dependency named instead of a runnable bash block." \
+  "Which demo branches do the runbooks name, in prose or in a command, that do not exist?"
 
 check "all" "cut procedures branch before they commit" \
   'node "${ROOT}/scripts/check.mjs" cut-blocks-branch-before-committing' \

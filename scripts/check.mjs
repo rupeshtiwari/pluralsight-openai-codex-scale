@@ -1202,17 +1202,20 @@ const CHECKS = {
   },
 
   /**
-   * No runnable block may check out a demo branch that does not exist.
+   * Every demo branch a runbook names actually exists.
    *
-   * The C6 evidence artifact opened with 'git checkout demo/m1-c6-start' inside a
-   * bash fence, and that branch cannot exist until C5 has been walked. Following
-   * the document as written failed on its first line. A blocked checkpoint has to
-   * be described, not handed over as a command -- so this only inspects bash
-   * fences, and indented prose showing what to run *later* is deliberately fine.
+   * This used to read only `git checkout demo/...` inside ```bash fences, and
+   * found two that way. It could not see a branch named in prose, and three
+   * were: m2-c3, m2-c5 and m2-c6 each opened with "Starting state. Branch
+   * `demo/m2-cN-start`" for a branch that has never existed. Module 2 runs from
+   * one seed, demo/m2-c2-start, and its preflight reports every clip READY
+   * there -- so nothing failed, and an author following the runbook would have
+   * checked out a branch that is not there.
    *
-   * Reads git, so it ignores CHECK_ROOT.
+   * Both forms are read now: a checkout in a runnable block, and any demo/
+   * branch named in backticks anywhere in the file.
    */
-  'demo-checkout-refs-exist': () => {
+  'demo-branch-refs-exist': () => {
     const exists = (ref) => {
       for (const r of [ref, `origin/${ref}`]) {
         try {
@@ -1223,14 +1226,17 @@ const CHECKS = {
     };
     const files = execSync('git ls-files "*.md"', { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
     let bad = 0;
+    const say = (m) => { process.stderr.write(`  ${m}\n`); bad += 1; };
     for (const f of files) {
-      for (const fence of readFileSync(f, 'utf8').matchAll(/```bash\n([\s\S]*?)\n```/g)) {
-        for (const m of fence[1].matchAll(/git checkout\s+(demo\/[A-Za-z0-9._\/-]+)/g)) {
-          if (!exists(m[1])) {
-            process.stderr.write(`  ${f}: runnable block checks out ${m[1]}, which does not exist\n`);
-            bad += 1;
-          }
+      const body = readFileSync(f, 'utf8');
+      for (const fence of body.matchAll(/```bash\n([\s\S]*?)\n```/g)) {
+        for (const m of fence[1].matchAll(/git checkout\s+(demo\/[A-Za-z0-9._/-]+)/g)) {
+          if (!exists(m[1])) say(`${f}: runnable block checks out ${m[1]}, which does not exist`);
         }
+      }
+      // Prose names branches too, and an author reads prose.
+      for (const m of body.matchAll(/`(demo\/[A-Za-z0-9._/-]+)`/g)) {
+        if (!exists(m[1])) say(`${f}: names \`${m[1]}\`, which does not exist. An author reading "Starting state" follows it as readily as a command`);
       }
     }
     return bad === 0;
