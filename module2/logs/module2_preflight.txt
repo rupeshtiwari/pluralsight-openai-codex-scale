@@ -29,10 +29,7 @@ LEARNING OBJECTIVES
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT FAIL  [all] working tree clean
-WHY IT MATTERS  The review demos seed changes with a patch; leftover edits make the diff unreadable.
-HOW TO FIX      ./module2/scripts/demo_reset.sh
-CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
+RESULT PASS  [all] working tree clean
 
 $ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
 
@@ -96,6 +93,86 @@ WHAT THIS DOES NOT COVER
   PASS: Fixtures, rubric and config shape are ready. Reachability is still C2 step 1's job.
 RESULT PASS  [all] fixtures, rubric and config shape are ready
 
+$ node "${ROOT}/scripts/check.mjs" m2-c2-starts-without-the-correction
+
+RESULT PASS  [c2] C2 starts without its own answer on disk
+
+$ node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric
+
+RESULT PASS  [c2] every baseline priority derives from the rubric
+
+$ node "${ROOT}/scripts/check.mjs" runbook-expects-the-baseline-it-compares-to
+
+RESULT PASS  [c2] step 4 expects the baseline it compares against
+
+$ node "${ROOT}/scripts/check.mjs" fixtures-carry-no-answer-key
+
+RESULT PASS  [c2] the evidence fixtures carry no answer key
+
+$ node "${ROOT}/scripts/check.mjs" fixture-stack-frames-resolve
+
+RESULT PASS  [c2] every fixture stack frame opens on real code
+
+$ node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json
+
+RESULT PASS  [c2] sentry fixtures valid
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" count automation/sentry-fixtures/issues.json issues)" -eq 5 ]
+
+RESULT PASS  [c2] five sentry issues in window
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/sentry-fixtures/issues.json shared-frame)" -ge 1 ]
+
+RESULT PASS  [c2] duplicate pair shares a stack frame
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" check automation/github-seed/commits.json misleading-newer)" -eq 1 ]
+
+RESULT PASS  [c2] misleading commit is nearer in time than the real cause
+
+$ grep -qF "| **P1** | Core workflow degraded or failing for many users | 100 or more |" docs/triage-rubric.md
+
+RESULT PASS  [c2] rubric P1 threshold is 100
+
+$ node "${ROOT}/scripts/check.mjs" drafts-carry-the-triaged-priority
+
+RESULT PASS  [c3] drafts carry the priority their finding was triaged at
+
+$ node "${ROOT}/scripts/check.mjs" m2-c3-verifies-in-thread
+
+RESULT PASS  [c3] step 4 is verified in-thread, not in a browser
+
+$ node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json
+
+RESULT PASS  [c3] triage baseline present
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" count automation/triage/baseline-manual-sweep.json findings)" -eq 4 ]
+
+RESULT PASS  [c3] baseline has four findings
+
+$ [ "$(node "${ROOT}/scripts/json.mjs" rows automation/triage/baseline-manual-sweep.json findings route | grep -c "route=true")" -eq 2 ]
+
+RESULT PASS  [c3] exactly two findings are routable
+
+$ [ "$(grep -l "\"status\": \"draft\"" automation/slack-drafts/*.json automation/linear-drafts/*.json | wc -l | tr -d " ")" -eq 3 ]
+
+RESULT PASS  [c3] all routing payloads are drafts
+
+$ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-drafts/*.json | grep -cv "null")" -eq 0 ]
+
+RESULT PASS  [c3] no draft is pre-approved
+
+$ git apply --check automation/runs/run-3001.patch
+
+RESULT PASS  [c5] run-3001 patch applies
+
+$ [ "$(grep -c "^diff --git" automation/runs/run-3001.patch)" -eq 2 ]
+
+RESULT PASS  [c5] run-3001 touches exactly two files
+
+$ node "${ROOT}/scripts/check.mjs" seeded-run-hunks-trace-to-findings
+
+RESULT PASS  [c5] each seeded hunk traces to a finding, or provably does not
+
 $ git apply --check automation/runs/run-3002.patch
 
 RESULT PASS  [c6] run-3002 patch applies
@@ -121,12 +198,9 @@ STEP TO OBJECTIVE COVERAGE
   Clip 6 step 1-4  EO4a  trace, revert bad hunk, rerun corrected
 
 PER-CLIP TRANSCRIPTS
-  m2-c6  NOT READY (1)  logs/m2-c6_preflight.txt
+  m2-c2  READY  logs/m2-c2_preflight.txt
+  m2-c3  READY  logs/m2-c3_preflight.txt
+  m2-c5  READY  logs/m2-c5_preflight.txt
+  m2-c6  READY  logs/m2-c6_preflight.txt
 
-FAILED CHECKS
-  [all] working tree clean
-    why it matters : The review demos seed changes with a patch; leftover edits make the diff unreadable.
-    how to fix     : ./module2/scripts/demo_reset.sh
-    codex prompt   : Show me every uncommitted change in this repository and what produced it.
-
-VERDICT  NOT READY - 1 check(s) failed.
+VERDICT  READY - Module 2 can be run.

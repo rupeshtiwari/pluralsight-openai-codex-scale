@@ -25,23 +25,24 @@ CLIP 3 - Schedule Codex triage and route work to Slack and Linear
   Objective: EO3c, EO3d
 
 $ validated triage baseline
-  id=incident-2001  priority=P0  affectedUsers=500  route=true
+  id=incident-2001  priority=P1  affectedUsers=500  route=true
   id=incident-2002  priority=P2  affectedUsers=61  route=true
   id=evt-1088  priority=P3  affectedUsers=3  route=false
   id=evt-1099  priority=deferred  affectedUsers=2  route=false
-  EXPECTED  P0, P2, P3, deferred; exactly two routable
+  EXPECTED  P1, P2, P3, deferred; exactly two routable
 
 CLIP 5 - Inspect automation diffs
   Objective: EO4a
 
 $ run-3001 hunks
-  verdict=valid  file=apps/api/src/utils/priority.ts
-  verdict=invalid  file=docs/triage-rubric.md
-  EXPECTED  one valid, one invalid
-  CHECK     one-of-each = 1
+  file=supporthub-api/modern/src/utils/priority.ts
+  file=docs/triage-rubric.md
+  EXPECTED  utils/priority.ts, which incident-2002 asks for, and docs/triage-rubric.md, which
+            nothing asks for. The run no longer says which is which -- that is clip 5's work,
+            and seeded-run-hunks-trace-to-findings derives it from the baseline instead.
 
 $ git apply --check automation/runs/run-3001.patch
-error: apps/api/src/utils/priority.ts: No such file or directory
+  applies cleanly
 
 CLIP 6 - Trace a failed automation and recover
   Objective: EO4a
@@ -49,15 +50,16 @@ CLIP 6 - Trace a failed automation and recover
 $ run-3002 failure trace
   status       = failed
   chose commit = d4e5f6a
-  correct      = a1b2c3d
-  fault type   = bad source assumption
-  verdict=valid  file=apps/api/src/services/ticketService.ts
-  verdict=invalid  file=apps/api/package.json
-  EXPECTED  failed, bad source assumption, at least one valid hunk to preserve
+  because      = committed 17 minutes before the first occurrence of evt-1042
+  build        = fail
+  file=supporthub-api/modern/src/services/ticketService.ts
+  file=supporthub-api/modern/package.json
+  EXPECTED  failed, a commit chosen on a timestamp, and one hunk traceable to incident-2001
+            to preserve. The run does not name its own fault; clip 6 step 2 does.
 
 $ run-3003 corrected rerun
   status = completed
   commit = a1b2c3d
-  verdict=valid  file=apps/api/src/services/ticketService.ts
+  file=supporthub-api/modern/src/services/ticketService.ts
 
 END OF CAPTURE
