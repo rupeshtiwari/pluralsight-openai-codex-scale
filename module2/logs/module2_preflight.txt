@@ -43,6 +43,10 @@ $ node "${ROOT}/scripts/check.mjs" runbooks-probe-agent-identity
 
 RESULT PASS  [all] every prep block proves the agent is in this checkout
 
+$ node "${ROOT}/scripts/check.mjs" checks-do-not-match-tool-output
+
+RESULT PASS  [all] no assertion matches a tool's printed prose
+
 $ node "${ROOT}/scripts/check.mjs" preflight-checks-run-after-their-definition
 
 RESULT PASS  [all] every preflight calls check after defining it
@@ -113,8 +117,23 @@ $ grep -q "\"chose\": \"a1b2c3d\"" automation/runs/run-3003.json
 
 RESULT PASS  [c6] run-3003 is the corrected rerun
 
-$ [ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]
+$ npm test
 
+> supporthub@1.0.0 test
+> npm run test --workspace=supporthub-api/modern
+
+
+> @supporthub/api@1.0.0 test
+> vitest run
+
+
+ RUN  v4.1.11 ./supporthub-api/modern
+
+
+ Test Files  4 passed (4)
+      Tests  25 passed (25)
+   Start at  <time>
+   Duration  <ms> (transform <ms>, setup <ms>, import <ms>, tests <ms>, environment <ms>)
 RESULT PASS  [c6] baseline gates green before seeding a failure
 
 STEP TO OBJECTIVE COVERAGE

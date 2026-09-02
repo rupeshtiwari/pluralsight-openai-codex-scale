@@ -32,6 +32,10 @@ $ node "${ROOT}/scripts/check.mjs" runbooks-probe-agent-identity
 
 RESULT PASS  [all] every prep block proves the agent is in this checkout
 
+$ node "${ROOT}/scripts/check.mjs" checks-do-not-match-tool-output
+
+RESULT PASS  [all] no assertion matches a tool's printed prose
+
 $ node "${ROOT}/scripts/check.mjs" preflight-checks-run-after-their-definition
 
 RESULT PASS  [all] every preflight calls check after defining it
