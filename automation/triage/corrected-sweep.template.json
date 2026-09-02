@@ -1,0 +1,23 @@
+{
+  "_comment": "Shape only. C2 step 4 points Codex at this file; every value below is a placeholder, and no priority, count or routing decision here is an answer. Three walks showed a prose list of key names does not survive contact with an agent -- the first produced route, the second routedNow with a nested routing.routed, the third routingDecision.shouldRoute with priority renamed too. A file it can read is a stronger specification than a sentence it can paraphrase.",
+  "findings": [
+    {
+      "id": "<finding id>",
+      "priority": "<P0 | P1 | P2 | P3 | deferred>",
+      "affectedUsers": 0,
+      "workaround": "<none, or what it is>",
+      "confidence": "<high | medium | low>",
+      "correlatedCommit": "<commit sha, or null>",
+      "evidence": "<what ties this cause to this effect>",
+      "recommendation": "<what to do about it>",
+      "route": false
+    }
+  ],
+  "rejectedCorrelations": [
+    {
+      "commit": "<commit sha>",
+      "proposedFor": "<finding id>",
+      "rejectedBecause": "<why it was rejected>"
+    }
+  ]
+}

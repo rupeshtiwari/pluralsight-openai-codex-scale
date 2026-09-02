@@ -266,16 +266,14 @@ Produce the corrected triage report:
 - mark evt-1099 deferred for insufficient evidence rather than assigning it a
   priority
 
-Write the corrected report to automation/triage/corrected-sweep.json as a
-top-level "findings" array. Give every finding these keys, with exactly these
-names, alongside your evidence and recommendation:
+Read automation/triage/corrected-sweep.template.json and write your report to
+automation/triage/corrected-sweep.json using exactly that structure: the same
+key names, at the same nesting depth, with your values in place of the
+placeholders. Do not rename a key, do not nest one inside a new object, and do
+not add a wrapper around the findings array.
 
-  id             the finding id
-  priority       P0, P1, P2, P3, or deferred
-  affectedUsers  the count, combined where findings were merged
-  route          true if the finding should be routed, false if not
-
-"route" records the decision, not an action. Route nothing yet.
+The template's "route" is the decision, not an action: true if the finding
+should be routed, false if not. Route nothing yet.
 ```
 
 **Expected result.** Four findings: `incident-2001` at P1 with 500 users, `incident-2002` at P2,
@@ -308,16 +306,38 @@ what `m2-c2-starts-without-the-correction` asserts before a take.
 ```bash
 BASE=automation/triage/baseline-manual-sweep.json
 OUT=automation/triage/corrected-sweep.json
+node scripts/json.mjs require "$OUT" findings id priority affectedUsers route
+node scripts/json.mjs require "$OUT" . rejectedCorrelations
 node scripts/json.mjs table "$OUT" findings id:16 priority:9 users=affectedUsers:4 route=route
 node scripts/json.mjs table "$BASE" findings id:16 priority:9 users=affectedUsers:4 route=route
 node scripts/json.mjs fields "$OUT" "rejected=rejectedCorrelations.0.commit"
 ```
 
-PASS if `corrected-sweep.json` exists, its four priorities and rejected commit match the baseline's,
-and the two tables read identically. FAIL if the file is absent — the report went somewhere
-unnamed — or if any priority differs, or the duplicates are still separate.
+**The two `require` lines come first on purpose.** They answer *did the report
+land in the shape we compare* before the tables answer *does it hold the right
+values*, and they name the keys that are actually there when it did not. Without
+them a renamed key prints a column of `absent`, which looks like a wrong decision
+rather than a differently shaped file — and there is nothing on screen saying
+what to re-prompt with.
 
-**Recovery.** `./module2/scripts/demo_reset.sh`.
+PASS if both `require` lines report every key present, the two tables read identically, and the
+rejected commit matches the baseline's. FAIL if the file is absent — the report went somewhere
+unnamed — if `require` names a missing key, if any priority differs, or if the duplicates are still
+separate.
+
+A missing key and a wrong value are different failures with different recoveries, which is why the
+shape is checked first.
+
+**Recovery.** If `require` named a missing key, re-prompt rather than reset — the reasoning is sound
+and only the shape is wrong:
+
+```text
+Rewrite automation/triage/corrected-sweep.json with the key names from
+automation/triage/corrected-sweep.template.json. <key> is missing: put it at the
+top level of each finding, not nested inside another object. Keep your values.
+```
+
+For anything else, `./module2/scripts/demo_reset.sh`.
 
 ---
 
