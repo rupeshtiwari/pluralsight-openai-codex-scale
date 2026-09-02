@@ -182,7 +182,7 @@
     "step 4 expects the baseline it compares against": [
       4
     ],
-    "step 4 names every key it then compares": [
+    "step 4 specifies the shape it compares": [
       4
     ]
   },
