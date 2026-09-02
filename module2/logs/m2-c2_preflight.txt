@@ -63,8 +63,8 @@ Step 4  READY
         $ node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric
   pass  step 4 expects the baseline it compares against
         $ node "${ROOT}/scripts/check.mjs" runbook-expects-the-baseline-it-compares-to
-  pass  step 4 names every key it then compares
-        $ node "${ROOT}/scripts/check.mjs" c2-step4-names-the-keys-it-compares
+  pass  step 4 specifies the shape it compares
+        $ node "${ROOT}/scripts/check.mjs" c2-step4-specifies-the-shape-it-compares
 
 SHARED GATES  7 of 7 pass
 

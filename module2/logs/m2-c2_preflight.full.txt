@@ -98,9 +98,9 @@ $ node "${ROOT}/scripts/check.mjs" m2-c2-starts-without-the-correction
 
 RESULT PASS  [c2] C2 starts without its own answer on disk
 
-$ node "${ROOT}/scripts/check.mjs" c2-step4-names-the-keys-it-compares
+$ node "${ROOT}/scripts/check.mjs" c2-step4-specifies-the-shape-it-compares
 
-RESULT PASS  [c2] step 4 names every key it then compares
+RESULT PASS  [c2] step 4 specifies the shape it compares
 
 $ node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric
 
