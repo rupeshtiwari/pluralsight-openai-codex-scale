@@ -874,6 +874,25 @@ fresh clone; the tool's printed summary is not evidence, so counts come from `--
 the skill-off run is never filled in from expectation. This adds the agent's own report to that
 list. The general form: **whatever claims the work happened is not what proves it.**
 
+### A script's verdict is not proof the script ran
+
+A new all-scoped block was spliced into the middle of a prose comment in Module 2's preflight,
+because the insertion anchored on the first literal occurrence of `check "all"` in the file and that
+turned out to be a sentence describing the convention rather than an invocation. The block escaped
+the comment and executed fifty lines above the function definition. The author's terminal opened
+with `check: command not found`.
+
+Two guards failed to see it. `bash -n` passed, because the file is valid shell — it simply calls a
+function that does not exist yet. And the verification runs discarded stderr (`>/dev/null 2>&1`,
+reading only the exit code), so the script printed its `PASS` verdict and reported success while two
+of its lines were erroring out. **The same shape as reading an agent's summary instead of the
+artifact, one layer down, with the script in the agent's chair.**
+
+`preflight-checks-run-after-their-definition` asserts the mechanical part: no `check` invocation may
+appear above `check()`, and every invocation must open with a quoted scope and a quoted title, which
+is what the leftover prose fragment failed. The rest is a habit — **read stderr when you run these.
+A script that half-works still prints a verdict.**
+
 ### Exclude the noise; never narrow to the signal
 
 C6's step verifications say `git status --short -- ':!plans/prompts'`. Getting there took two

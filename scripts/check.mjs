@@ -2219,6 +2219,120 @@ const CHECKS = {
     return ok;
   },
 
+  /**
+   * No preflight invokes check() before check() exists.
+   *
+   * A new all-scoped block was spliced into the middle of a prose comment --
+   * "Every check is already scoped -- check "all" gates every clip" -- because
+   * the insertion anchored on the first literal occurrence of that string in the
+   * file, which was the sentence rather than an invocation. The block escaped
+   * the comment and ran at line 32, fifty lines above the function definition,
+   * so the author's terminal opened with "check: command not found".
+   *
+   * `bash -n` passed: the file is valid shell, it just calls a function that is
+   * not defined yet. And the runs that were supposed to catch it discarded
+   * stderr, so a broken script reported success -- which is the same failure as
+   * reading an agent's summary instead of the artifact, one layer down. Read
+   * stderr when you run these; this check is the part a machine can do.
+   */
+  /**
+   * C2 step 4's prompt names every key its verification then reads.
+   *
+   * Walk 2 matched the baseline on all four priorities and user counts, and
+   * showed `route=absent` for every finding. Codex had answered the question --
+   * it wrote `routedNow` and a nested `routing.routed`, all false -- but that
+   * answers "was this routed", while the baseline's `route` records "should this
+   * be routed". Both correct, for different questions, and the whole difference
+   * was a key the prompt never named.
+   *
+   * This is section 11c with a JSON key in place of a grep: an assertion tests
+   * the contract value rather than the identifier it happened to see first. When
+   * the contract value IS an identifier, the prompt has to state it, and the
+   * three places that must agree -- prompt, verification selector, baseline --
+   * are checked against each other here.
+   */
+  'c2-step4-names-the-keys-it-compares': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const RUNBOOK = 'module2/m2-c2-manual-triage.md';
+    const doc = read(RUNBOOK);
+    const from = doc.indexOf('## Step 4');
+    if (from < 0) return reject(`${RUNBOOK}: no step 4`);
+    const next = doc.indexOf('\n## ', from + 1);
+    const step = doc.slice(from, next < 0 ? doc.length : next);
+    const prompt = (step.match(/```text\n([\s\S]*?)\n```/) || [, ''])[1];
+    if (!prompt.trim()) return reject(`${RUNBOOK}: step 4 has no prompt block`);
+
+    const base = JSON.parse(read('automation/triage/baseline-manual-sweep.json'));
+    const finding = base.findings[0] || {};
+    let ok = true;
+
+    // Every field the verification selects out of $OUT's findings.
+    const selectors = new Set();
+    for (const m of step.matchAll(/json\.mjs table "\$OUT"\s+(\S+)\s+([^\n]*)/g)) {
+      selectors.add(m[1]);
+      for (const spec of m[2].trim().split(/\s+/)) {
+        const field = spec.replace(/^[^=]+=/, '').replace(/:\d+$/, '');
+        if (field) selectors.add(field);
+      }
+    }
+    // `fields` reads the same file by the same keys and drifts the same way.
+    for (const m of step.matchAll(/json\.mjs fields "\$OUT"\s+([^\n]*)/g)) {
+      for (const spec of m[1].match(/"[^"]+"/g) || []) {
+        const field = spec.slice(1, -1).replace(/^[^=]+=/, '');
+        // A path selector is satisfied by its root: the prompt names the
+        // structure, not every index into it.
+        if (field) selectors.add(field.split('.')[0]);
+      }
+    }
+    if (selectors.size === 0) {
+      return reject(`${RUNBOOK}: step 4's verification reads no fields out of $OUT, so nothing ties the prompt to the comparison`);
+    }
+    // Naming a key means naming it as a key: quoted, or introduced as the first
+    // token of a schema line. A bare substring is not enough -- walk 2's prompt
+    // said "state whether it should be routed", and `includes('route')` matches
+    // the word "routed", so a substring test would have passed on the very
+    // prompt that produced route=absent.
+    const names = (field) => new RegExp(`(["'\`]${field}["'\`])|(^\\s{2,}${field}\\s{2,}\\S)`, 'm').test(prompt);
+    for (const field of selectors) {
+      if (!names(field)) {
+        ok = reject(`${RUNBOOK}: step 4 compares "${field}" but its prompt never names it. Codex will pick its own key, the table prints ${field}=absent, and that reads as a wrong decision rather than a differently named one`);
+      }
+      // A selector may name a top-level key or a per-finding one; the baseline
+      // holds rejectedCorrelations at the top and priority inside each finding.
+      const inBaseline = field in base || field in finding;
+      if (!inBaseline) {
+        ok = reject(`${RUNBOOK}: step 4 compares "${field}", which the baseline it compares against does not hold`);
+      }
+    }
+    return ok;
+  },
+
+  'preflight-checks-run-after-their-definition': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    let ok = true;
+    for (const file of ['module1/scripts/preflight_check.sh', 'module2/scripts/preflight_check.sh']) {
+      const lines = read(file).split('\n');
+      const defined = lines.findIndex((l) => /^\s*check\s*\(\s*\)\s*\{/.test(l));
+      if (defined < 0) { ok = reject(`${file}: defines no check() function`); continue; }
+      lines.forEach((l, i) => {
+        if (!/^\s*check\s+["']/.test(l)) return;
+        if (i < defined) {
+          ok = reject(`${file}:${i + 1} calls check before check() is defined at line ${defined + 1}. An invocation this far up is spliced text, not a check -- the shell reports "check: command not found" and the run continues without it`);
+        }
+      });
+      // The splice also left a bare, unquoted invocation behind. Every real one
+      // passes a quoted scope and a quoted title.
+      lines.forEach((l, i) => {
+        if (i < defined) return;
+        if (!/^check\s/.test(l)) return;
+        if (!/^check\s+"(all|c\d)"\s+"/.test(l)) {
+          ok = reject(`${file}:${i + 1} is a check invocation that does not open with a quoted scope and a quoted title: ${l.trim().slice(0, 60)}`);
+        }
+      });
+    }
+    return ok;
+  },
+
   'seeded-run-hunks-trace-to-findings': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const base = JSON.parse(read('automation/triage/baseline-manual-sweep.json'));
