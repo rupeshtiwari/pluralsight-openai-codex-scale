@@ -75,9 +75,8 @@ node scripts/json.mjs fields automation/runs/run-3002.json \
   "status=status" \
   "finding=sourceFindings.0" \
   "chose commit=correlation.chose+correlation.chosenBecause" \
-  "correct=correlation.correct" \
-  "fault type=correlation.faultType" \
-  "build=validation.build"
+  "build=validation.build" \
+  "test=validation.test"
 ```
 
 **Expected output.**
@@ -86,18 +85,26 @@ node scripts/json.mjs fields automation/runs/run-3002.json \
   status      : failed
   finding     : incident-2001
   chose commit: d4e5f6a - committed 17 minutes before the first occurrence of evt-1042
-  correct     : a1b2c3d
-  fault type  : bad source assumption
   build       : fail
+  test        : fail
 ```
 
-**Highlight.** `fault type: bad source assumption`. The generator did competent work on a premise
-it was handed. The failure entered before any code was written.
+**A failed run does not know why it failed, and this one does not claim to.** It logs the commit it
+correlated to and the reason it gave itself. It carried a `correct:` field and a
+`fault type: bad source assumption` field until this walk — the author's diagnosis, printed one
+minute before step 2 asks Codex to reach it. A run that knew the right commit would not have failed.
+Naming the fault is step 2's work, and it has to be available to earn on camera.
 
-**Decision produced.** The failure is in the input, not in the generation.
+**Highlight.** The reason beside the result: `committed 17 minutes before the first occurrence`, and
+`build: fail`. A timestamp was the whole basis for the change, and the gates went red. Say what that
+pairing suggests without naming it yet — step 2 is where the name is earned.
 
-**Verification.** PASS if the chosen commit and the reason it was chosen are both identified.
-FAIL if the run's own summary is taken at face value without checking the correlation.
+**Decision produced.** The run's stated reason for choosing `d4e5f6a` is on the record, and it is a
+timestamp.
+
+**Verification.** PASS if the chosen commit and the reason it was chosen are both read off the run
+record. FAIL if the run's own reason is repeated as though it were a diagnosis — it is what the run
+believed, which is the thing in question.
 
 **Recovery.** `./module2/scripts/demo_reset.sh` then re-apply the patch.
 

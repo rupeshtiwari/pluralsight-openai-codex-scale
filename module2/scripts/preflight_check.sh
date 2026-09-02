@@ -240,6 +240,12 @@ check "c2" "rubric P1 threshold is 100" \
   "The P1 row in docs/triage-rubric.md must read 100 or more. Show what it reads."
 
 sect c3 "clip 3 - schedule and route"
+check "c3" "drafts carry the priority their finding was triaged at" \
+  'node "${ROOT}/scripts/check.mjs" drafts-carry-the-triaged-priority' \
+  "Step 4 verifies on camera that Slack and Linear drafts preserve the evidence and priority from the triage decision. Both incident-2001 drafts said P0 in four places -- title, priority, label, and the Slack headline -- while the baseline moved to P1." \
+  "Bring the drafts onto the baseline's priority. node scripts/check.mjs drafts-carry-the-triaged-priority names the file and the field." \
+  "Do the Slack and Linear drafts state the same priority the baseline triaged their finding at?"
+
 check "c3" "step 4 is verified in-thread, not in a browser" \
   'node "${ROOT}/scripts/check.mjs" m2-c3-verifies-in-thread' \
   "Gate 1 measured what the plugins render in-thread and it is enough to verify a draft. Sending an author to Slack or Linear costs screen time, leaves the surface the clip is about, and shows a destination this demo deliberately does not write to." \
@@ -287,11 +293,11 @@ check "c5" "run-3001 touches exactly two files" \
   "git checkout -- automation/runs/run-3001.patch" \
   "run-3001.patch should change exactly two files. Show which it changes."
 
-check "c5" "run-3001 declares one valid and one invalid hunk" \
-  '[ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3001.json one-of-each)" -eq 1 ]' \
-  "The review decision depends on exactly one of each." \
-  "git checkout -- automation/runs/run-3001.json" \
-  "run-3001.json must declare one valid and one invalid hunk. Show its hunks."
+check "c5" "each seeded hunk traces to a finding, or provably does not" \
+  'node "${ROOT}/scripts/check.mjs" seeded-run-hunks-trace-to-findings' \
+  "Every hunk in the seeded runs used to carry a verdict of valid or invalid with a reason, and this preflight read it. That verdict IS clip 5 step 2's work and clip 6 step 2's -- does the finding ask for this change -- sitting in a file the agent also reads. The shape is now derived from the baseline evidence and the patch." \
+  "Fix the seeded run or the finding it names, not by adding a verdict back. node scripts/check.mjs seeded-run-hunks-trace-to-findings says which run and which hunk." \
+  "Which hunks in automation/runs are traceable to the findings their run was given, and which are not?"
 
 sect c6 "clip 6 - trace and recover"
 check "c6" "run-3002 patch applies" 'git apply --check automation/runs/run-3002.patch' \
@@ -299,17 +305,11 @@ check "c6" "run-3002 patch applies" 'git apply --check automation/runs/run-3002.
   "./module2/scripts/demo_reset.sh then re-run this check" \
   "automation/runs/run-3002.patch does not apply. Show the conflict."
 
-check "c6" "run-3002 carries work worth preserving" \
-  '[ "$(node "${ROOT}/scripts/json.mjs" check automation/runs/run-3002.json has-valid-hunk)" -ge 1 ]' \
-  "Recovery teaches preserving valid work; a wholly bad run has nothing to preserve." \
-  "git checkout -- automation/runs/run-3002.json automation/runs/run-3002.patch" \
-  "run-3002 must contain at least one valid hunk alongside the faulty one."
-
-check "c6" "run-3002 records a bad source assumption" \
-  'grep -q "bad source assumption" automation/runs/run-3002.json' \
-  "The clip traces the failure to the input rather than to the generator." \
-  "git checkout -- automation/runs/run-3002.json" \
-  "run-3002.json must record faultType bad source assumption."
+check "c6" "run-3002 records the reason it chose its commit" \
+  'node "${ROOT}/scripts/json.mjs" get automation/runs/run-3002.json correlation.chosenBecause | grep -q .' \
+  "Step 1 reads the failed run's own log: the commit it correlated to and the reason it gave itself. That reason -- a timestamp -- is what step 2 works from. The run used to carry the answer too, a correct: field and a fault type, printed on camera a minute before step 2 asked Codex to name it." \
+  "Restore correlation.chosenBecause in automation/runs/run-3002.json. Do not restore correct or faultType; fixtures-carry-no-answer-key rejects them." \
+  "What does run-3002 record about why it chose the commit it did?"
 
 check "c6" "run-3003 is the corrected rerun" \
   'grep -q "\"chose\": \"a1b2c3d\"" automation/runs/run-3003.json' \

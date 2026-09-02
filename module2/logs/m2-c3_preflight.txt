@@ -5,19 +5,19 @@ Demo: Schedule Codex triage and route work to Slack and Linear (6 minutes)
 
 RUNBOOK      module2/m2-c3-schedule-triage.md
 OBJECTIVES   TO3, EO3c, EO3d
-READINESS    READY
+READINESS    NOT READY - 1 of 11 checks failed
 
 STEPS
 -----
 
-Step 1  READY
+Step 1  BLOCKED
   Convert the tested manual sweep into a scheduled Codex automation using the same thread context
   EO3c       convert a tested manual sweep into a scheduled automation
 
   pass  triage baseline present
         $ node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json
 
-Step 2  READY
+Step 2  BLOCKED
   Run the scheduled workflow and compare its report with the validated manual pattern
   EO3c       using the same thread context
 
@@ -26,7 +26,7 @@ Step 2  READY
   pass  baseline has four findings
         $ [ "$(node "${ROOT}/scripts/json.mjs" count automation/triage/baseline-manual-sweep.json findings)" -eq 4 ]
 
-Step 3  READY
+Step 3  BLOCKED
   Approve selected findings before drafting Slack updates or Linear issues
   EO3d       routing workflow follows triage approval
 
@@ -35,7 +35,7 @@ Step 3  READY
   pass  no draft is pre-approved
         $ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-drafts/*.json | grep -cv "null")" -eq 0 ]
 
-Step 4  READY
+Step 4  BLOCKED
   Verify Slack and Linear drafts preserve the evidence and priority from the triage decision
   EO3d, TO3  drafts preserve evidence and priority
 
@@ -45,15 +45,24 @@ Step 4  READY
         $ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-drafts/*.json | grep -cv "null")" -eq 0 ]
   pass  step 4 is verified in-thread, not in a browser
         $ node "${ROOT}/scripts/check.mjs" m2-c3-verifies-in-thread
+  pass  drafts carry the priority their finding was triaged at
+        $ node "${ROOT}/scripts/check.mjs" drafts-carry-the-triaged-priority
 
-SHARED GATES  4 of 4 pass
+SHARED GATES  3 of 4 pass
 
   These gate every step above. A failure here blocks the whole clip.
+    FAIL  working tree clean
 
-Every gate is green. This clip can be recorded.
+WHAT TO FIX
+-----------
 
-PASS: 10   FAIL: 0
+working tree clean   [all]
+  why  The review demos seed changes with a patch; leftover edits make the diff unreadable.
+  fix  ./module2/scripts/demo_reset.sh
+  ask  Show me every uncommitted change in this repository and what produced it.
+
+PASS: 10   FAIL: 1
 
 Full command output for this run: module2/logs/m2-c3_preflight.full.txt
 
-VERDICT  READY - this clip can be recorded.
+VERDICT  NOT READY - 1 check(s) failed above.

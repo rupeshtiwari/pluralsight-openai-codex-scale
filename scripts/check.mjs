@@ -2141,6 +2141,153 @@ const CHECKS = {
     return ok;
   },
 
+  /**
+   * Each seeded run's hunks are traceable to its findings, or provably are not.
+   *
+   * The runs used to declare it: every hunk carried a verdict of "valid" or
+   * "invalid" and a why, and the preflight asserted the scenario by reading
+   * them. Those verdicts ARE C5 step 2's and C6 step 2's work -- "does the
+   * finding ask for this change?" -- sitting in a file the agent reads. So they
+   * are gone, and the shape is derived here instead.
+   *
+   * Derived the way the demo teaches it: a hunk is asked for when the file it
+   * touches appears in the evidence of a finding the run was given -- a stack
+   * frame, or the fix that finding recommends. run-3001 must carry one of each,
+   * because a review with nothing to reject teaches nothing; and the hunk that
+   * is not asked for must be the rubric, since editing the standard you are
+   * judged by is the specific move C5 is about. run-3002 must carry at least one
+   * asked-for hunk, or there is nothing for C6 to preserve.
+   */
+  /**
+   * Every draft carries the priority its finding was triaged at.
+   *
+   * C3 step 4 verifies that Slack and Linear drafts "preserve the evidence and
+   * priority from the triage decision", and both incident-2001 drafts said P0
+   * for the whole life of this repository -- title, priority field, label, and
+   * the first line of the Slack text. When the baseline moved to P1 they became
+   * four more places to drift, on camera, in the step whose subject is exactly
+   * that they do not.
+   *
+   * The priority is checked everywhere it is written, not only in the field
+   * named `priority`: a draft whose field says P1 under a title reading "P0:"
+   * is the failure this step is about.
+   */
+  'drafts-carry-the-triaged-priority': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const base = JSON.parse(read('automation/triage/baseline-manual-sweep.json'));
+    const byId = Object.fromEntries(base.findings.map((f) => [f.id, f]));
+    let ok = true;
+    let seen = 0;
+    for (const dir of ['automation/linear-drafts', 'automation/slack-drafts']) {
+      for (const file of readdirSync(join(ROOT, dir)).filter((f) => f.endsWith('.json')).sort()) {
+        const draft = JSON.parse(read(`${dir}/${file}`));
+        const f = byId[draft.sourceFinding];
+        if (!f) { ok = reject(`${dir}/${file} is a draft for ${draft.sourceFinding}, which the baseline does not hold`); continue; }
+        seen += 1;
+        if (draft.status !== 'draft' || draft.approvedBy !== null) {
+          ok = reject(`${dir}/${file} is not an unapproved draft. Slack and Linear are draft-only in this course; nothing is sent or created until a human approves`);
+        }
+        // Only the fields that ASSERT a priority: the structured ones and the
+        // headline. A body may reason about the bands -- incident-2002's draft
+        // explains that a workaround puts it at P2 "rather than P1", and a
+        // blanket scan over prose rejects that correct sentence, which is the
+        // same mistake as testing a summary for the verdict it argues.
+        const asserted = [
+          ['title', draft.title],
+          ['priority', draft.priority],
+          ['text (headline)', (draft.text || '').split('\n')[0]],
+        ];
+        for (const [field, value] of asserted) {
+          if (!value) continue;
+          for (const m of String(value).matchAll(/\bP([0-3])\b/gi)) {
+            if (`P${m[1]}` !== f.priority) {
+              ok = reject(`${dir}/${file}: ${field} says P${m[1]}; ${f.id} is triaged ${f.priority}. C3 step 4 verifies on camera that the drafts preserve the triage priority`);
+            }
+          }
+        }
+        for (const label of draft.labels || []) {
+          if (/^p[0-3]$/i.test(label) && label.toLowerCase() !== f.priority.toLowerCase()) {
+            ok = reject(`${dir}/${file}: label "${label}" does not match ${f.id}'s triaged ${f.priority}`);
+          }
+        }
+        if (draft.priority && draft.priority !== f.priority) {
+          ok = reject(`${dir}/${file}: priority ${draft.priority} does not match ${f.id}'s triaged ${f.priority}`);
+        }
+      }
+    }
+    if (seen === 0) return reject('no drafts found under automation/linear-drafts or automation/slack-drafts');
+    return ok;
+  },
+
+  'seeded-run-hunks-trace-to-findings': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const base = JSON.parse(read('automation/triage/baseline-manual-sweep.json'));
+    const { issues } = JSON.parse(read('automation/sentry-fixtures/issues.json'));
+    const RUBRIC = 'docs/triage-rubric.md';
+
+    // Every file a finding's own evidence points at: the stack frames of the
+    // issues it merges, plus any file its recommendation names.
+    const filesFor = (id) => {
+      const f = base.findings.find((x) => x.id === id);
+      if (!f) return null;
+      const ids = [f.id, ...(f.merged || [])];
+      const files = new Set();
+      for (const i of issues.filter((x) => ids.includes(x.id))) {
+        for (const frame of i.stack || []) {
+          const m = frame.match(/\(([^:]+):/);
+          if (m) files.add(m[1]);
+        }
+      }
+      for (const m of `${f.recommendation || ''} ${f.evidence || ''}`.matchAll(/[\w./-]+\.(?:ts|mts|js|json|md)/g)) {
+        files.add(m[0]);
+      }
+      return files;
+    };
+
+    let ok = true;
+    const asked = {};
+    for (const runId of ['run-3001', 'run-3002', 'run-3003']) {
+      const run = JSON.parse(read(`automation/runs/${runId}.json`));
+      const evidenceFiles = new Set();
+      for (const id of run.sourceFindings || []) {
+        const fs = filesFor(id);
+        if (!fs) { ok = reject(`${runId} names source finding ${id}, which the baseline does not hold`); continue; }
+        for (const f of fs) evidenceFiles.add(f);
+      }
+      asked[runId] = (run.hunks || []).map((h) => ({
+        file: h.file,
+        // A hunk is asked for when its file, or the file it plainly mirrors by
+        // basename, is in the evidence of a finding the run was handed.
+        askedFor: [...evidenceFiles].some((e) => e === h.file || e.split('/').pop() === h.file.split('/').pop()),
+      }));
+      for (const h of run.hunks || []) {
+        if (Object.keys(h).length !== 1 || !('file' in h)) {
+          ok = reject(`${runId}: a hunk carries ${Object.keys(h).join(', ')}. A hunk records the file it touched; whether it should survive review is what the clip asks`);
+        }
+      }
+    }
+
+    const a1 = asked['run-3001'] || [];
+    if (a1.length !== 2) {
+      ok = reject(`run-3001 has ${a1.length} hunks; C5 reviews two, one that the finding asks for and one that it does not`);
+    } else {
+      if (!a1.some((h) => h.askedFor)) ok = reject('run-3001 has no hunk traceable to incident-2002, so step 2 has nothing to accept');
+      const unasked = a1.filter((h) => !h.askedFor);
+      if (unasked.length === 0) ok = reject('run-3001 has no hunk that the finding fails to ask for, so step 2 has nothing to reject and the review teaches nothing');
+      else if (!unasked.some((h) => h.file === RUBRIC)) {
+        ok = reject(`run-3001's unrequested hunk touches ${unasked.map((h) => h.file).join(', ')} rather than ${RUBRIC}. C5 is about an automation editing the standard it is judged by; any other file makes it an ordinary scope complaint`);
+      }
+    }
+    const a2 = asked['run-3002'] || [];
+    if (!a2.some((h) => h.askedFor)) {
+      ok = reject('run-3002 has no hunk traceable to incident-2001, so C6 has no sound work to preserve and the recovery is just a revert');
+    }
+    if (!a2.some((h) => !h.askedFor)) {
+      ok = reject('run-3002 has no hunk outside the finding, so there is nothing for C6 to isolate');
+    }
+    return ok;
+  },
+
   'fixtures-carry-no-answer-key': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const FILES = [
@@ -2149,6 +2296,13 @@ const CHECKS = {
       ['automation/sentry-fixtures/issues.json', 'issues',
         ['id', 'title', 'culprit', 'firstSeen', 'lastSeen', 'affectedUsers', 'occurrences',
           'release', 'stack', 'workaround', 'userImpact'], (i) => i.id],
+      // A run records what it did, never whether it was right: the verdicts and
+      // the correct/faultType pair were C5 step 2's and C6 step 2's findings,
+      // and C6 step 1 printed the fault type on camera a minute before step 2
+      // asked Codex to name it.
+      ['automation/runs/run-3001.json', 'hunks', ['file'], (h) => h.file],
+      ['automation/runs/run-3002.json', 'hunks', ['file'], (h) => h.file],
+      ['automation/runs/run-3003.json', 'hunks', ['file'], (h) => h.file],
     ];
     let ok = true;
     for (const [file, key, allowed, idOf] of FILES) {
@@ -2160,6 +2314,17 @@ const CHECKS = {
             ok = reject(`${file}: ${idOf(rec)} carries a "${k}" field. The evidence fixtures hold facts about each record; a field that reasons about one hands the agent a finding a later step is supposed to reach. Allowed: ${allowed.join(', ')}`);
           }
         }
+      }
+      const c = doc.correlation;
+      if (c) {
+        for (const k of ['correct', 'faultType']) {
+          if (k in c) {
+            ok = reject(`${file}: correlation carries "${k}". A run that failed does not know the right answer -- that is what the recovery clip works out, and this field printed it on camera first`);
+          }
+        }
+      }
+      if (doc.validation && 'note' in doc.validation) {
+        ok = reject(`${file}: validation carries a note explaining which hunk is at fault. The gate results are the evidence; the diagnosis is the clip`);
       }
       const comment = doc._comment || '';
       for (const rec of records) {
