@@ -92,7 +92,11 @@ Apply the same rules that were corrected here:
 - price every finding from docs/triage-rubric.md, quoting the row
 - defer findings whose confidence is low rather than assigning a priority
 
-Produce the report. Do not send anything to Slack or Linear.
+Write the report to automation/triage/scheduled-sweep.json, using the same
+structure as automation/triage/corrected-sweep.template.json. Do not write to
+corrected-sweep.json -- that is clip 2's output and must stay as it is.
+
+Do not send anything to Slack or Linear.
 ```
 
 **The window is pinned, and that is deliberate.** This instruction used to say *the most recent
@@ -137,27 +141,52 @@ Comparing against a recorded baseline turns "looks right" into a specific pass o
 
 ```bash
 BASE=automation/triage/baseline-manual-sweep.json
+OUT=automation/triage/scheduled-sweep.json
+node scripts/json.mjs require "$OUT" findings id priority affectedUsers route
+node scripts/json.mjs require "$OUT" . rejectedCorrelations
+node scripts/json.mjs table "$OUT" findings id:16 priority:9 users=affectedUsers:4 route=route
 node scripts/json.mjs table "$BASE" findings id:16 priority:9 users=affectedUsers:4 route=route
+node scripts/json.mjs fields "$OUT" "rejected=rejectedCorrelations.0.commit"
 node scripts/json.mjs fields "$BASE" "rejected=rejectedCorrelations.0.commit"
 ```
 
 **Expected output.**
 
 ```text
+  id: present in all 4
+  priority: present in all 4
+  affectedUsers: present in all 4
+  route: present in all 4
+  rejectedCorrelations: present in all 1
+
   incident-2001    P1        users=500  route=true
   incident-2002    P2        users=61   route=true
   evt-1088         P3        users=3    route=false
   evt-1099         deferred  users=2    route=false
+
+  incident-2001    P1        users=500  route=true
+  incident-2002    P2        users=61   route=true
+  evt-1088         P3        users=3    route=false
+  evt-1099         deferred  users=2    route=false
+
+  rejected: d4e5f6a
   rejected: d4e5f6a
 ```
+
+**Two tables, not one.** The scheduled run's own file is printed above the baseline, so the match is
+read off two artifacts rather than off Codex's summary of one. The first walk of this step compared
+the reply against the baseline table and reported them byte-identical — which turned out to be true,
+and was still an agent's account of its work rather than the work.
 
 **Highlight.** Line by line: same four ids, same four priorities, same combined count, same
 rejected correlation.
 
 **Decision produced.** The scheduled run reproduces the validated pattern.
 
-**Verification.** PASS if all four priorities match and `d4e5f6a` is still rejected. FAIL if any
-differs, or if the duplicates came back apart — the schedule did not inherit the context.
+**Verification.** PASS if both `require` lines report every key present, the two tables read
+identically, and both `rejected` lines say `d4e5f6a`. FAIL if any priority differs, if the
+duplicates came back apart — the schedule did not inherit the context — or if `require` names a
+missing key, which means the run wrote a different shape rather than a different answer.
 
 **Recovery.** Delete the task and repeat Step 1 from the validated conversation.
 

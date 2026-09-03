@@ -59,14 +59,17 @@ fi
 # 2. Fixtures restored to their recorded values
 $FMT section "fixtures"
 git checkout -- automation/ 2>/dev/null
-# C2 step 4 writes automation/triage/corrected-sweep.json. It is untracked by
+# C2 step 4 writes corrected-sweep.json and C3 step 1's scheduled run writes
+# scheduled-sweep.json. Both are untracked by
 # design: its absence IS the starting state, and its presence means a previous
 # take's correction is still on disk. git clean above removes it; this says so.
-if [ -e automation/triage/corrected-sweep.json ]; then
-  $FMT item "corrected-sweep.json STILL PRESENT - remove it before the next take"
-else
-  $FMT item "corrected-sweep.json absent - C2 starts without its own answer"
-fi
+for out in corrected-sweep scheduled-sweep; do
+  if [ -e "automation/triage/${out}.json" ]; then
+    $FMT item "${out}.json STILL PRESENT - remove it before the next take"
+  else
+    $FMT item "${out}.json absent - the clip that writes it starts without its own answer"
+  fi
+done
 
 # corrected-sweep.template.json is the shape C2 step 4 sends Codex to read; the
 # take fails at the shape check if it is missing or malformed.

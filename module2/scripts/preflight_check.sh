@@ -192,6 +192,12 @@ check "all" "fixtures, rubric and config shape are ready" \
   "Read its own output: it names the fixture, rubric row or config key that failed." \
   "Which fixture, rubric row or .env.example key does ./scripts/verify_integrations.sh report as failing?"
 
+check "c3" "C3 starts without its own answer on disk" \
+  'node "${ROOT}/scripts/check.mjs" m2-c2-starts-without-the-correction' \
+  "C3 step 1's scheduled run writes scheduled-sweep.json. It used to inherit C2's output path from the thread and overwrite corrected-sweep.json, destroying clip 2's evidence." \
+  "./module2/scripts/demo_reset.sh removes both." \
+  "Is a previous take's triage output still on disk under automation/triage?"
+
 check "c2" "C2 starts without its own answer on disk" \
   'node "${ROOT}/scripts/check.mjs" m2-c2-starts-without-the-correction' \
   "Codex persists a mid-thread correction to disk, not only to conversation context -- Gate 1 measured it editing four files to record one. Step 4 writes automation/triage/corrected-sweep.json, and if that survives to the next take this clip starts from the answer it is supposed to reach." \
@@ -258,6 +264,12 @@ check "c2" "rubric P1 threshold is 100" \
   "The P1 row in docs/triage-rubric.md must read 100 or more. Show what it reads."
 
 sect c3 "clip 3 - schedule and route"
+check "all" "the prompts name destinations the drafts are written for" \
+  'node "${ROOT}/scripts/check.mjs" destinations-match-the-drafts-fixture' \
+  "A C3 walk had Codex report that Linear shows no project named SupportHub reliability -- the prompt was asking for issues in a project that does not exist, and nothing tied the name in the prompt to the name in the fixture the drafts are written against." \
+  "Rename the Linear project in the recording workspace to match the fixture, or change the fixture and every prompt together. The fixture is the reference: a real team name is a private workspace identifier and does not belong in this repository." \
+  "Which Slack channel and Linear project do the M2 prompts name, and do the drafts agree?"
+
 check "c3" "the scheduled sweep names the window the fixtures cover" \
   'node "${ROOT}/scripts/check.mjs" scheduled-sweep-window-matches-the-fixtures' \
   "Step 1 told the scheduled task to sweep 'the most recent 24-hour window'. The fixtures cover 2025-03-03 only, so the run reported 'No actionable update' -- correct behaviour applied to an empty window -- and step 2 had no report to compare, steps 3 and 4 nothing to approve or draft. Clip 2 step 1 had named the window explicitly all along, so one conversation was being told two different things." \

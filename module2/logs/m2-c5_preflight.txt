@@ -5,19 +5,19 @@ Demo: Inspect automation diffs in the Codex review pane (6 minutes)
 
 RUNBOOK      module2/m2-c5-inspect-automation-diffs.md
 OBJECTIVES   TO4, EO4a
-READINESS    READY
+READINESS    NOT READY - 1 of 12 checks failed
 
 STEPS
 -----
 
-Step 1  READY
+Step 1  BLOCKED
   Open an automation run that produced uncommitted changes and inspect the diff in the Codex review pane
   EO4a       inspect uncommitted diffs from an automation run in the review pane
 
   pass  run-3001 patch applies
         $ git apply --check automation/runs/run-3001.patch
 
-Step 2  READY
+Step 2  BLOCKED
   Review changed files and hunks against the triage evidence that caused the automation to act
   EO4a       review hunks against the evidence that caused the run
 
@@ -26,26 +26,33 @@ Step 2  READY
   pass  each seeded hunk traces to a finding, or provably does not
         $ node "${ROOT}/scripts/check.mjs" seeded-run-hunks-trace-to-findings
 
-Step 3  READY
+Step 3  BLOCKED
   Use source control to stage valid hunks individually and revert an unrelated or incorrect hunk
   EO4a       per-hunk staging and revert controls
 
   no check of its own — gated by the shared checks below
 
-Step 4  READY
+Step 4  BLOCKED
   Confirm only approved changes remain before the repository is committed
   TO4        only approved changes remain
 
   no check of its own — gated by the shared checks below
 
-SHARED GATES  8 of 8 pass
+SHARED GATES  8 of 9 pass
 
   These gate every step above. A failure here blocks the whole clip.
+    FAIL  working tree clean
 
-Every gate is green. This clip can be recorded.
+WHAT TO FIX
+-----------
 
-PASS: 11   FAIL: 0
+working tree clean   [all]
+  why  The review demos seed changes with a patch; leftover edits make the diff unreadable.
+  fix  ./module2/scripts/demo_reset.sh
+  ask  Show me every uncommitted change in this repository and what produced it.
+
+PASS: 11   FAIL: 1
 
 Full command output for this run: module2/logs/m2-c5_preflight.full.txt
 
-VERDICT  READY - this clip can be recorded.
+VERDICT  NOT READY - 1 check(s) failed above.
