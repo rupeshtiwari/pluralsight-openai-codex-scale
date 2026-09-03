@@ -1337,11 +1337,20 @@ const CHECKS = {
    */
   'm2-c2-starts-without-the-correction': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
-    const OUT = 'automation/triage/corrected-sweep.json';
+    // C2 step 4 writes corrected-sweep.json; C3 step 1's scheduled run writes
+    // scheduled-sweep.json. They were the same file until a C3 walk showed the
+    // scheduled run inheriting C2's output path from the thread and overwriting
+    // clip 2's evidence.
+    const OUTPUTS = {
+      'automation/triage/corrected-sweep.json': 'C2 step 4',
+      'automation/triage/scheduled-sweep.json': 'C3 step 1\'s scheduled run',
+    };
     const BASE = 'automation/triage/baseline-manual-sweep.json';
     let ok = true;
-    if (existsSync(join(ROOT, OUT))) {
-      ok = reject(`${OUT} exists before the take. C2 step 4 produces it, so a previous run's correction is still on disk and this clip would start from its own answer. ./module2/scripts/demo_reset.sh removes it`);
+    for (const [OUT, who] of Object.entries(OUTPUTS)) {
+      if (existsSync(join(ROOT, OUT))) {
+        ok = reject(`${OUT} exists before the take. ${who} produces it, so a previous run's answer is still on disk and the clip would start from it. ./module2/scripts/demo_reset.sh removes it`);
+      }
     }
     if (!existsSync(join(ROOT, BASE))) {
       return reject(`${BASE} is missing -- it is the recorded standard step 4 compares against`);
@@ -2448,6 +2457,62 @@ const CHECKS = {
    * A rolling window is what production would use, and it cannot work against a
    * fixed fixture set. Pinning it is a deliberate trade the runbook discloses.
    */
+  /**
+   * The destinations the prompts name are the destinations the drafts record.
+   *
+   * A C3 walk had Codex report: "Linear does not show a project named SupportHub
+   * reliability; the visible SupportHub project is SupportHub on team
+   * Fullstackmaster." The prompt was asking for issues in a project that does
+   * not exist, and nothing tied the name in the prompt to the name in the
+   * fixture the drafts are written against.
+   *
+   * The fixture is the reference, not the workspace: a real team name is a
+   * private workspace identifier and does not belong in a public course
+   * repository. So the check holds the prompts to the fixture, and the recording
+   * workspace is renamed to match rather than the other way round.
+   */
+  'destinations-match-the-drafts-fixture': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const linear = JSON.parse(read('automation/linear-drafts/incident-2001.json'));
+    const slack = JSON.parse(read('automation/slack-drafts/incident-2001.json'));
+    const project = linear.project;
+    const channel = slack.channel;
+    if (!project) return reject('automation/linear-drafts/incident-2001.json has no "project", so there is no name for the prompts to match');
+    if (!channel) return reject('automation/slack-drafts/incident-2001.json has no "channel"');
+
+    // Every draft must agree with itself before the prompts are checked.
+    let ok = true;
+    for (const dir of ['automation/linear-drafts', 'automation/slack-drafts']) {
+      for (const f of readdirSync(join(ROOT, dir)).filter((x) => x.endsWith('.json')).sort()) {
+        const d = JSON.parse(read(`${dir}/${f}`));
+        if (d.project && d.project !== project) ok = reject(`${dir}/${f}: project "${d.project}" differs from "${project}"`);
+        if (d.channel && d.channel !== channel) ok = reject(`${dir}/${f}: channel "${d.channel}" differs from "${channel}"`);
+      }
+    }
+
+    // A runbook may name a Linear project or a Slack channel; when it does, it
+    // must be these. Anything else sends the author to a destination that is not
+    // there, which is what happened on camera.
+    const CHAN = /#[A-Za-z0-9][A-Za-z0-9._-]*/g;
+    for (const file of ['module2/m2-c2-manual-triage.md', 'module2/m2-c3-schedule-triage.md']) {
+      const doc = read(file);
+      for (const m of doc.matchAll(/Linear (?:project|issue[^.\n]{0,30}in the)\s+`?([A-Z][^`\n,.]*?)`?\s*(?:project)?\s*(?:$|[,.\n])/gm)) {
+        const named = m[1].trim().replace(/\s+project$/, '');
+        if (named && named !== project) {
+          ok = reject(`${file} names Linear project "${named}"; the drafts are written for "${project}". A prompt asking for a project that does not exist is what a C3 walk hit on camera`);
+        }
+      }
+      for (const m of doc.matchAll(CHAN)) {
+        // Only Slack-looking channels; skip markdown anchors and headings.
+        if (!/^#supporthub|^#[a-z-]+$/.test(m[0])) continue;
+        if (m[0] !== channel) {
+          ok = reject(`${file} names Slack channel "${m[0]}"; the drafts are written for "${channel}"`);
+        }
+      }
+    }
+    return ok;
+  },
+
   'scheduled-sweep-window-matches-the-fixtures': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const norm = (t) => new Date(t).toISOString();

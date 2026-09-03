@@ -5,7 +5,7 @@ Demo: Inspect automation diffs in the Codex review pane (6 minutes)
 
 RUNBOOK      module2/m2-c5-inspect-automation-diffs.md
 OBJECTIVES   TO4, EO4a
-READINESS    NOT READY - 1 of 7 checks failed
+READINESS    NOT READY - 1 of 12 checks failed
 
 STEPS
 -----
@@ -38,7 +38,7 @@ Step 4  BLOCKED
 
   no check of its own — gated by the shared checks below
 
-SHARED GATES  3 of 4 pass
+SHARED GATES  8 of 9 pass
 
   These gate every step above. A failure here blocks the whole clip.
     FAIL  working tree clean
@@ -51,7 +51,7 @@ working tree clean   [all]
   fix  ./module2/scripts/demo_reset.sh
   ask  Show me every uncommitted change in this repository and what produced it.
 
-PASS: 6   FAIL: 1
+PASS: 11   FAIL: 1
 
 Full command output for this run: module2/logs/m2-c5_preflight.full.txt
 

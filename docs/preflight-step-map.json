@@ -213,6 +213,10 @@
     "the scheduled sweep names the window the fixtures cover": [
       1,
       2
+    ],
+    "C3 starts without its own answer on disk": [
+      1,
+      2
     ]
   },
   "m2-c5": {

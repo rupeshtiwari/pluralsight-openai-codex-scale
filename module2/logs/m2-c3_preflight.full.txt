@@ -31,6 +31,18 @@ $ [ -z "$(git diff --cached --name-only)" ]
 
 RESULT PASS  [all] nothing left staged
 
+$ node "${ROOT}/scripts/check.mjs" runbooks-probe-agent-identity
+
+RESULT PASS  [all] every prep block proves the agent is in this checkout
+
+$ node "${ROOT}/scripts/check.mjs" checks-do-not-match-tool-output
+
+RESULT PASS  [all] no assertion matches a tool's printed prose
+
+$ node "${ROOT}/scripts/check.mjs" preflight-checks-run-after-their-definition
+
+RESULT PASS  [all] every preflight calls check after defining it
+
 $ ./scripts/verify_integrations.sh
 MODULE 2 INTEGRATION PREPARATION
 Fixtures, rubric and config shape - not plugin reachability
@@ -85,6 +97,18 @@ WHAT THIS DOES NOT COVER
   PASS: Fixtures, rubric and config shape are ready. Reachability is still C2 step 1's job.
 RESULT PASS  [all] fixtures, rubric and config shape are ready
 
+$ node "${ROOT}/scripts/check.mjs" m2-c2-starts-without-the-correction
+
+RESULT PASS  [c3] C3 starts without its own answer on disk
+
+$ node "${ROOT}/scripts/check.mjs" destinations-match-the-drafts-fixture
+
+RESULT PASS  [all] the prompts name destinations the drafts are written for
+
+$ node "${ROOT}/scripts/check.mjs" scheduled-sweep-window-matches-the-fixtures
+
+RESULT PASS  [c3] the scheduled sweep names the window the fixtures cover
+
 $ node "${ROOT}/scripts/check.mjs" drafts-carry-the-triaged-priority
 
 RESULT PASS  [c3] drafts carry the priority their finding was triaged at
@@ -112,3 +136,7 @@ RESULT PASS  [c3] all routing payloads are drafts
 $ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-drafts/*.json | grep -cv "null")" -eq 0 ]
 
 RESULT PASS  [c3] no draft is pre-approved
+
+$ node "${ROOT}/scripts/check.mjs" seeded-patches-apply-and-touch-what-the-runbook-says
+
+RESULT PASS  [all] each seeded patch touches the files its runbook names

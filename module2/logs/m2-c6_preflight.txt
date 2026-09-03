@@ -5,7 +5,7 @@ Demo: Trace a failed Codex automation and recover safely (6 minutes)
 
 RUNBOOK      module2/m2-c6-recover-failed-automation.md
 OBJECTIVES   TO4, EO4a
-READINESS    NOT READY - 1 of 8 checks failed
+READINESS    NOT READY - 1 of 13 checks failed
 
 STEPS
 -----
@@ -40,9 +40,9 @@ Step 4  BLOCKED
   pass  run-3003 is the corrected rerun
         $ grep -q "\"chose\": \"a1b2c3d\"" automation/runs/run-3003.json
   pass  baseline gates green before seeding a failure
-        $ [ "$(npm test 2>&1 | grep -cF "Tests  25 passed (25)")" -ge 1 ]
+        $ npm test
 
-SHARED GATES  3 of 4 pass
+SHARED GATES  8 of 9 pass
 
   These gate every step above. A failure here blocks the whole clip.
     FAIL  working tree clean
@@ -55,7 +55,7 @@ working tree clean   [all]
   fix  ./module2/scripts/demo_reset.sh
   ask  Show me every uncommitted change in this repository and what produced it.
 
-PASS: 7   FAIL: 1
+PASS: 12   FAIL: 1
 
 Full command output for this run: module2/logs/m2-c6_preflight.full.txt
 

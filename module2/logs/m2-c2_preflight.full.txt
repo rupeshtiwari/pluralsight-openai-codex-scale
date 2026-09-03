@@ -1,7 +1,7 @@
 M2-C2 PREFLIGHT
 ===============
 
-Demo: Run a manual Codex triage sweep across Sentry and GitHub (6 minutes)
+Demo: Run a manual Codex triage sweep across Sentry and GitHub
 
 RUNBOOK
   module2/m2-c2-manual-triage.md
@@ -31,6 +31,96 @@ $ [ -z "$(git diff --cached --name-only)" ]
 
 RESULT PASS  [all] nothing left staged
 
+$ node "${ROOT}/scripts/check.mjs" runbooks-probe-agent-identity
+
+RESULT PASS  [all] every prep block proves the agent is in this checkout
+
+$ node "${ROOT}/scripts/check.mjs" checks-do-not-match-tool-output
+
+RESULT PASS  [all] no assertion matches a tool's printed prose
+
+$ node "${ROOT}/scripts/check.mjs" preflight-checks-run-after-their-definition
+
+RESULT PASS  [all] every preflight calls check after defining it
+
+$ ./scripts/verify_integrations.sh
+MODULE 2 INTEGRATION PREPARATION
+Fixtures, rubric and config shape - not plugin reachability
+
+FIXTURES
+
+  > issues.json parses: PASS
+
+  > issues.json parses: PASS
+
+  > commits.json parses: PASS
+
+  > baseline-manual-sweep.json parses: PASS
+
+  > evt-1042 seeded: PASS
+
+  > evt-1043 seeded: PASS
+
+  > evt-1088 seeded: PASS
+
+  > evt-1099 seeded: PASS
+
+  > baseline names incident-2001: PASS
+
+STARTING STATE
+
+  > C2 starts without its own answer on disk: PASS
+
+TRIAGE RUBRIC
+
+  > P0-P3 all defined: PASS
+
+  > P1 affected-user threshold present: PASS
+
+CONFIG SHAPE
+
+  > .env.example declares every key the demo needs: PASS
+
+  > .env and .env.local untracked: PASS
+
+WHAT THIS DOES NOT COVER
+
+  > Plugin reachability - Sentry, Slack, Linear and GitHub
+    answering.
+
+  > That is C2 step 1's on-camera readiness step, and cannot
+    be asserted from a shell.
+
+  > Gate results are recorded in
+    docs/integration-readiness.md.
+
+  PASS: Fixtures, rubric and config shape are ready. Reachability is still C2 step 1's job.
+RESULT PASS  [all] fixtures, rubric and config shape are ready
+
+$ node "${ROOT}/scripts/check.mjs" m2-c2-starts-without-the-correction
+
+RESULT PASS  [c2] C2 starts without its own answer on disk
+
+$ node "${ROOT}/scripts/check.mjs" c2-step4-specifies-the-shape-it-compares
+
+RESULT PASS  [c2] step 4 specifies the shape it compares
+
+$ node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric
+
+RESULT PASS  [c2] every baseline priority derives from the rubric
+
+$ node "${ROOT}/scripts/check.mjs" runbook-expects-the-baseline-it-compares-to
+
+RESULT PASS  [c2] step 4 expects the baseline it compares against
+
+$ node "${ROOT}/scripts/check.mjs" fixtures-carry-no-answer-key
+
+RESULT PASS  [c2] the evidence fixtures carry no answer key
+
+$ node "${ROOT}/scripts/check.mjs" fixture-stack-frames-resolve
+
+RESULT PASS  [c2] every fixture stack frame opens on real code
+
 $ node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json
 
 RESULT PASS  [c2] sentry fixtures valid
@@ -50,3 +140,11 @@ RESULT PASS  [c2] misleading commit is nearer in time than the real cause
 $ grep -qF "| **P1** | Core workflow degraded or failing for many users | 100 or more |" docs/triage-rubric.md
 
 RESULT PASS  [c2] rubric P1 threshold is 100
+
+$ node "${ROOT}/scripts/check.mjs" destinations-match-the-drafts-fixture
+
+RESULT PASS  [all] the prompts name destinations the drafts are written for
+
+$ node "${ROOT}/scripts/check.mjs" seeded-patches-apply-and-touch-what-the-runbook-says
+
+RESULT PASS  [all] each seeded patch touches the files its runbook names

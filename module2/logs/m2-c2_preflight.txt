@@ -5,7 +5,7 @@ Demo: Run a manual Codex triage sweep across Sentry and GitHub (6 minutes)
 
 RUNBOOK      module2/m2-c2-manual-triage.md
 OBJECTIVES   TO3, EO3a, EO3b
-READINESS    NOT READY - 1 of 14 checks failed
+READINESS    NOT READY - 1 of 20 checks failed
 
 STEPS
 -----
@@ -63,8 +63,10 @@ Step 4  BLOCKED
         $ node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric
   pass  step 4 expects the baseline it compares against
         $ node "${ROOT}/scripts/check.mjs" runbook-expects-the-baseline-it-compares-to
+  pass  step 4 specifies the shape it compares
+        $ node "${ROOT}/scripts/check.mjs" c2-step4-specifies-the-shape-it-compares
 
-SHARED GATES  3 of 4 pass
+SHARED GATES  8 of 9 pass
 
   These gate every step above. A failure here blocks the whole clip.
     FAIL  working tree clean
@@ -77,7 +79,7 @@ working tree clean   [all]
   fix  ./module2/scripts/demo_reset.sh
   ask  Show me every uncommitted change in this repository and what produced it.
 
-PASS: 13   FAIL: 1
+PASS: 19   FAIL: 1
 
 Full command output for this run: module2/logs/m2-c2_preflight.full.txt
 
