@@ -83,8 +83,8 @@ scheduling from a new one loses the context this step depends on.
 **Prompt.** Set the scheduled task's instruction to:
 
 ```text
-Repeat the triage sweep established in this conversation for the most recent
-24-hour window.
+Repeat the triage sweep established in this conversation for the window
+2025-03-03T00:00:00Z to 2025-03-04T00:00:00Z.
 
 Apply the same rules that were corrected here:
 - merge findings that share a root cause and a stack frame, combining counts
@@ -94,6 +94,18 @@ Apply the same rules that were corrected here:
 
 Produce the report. Do not send anything to Slack or Linear.
 ```
+
+**The window is pinned, and that is deliberate.** This instruction used to say *the most recent
+24-hour window*, which is what a real scheduled sweep would say — and it broke the clip. The fixtures
+cover 2025-03-03 only, so the run found nothing in today's window and returned *"No actionable
+update"*. That was correct behaviour: it inherited the thread and applied every rule, to an empty
+window. Step 2 then had no report to compare, and steps 3 and 4 had nothing to approve or draft.
+
+Naming the window matches what clip 2 step 1 already told the same conversation, so the two clips
+stop contradicting each other. The cost is that this schedule points at one fixed day forever, which
+is right for a recording and wrong for production. Say so on camera in a sentence: in production the
+window is rolling; here it is pinned so the run is reproducible.
+`scheduled-sweep-window-matches-the-fixtures` holds the two prompts and the fixtures to one window.
 
 **Expected result.** A scheduled task is created and shows the conversation it inherits from.
 

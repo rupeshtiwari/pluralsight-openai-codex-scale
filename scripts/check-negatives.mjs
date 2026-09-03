@@ -870,6 +870,55 @@ for (const [check, rb, saved] of [
 
 }
 
+{
+  const C2 = 'module2/m2-c2-manual-triage.md';
+  const C3 = 'module2/m2-c3-schedule-triage.md';
+  const ISS = 'automation/sentry-fixtures/issues.json';
+  const BASE = 'automation/triage/baseline-manual-sweep.json';
+  const ctl = Object.fromEntries([C2, C3, ISS, BASE].map((f) => [f, readFileSync(f, 'utf8')]));
+  const WIN = '2025-03-03T00:00:00Z to 2025-03-04T00:00:00Z';
+  SYNTHETIC_CASES.push(
+    {
+      check: 'scheduled-sweep-window-matches-the-fixtures',
+      what: 'C3 asks for "the most recent 24-hour window" again -- the wording that made the scheduled run report "No actionable update" and left steps 2 to 4 with nothing',
+      control: ctl,
+      negative: { ...ctl, [C3]: ctl[C3].replace(`for the window\n${WIN}.`, 'for the most recent\n24-hour window.') },
+    },
+    {
+      check: 'scheduled-sweep-window-matches-the-fixtures',
+      what: 'C3 sweeps a real window, but the day after the one the fixtures cover',
+      control: ctl,
+      negative: { ...ctl, [C3]: ctl[C3].replace(WIN, '2025-03-04T00:00:00Z to 2025-03-05T00:00:00Z') },
+    },
+    {
+      check: 'scheduled-sweep-window-matches-the-fixtures',
+      what: 'the fixtures are re-dated and the two prompts are left behind',
+      control: ctl,
+      negative: (() => {
+        const d = JSON.parse(ctl[ISS]);
+        d.query_window = { from: '2026-01-01T00:00:00.000Z', to: '2026-01-02T00:00:00.000Z' };
+        return { ...ctl, [ISS]: JSON.stringify(d, null, 2) + '\n' };
+      })(),
+    },
+    {
+      check: 'scheduled-sweep-window-matches-the-fixtures',
+      what: 'the baseline records a window the fixtures do not cover',
+      control: ctl,
+      negative: (() => {
+        const d = JSON.parse(ctl[BASE]);
+        d.window = { from: '2026-01-01T00:00:00.000Z', to: '2026-01-02T00:00:00.000Z' };
+        return { ...ctl, [BASE]: JSON.stringify(d, null, 2) + '\n' };
+      })(),
+    },
+    {
+      check: 'scheduled-sweep-window-matches-the-fixtures',
+      what: 'C2 drifts off the window while C3 stays on it, so one conversation is told two things again',
+      control: ctl,
+      negative: { ...ctl, [C2]: ctl[C2].replace(WIN, '2025-03-01T00:00:00Z to 2025-03-02T00:00:00Z') },
+    },
+  );
+}
+
 process.stdout.write('PROVING EACH CHECK FAILS ON ITS NEGATIVE CASE\n\n');
 
 for (const c of CASES) {
