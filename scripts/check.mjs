@@ -2430,6 +2430,64 @@ const CHECKS = {
    * nothing is written -- a preflight that dirties the tree to test a patch is a
    * preflight that fails the next check.
    */
+  /**
+   * Both M2 prompts name the window the fixtures actually cover.
+   *
+   * C3 step 1 told the scheduled task to sweep "the most recent 24-hour
+   * window". The fixtures cover 2025-03-03 only, so the run returned "No
+   * actionable update: the available fixture evidence still covers 2025-03-03,
+   * not the current 24-hour window" -- correct behaviour, applied to an empty
+   * window. Step 2 then had no report to compare against the baseline, and
+   * steps 3 and 4 had nothing to approve or draft.
+   *
+   * C2 step 1 had named the window explicitly all along, so the two clips were
+   * telling one conversation two different things. This holds all of it to a
+   * single window: the sentry fixture's query_window, the baseline's window,
+   * and the window named in each runbook prompt.
+   *
+   * A rolling window is what production would use, and it cannot work against a
+   * fixed fixture set. Pinning it is a deliberate trade the runbook discloses.
+   */
+  'scheduled-sweep-window-matches-the-fixtures': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const norm = (t) => new Date(t).toISOString();
+    const fixture = JSON.parse(read('automation/sentry-fixtures/issues.json')).query_window;
+    if (!fixture || !fixture.from || !fixture.to) {
+      return reject('automation/sentry-fixtures/issues.json has no query_window, so there is no window for the prompts to match');
+    }
+    const want = { from: norm(fixture.from), to: norm(fixture.to) };
+
+    const base = JSON.parse(read('automation/triage/baseline-manual-sweep.json')).window;
+    if (!base || norm(base.from) !== want.from || norm(base.to) !== want.to) {
+      return reject(`the baseline's window (${base && base.from} to ${base && base.to}) is not the window the sentry fixtures cover (${want.from} to ${want.to})`);
+    }
+
+    let ok = true;
+    const RUNBOOKS = [
+      ['module2/m2-c2-manual-triage.md', '## Step 1 —'],
+      ['module2/m2-c3-schedule-triage.md', '## Step 1 —'],
+    ];
+    const ISO = /(\d{4}-\d{2}-\d{2}T[\d:.]+Z)\s*(?:to|-|–|—|and|until)\s*(\d{4}-\d{2}-\d{2}T[\d:.]+Z)/;
+    for (const [file, heading] of RUNBOOKS) {
+      const doc = read(file);
+      const from = doc.indexOf(heading);
+      if (from < 0) { ok = reject(`${file}: no "${heading}" section`); continue; }
+      const next = doc.indexOf('\n## ', from + 1);
+      const step = doc.slice(from, next < 0 ? doc.length : next);
+      const prompt = (step.match(/```text\n([\s\S]*?)\n```/) || [, ''])[1];
+      if (!prompt.trim()) { ok = reject(`${file}: step 1 has no prompt block`); continue; }
+      const m = prompt.replace(/\s+/g, ' ').match(ISO);
+      if (!m) {
+        ok = reject(`${file}: step 1's prompt names no explicit window. A relative window -- "the most recent 24-hour window" -- finds nothing, because the fixtures cover ${want.from.slice(0, 10)} and nothing else`);
+        continue;
+      }
+      if (norm(m[1]) !== want.from || norm(m[2]) !== want.to) {
+        ok = reject(`${file}: step 1 sweeps ${m[1]} to ${m[2]}, the fixtures cover ${want.from} to ${want.to}`);
+      }
+    }
+    return ok;
+  },
+
   'seeded-patches-apply-and-touch-what-the-runbook-says': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const CLIPS = [
