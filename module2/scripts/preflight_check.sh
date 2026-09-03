@@ -258,6 +258,12 @@ check "c2" "rubric P1 threshold is 100" \
   "The P1 row in docs/triage-rubric.md must read 100 or more. Show what it reads."
 
 sect c3 "clip 3 - schedule and route"
+check "c3" "the scheduled sweep names the window the fixtures cover" \
+  'node "${ROOT}/scripts/check.mjs" scheduled-sweep-window-matches-the-fixtures' \
+  "Step 1 told the scheduled task to sweep 'the most recent 24-hour window'. The fixtures cover 2025-03-03 only, so the run reported 'No actionable update' -- correct behaviour applied to an empty window -- and step 2 had no report to compare, steps 3 and 4 nothing to approve or draft. Clip 2 step 1 had named the window explicitly all along, so one conversation was being told two different things." \
+  "Name the fixture window in both step 1 prompts, or re-date the fixtures and the baseline together. node scripts/check.mjs scheduled-sweep-window-matches-the-fixtures says which is out of step." \
+  "Which window do the M2 step 1 prompts sweep, and is it the window the fixtures cover?"
+
 check "c3" "drafts carry the priority their finding was triaged at" \
   'node "${ROOT}/scripts/check.mjs" drafts-carry-the-triaged-priority' \
   "Step 4 verifies on camera that Slack and Linear drafts preserve the evidence and priority from the triage decision. Both incident-2001 drafts said P0 in four places -- title, priority, label, and the Slack headline -- while the baseline moved to P1." \
