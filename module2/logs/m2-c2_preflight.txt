@@ -5,12 +5,12 @@ Demo: Run a manual Codex triage sweep across Sentry and GitHub (6 minutes)
 
 RUNBOOK      module2/m2-c2-manual-triage.md
 OBJECTIVES   TO3, EO3a, EO3b
-READINESS    NOT READY - 1 of 20 checks failed
+READINESS    READY
 
 STEPS
 -----
 
-Step 1  BLOCKED
+Step 1  READY
   Configure Sentry and GitHub evidence sources, connect Slack and Linear routing destinations, and define the triage time window
   EO3a       configure Sentry, GitHub, Slack, Linear over a defined time window
 
@@ -19,7 +19,7 @@ Step 1  BLOCKED
   pass  five sentry issues in window
         $ [ "$(node "${ROOT}/scripts/json.mjs" count automation/sentry-fixtures/issues.json issues)" -eq 5 ]
 
-Step 2  BLOCKED
+Step 2  READY
   Run the sweep manually so the same thread context captures source evidence before scheduling
   EO3a       sweep run manually so the thread captures source evidence
 
@@ -32,7 +32,7 @@ Step 2  BLOCKED
   pass  every fixture stack frame opens on real code
         $ node "${ROOT}/scripts/check.mjs" fixture-stack-frames-resolve
 
-Step 3  BLOCKED
+Step 3  READY
   Inspect the report for P0–P3 priority, deduplicated bugs, and evidence-backed recommendations
   EO3b       evaluate for deduplication and evidence-backed recommendations
 
@@ -49,7 +49,7 @@ Step 3  BLOCKED
   pass  every fixture stack frame opens on real code
         $ node "${ROOT}/scripts/check.mjs" fixture-stack-frames-resolve
 
-Step 4  BLOCKED
+Step 4  READY
   Correct weak prioritization or duplicate entries before automation is promoted
   EO3b, TO3  evaluate for correct P0–P3 prioritization
 
@@ -66,21 +66,14 @@ Step 4  BLOCKED
   pass  step 4 specifies the shape it compares
         $ node "${ROOT}/scripts/check.mjs" c2-step4-specifies-the-shape-it-compares
 
-SHARED GATES  8 of 9 pass
+SHARED GATES  9 of 9 pass
 
   These gate every step above. A failure here blocks the whole clip.
-    FAIL  working tree clean
 
-WHAT TO FIX
------------
+Every gate is green. This clip can be recorded.
 
-working tree clean   [all]
-  why  The review demos seed changes with a patch; leftover edits make the diff unreadable.
-  fix  ./module2/scripts/demo_reset.sh
-  ask  Show me every uncommitted change in this repository and what produced it.
-
-PASS: 19   FAIL: 1
+PASS: 20   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c2_preflight.full.txt
 
-VERDICT  NOT READY - 1 check(s) failed above.
+VERDICT  READY - this clip can be recorded.
