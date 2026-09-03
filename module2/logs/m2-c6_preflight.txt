@@ -42,13 +42,13 @@ Step 4  READY
   pass  baseline gates green before seeding a failure
         $ npm test
 
-SHARED GATES  7 of 7 pass
+SHARED GATES  8 of 8 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 11   FAIL: 0
+PASS: 12   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c6_preflight.full.txt
 

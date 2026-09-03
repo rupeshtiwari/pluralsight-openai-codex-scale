@@ -105,6 +105,10 @@ WHAT THIS DOES NOT COVER
   PASS: Fixtures, rubric and config shape are ready. Reachability is still C2 step 1's job.
 RESULT PASS  [all] fixtures, rubric and config shape are ready
 
+$ node "${ROOT}/scripts/check.mjs" seeded-patches-apply-and-touch-what-the-runbook-says
+
+RESULT PASS  [all] each seeded patch touches the files its runbook names
+
 $ git apply --check automation/runs/run-3002.patch
 
 RESULT PASS  [c6] run-3002 patch applies
@@ -133,7 +137,7 @@ $ npm test
  Test Files  4 passed (4)
       Tests  25 passed (25)
    Start at  <time>
-   Duration  <ms> (transform <ms>, setup <ms>, import <s>, tests <ms>, environment <ms>)
+   Duration  <ms> (transform <ms>, setup <ms>, import <ms>, tests <ms>, environment <ms>)
 RESULT PASS  [c6] baseline gates green before seeding a failure
 
 STEP TO OBJECTIVE COVERAGE
