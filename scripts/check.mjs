@@ -2414,6 +2414,69 @@ const CHECKS = {
     return ok;
   },
 
+  /**
+   * Each seeded patch applies to the clip's starting tree and lands the files
+   * its runbook says it will.
+   *
+   * C5 and C6 used to be described as starting from branches of their own. They
+   * do not: both apply a patch live in their prep block on demo/m2-c2-start, so
+   * the patch and the runbook's "Expect two modified files" line are the whole
+   * starting state, and nothing was checking that they agreed. Neither clip has
+   * been walked yet, so this is the mechanical half proven before a take.
+   *
+   * Asserted per clip: the patch applies cleanly to the current tree, it touches
+   * exactly the files the prep block names, and it leaves the tree as it found
+   * it. The apply is done with --check and the file list read with --numstat, so
+   * nothing is written -- a preflight that dirties the tree to test a patch is a
+   * preflight that fails the next check.
+   */
+  'seeded-patches-apply-and-touch-what-the-runbook-says': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const CLIPS = [
+      ['run-3001', 'module2/m2-c5-inspect-automation-diffs.md'],
+      ['run-3002', 'module2/m2-c6-recover-failed-automation.md'],
+    ];
+    let ok = true;
+    for (const [runId, runbook] of CLIPS) {
+      const patch = `automation/runs/${runId}.patch`;
+      try {
+        execSync(`git apply --check ${patch}`, { stdio: ['ignore', 'ignore', 'pipe'] });
+      } catch (e) {
+        ok = reject(`${patch} does not apply to the current tree: ${String(e.stderr || e.message).trim().split('\n')[0]}. ${runbook}'s prep block opens by applying it`);
+        continue;
+      }
+      const touched = execSync(`git apply --numstat ${patch}`, { encoding: 'utf8' })
+        .trim().split('\n').filter(Boolean).map((l) => l.split('\t')[2]).sort();
+
+      // The prep block names the files it expects, in backticks, under "Expect".
+      const doc = read(runbook);
+      const i = doc.indexOf('Expect two modified files');
+      if (i < 0) {
+        ok = reject(`${runbook}: no "Expect two modified files" line, so nothing states what ${patch} should touch`);
+        continue;
+      }
+      // Read to the end of that sentence, wherever it wrapped to.
+      const sentence = doc.slice(i, i + 400).split(/\.\s/)[0];
+      const named = [...sentence.matchAll(/`([^`]+)`/g)].map((m) => m[1]).sort();
+      if (named.length === 0) {
+        ok = reject(`${runbook}: the "Expect two modified files" line names no file in backticks`);
+        continue;
+      }
+      const missing = touched.filter((f) => !named.includes(f));
+      const extra = named.filter((f) => !touched.includes(f));
+      if (missing.length) {
+        ok = reject(`${runbook}: ${patch} touches ${missing.join(', ')}, which the prep block does not name. The author is told to expect a file list and would see a different one`);
+      }
+      if (extra.length) {
+        ok = reject(`${runbook}: the prep block says to expect ${extra.join(', ')}, which ${patch} does not touch`);
+      }
+      if (touched.length !== named.length) {
+        ok = reject(`${runbook}: ${patch} touches ${touched.length} file(s), the prep block names ${named.length}`);
+      }
+    }
+    return ok;
+  },
+
   'seeded-run-hunks-trace-to-findings': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const base = JSON.parse(read('automation/triage/baseline-manual-sweep.json'));

@@ -300,6 +300,12 @@ check "c3" "no draft is pre-approved" \
   "Every draft must have approvedBy null. Show any that do not."
 
 sect c5 "clip 5 - inspect automation diffs"
+check "all" "each seeded patch touches the files its runbook names" \
+  'node "${ROOT}/scripts/check.mjs" seeded-patches-apply-and-touch-what-the-runbook-says' \
+  "C5 and C6 apply their patches live in the prep block rather than carrying them on a branch, so the patch and the 'Expect two modified files' line ARE the starting state and nothing was holding them to each other. C6's line had been split by an inserted paragraph, stranding one of its two filenames, so the block named one file where the patch touches two." \
+  "Bring the prep block's file list and the patch back into agreement. node scripts/check.mjs seeded-patches-apply-and-touch-what-the-runbook-says names the clip and the file." \
+  "Do the M2 prep blocks name the same files their seeded patches touch?"
+
 check "c5" "run-3001 patch applies" 'git apply --check automation/runs/run-3001.patch' \
   "The clip seeds its uncommitted changes with this patch; if it will not apply there is nothing to review." \
   "./module2/scripts/demo_reset.sh then re-run this check" \
