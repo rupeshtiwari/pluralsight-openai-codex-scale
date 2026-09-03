@@ -18,7 +18,10 @@ SCOPE
 
 $ [ -z "$(git status --porcelain -- ":!module1/logs" ":!module2/logs")" ]
 
-RESULT PASS  [all] working tree clean
+RESULT FAIL  [all] working tree clean
+WHY IT MATTERS  The review demos seed changes with a patch; leftover edits make the diff unreadable.
+HOW TO FIX      ./module2/scripts/demo_reset.sh
+CODEX PROMPT    Show me every uncommitted change in this repository and what produced it.
 
 $ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
 
@@ -137,6 +140,10 @@ RESULT PASS  [c2] misleading commit is nearer in time than the real cause
 $ grep -qF "| **P1** | Core workflow degraded or failing for many users | 100 or more |" docs/triage-rubric.md
 
 RESULT PASS  [c2] rubric P1 threshold is 100
+
+$ node "${ROOT}/scripts/check.mjs" destinations-match-the-drafts-fixture
+
+RESULT PASS  [all] the prompts name destinations the drafts are written for
 
 $ node "${ROOT}/scripts/check.mjs" seeded-patches-apply-and-touch-what-the-runbook-says
 
