@@ -44,6 +44,7 @@ git status --short
 ```
 
 Expect two modified files: `supporthub-api/modern/package.json` and
+`supporthub-api/modern/src/services/ticketService.ts`.
 
 **Run the module preflight once per recording session, not per clip.** It validates the
 preconditions for all four Module 2 demos in a single pass.
@@ -54,7 +55,6 @@ module2/scripts/preflight_check.sh
 
 It must end `PASS: Module 2 is ready.` If a check fails it names the check, why it matters, and the
 command that fixes it. Do not record against a failing preflight.
-`supporthub-api/modern/src/services/ticketService.ts`.
 
 ---
 
