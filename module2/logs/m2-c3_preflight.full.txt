@@ -121,3 +121,7 @@ RESULT PASS  [c3] all routing payloads are drafts
 $ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-drafts/*.json | grep -cv "null")" -eq 0 ]
 
 RESULT PASS  [c3] no draft is pre-approved
+
+$ node "${ROOT}/scripts/check.mjs" seeded-patches-apply-and-touch-what-the-runbook-says
+
+RESULT PASS  [all] each seeded patch touches the files its runbook names

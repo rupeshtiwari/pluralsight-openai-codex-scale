@@ -137,3 +137,7 @@ RESULT PASS  [c2] misleading commit is nearer in time than the real cause
 $ grep -qF "| **P1** | Core workflow degraded or failing for many users | 100 or more |" docs/triage-rubric.md
 
 RESULT PASS  [c2] rubric P1 threshold is 100
+
+$ node "${ROOT}/scripts/check.mjs" seeded-patches-apply-and-touch-what-the-runbook-says
+
+RESULT PASS  [all] each seeded patch touches the files its runbook names
