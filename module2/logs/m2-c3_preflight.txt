@@ -16,6 +16,8 @@ Step 1  READY
 
   pass  triage baseline present
         $ node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json
+  pass  the scheduled sweep names the window the fixtures cover
+        $ node "${ROOT}/scripts/check.mjs" scheduled-sweep-window-matches-the-fixtures
 
 Step 2  READY
   Run the scheduled workflow and compare its report with the validated manual pattern
@@ -25,6 +27,8 @@ Step 2  READY
         $ node "${ROOT}/scripts/json.mjs" valid automation/triage/baseline-manual-sweep.json
   pass  baseline has four findings
         $ [ "$(node "${ROOT}/scripts/json.mjs" count automation/triage/baseline-manual-sweep.json findings)" -eq 4 ]
+  pass  the scheduled sweep names the window the fixtures cover
+        $ node "${ROOT}/scripts/check.mjs" scheduled-sweep-window-matches-the-fixtures
 
 Step 3  READY
   Approve selected findings before drafting Slack updates or Linear issues
@@ -54,7 +58,7 @@ SHARED GATES  8 of 8 pass
 
 Every gate is green. This clip can be recorded.
 
-PASS: 15   FAIL: 0
+PASS: 16   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c3_preflight.full.txt
 
