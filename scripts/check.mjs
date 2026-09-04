@@ -2553,6 +2553,63 @@ const CHECKS = {
     return ok;
   },
 
+  /**
+   * The seed branch does not already contain what the seeded patches add.
+   *
+   * A C5 walk committed run-3001.patch's content onto demo/m2-c2-start: one
+   * commit, empty message, byte-identical to the patch. C5 step 3 is a lesson in
+   * STAGING HUNKS, the walk runs on the seed branch itself, and a staged change
+   * is one keystroke from a commit. Afterwards `git status` read clean and the
+   * Changes view was empty -- which is what a reverted change looks like and
+   * equally what a committed one looks like.
+   *
+   * Everything downstream then broke quietly. run-3001.patch no longer applied,
+   * so C5 had nothing to review; and the committed rubric moved the P1 threshold
+   * to 50, so incident-2002's 61 affected users priced P1 instead of P2 and every
+   * C2 and C3 baseline comparison would have failed on camera.
+   *
+   * The preflight could not see it. `git apply --check` runs against the working
+   * tree of whatever is checked out, and a preflight run from the build branch
+   * passes while the seed branch carries the change. So this reads the seed
+   * branch's COMMITTED content with git show, not the working tree.
+   *
+   * Asserted as the states the patches depend on being absent: the rubric's P1
+   * threshold as authored, and no severity mapping in the inbound normalizer.
+   */
+  'seed-branch-excludes-what-the-patches-add': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const SEED = 'demo/m2-c2-start';
+    const show = (path) => {
+      for (const ref of [`origin/${SEED}`, SEED]) {
+        try {
+          return execSync(`git show ${ref}:${path}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+        } catch { /* try the local branch next */ }
+      }
+      return null;
+    };
+
+    const rubric = show('docs/triage-rubric.md');
+    if (rubric === null) return reject(`${SEED} does not resolve, or has no docs/triage-rubric.md -- fetch the demo branches`);
+    const p1 = (rubric.match(/^\|\s*\*\*P1\*\*[^\n]*$/m) || [''])[0];
+    const band = (p1.match(/\|\s*(\d+)\s*or more\s*\|/) || [])[1];
+    let ok = true;
+    if (!band) {
+      ok = reject(`${SEED}: the committed rubric's P1 row states no "<n> or more" band: ${p1.trim() || '(no P1 row)'}`);
+    } else if (band !== '100') {
+      ok = reject(`${SEED}: the committed rubric sets the P1 threshold at ${band}, not 100. That is run-3001.patch's edit, committed onto the seed -- so the patch no longer applies for C5, and incident-2002's 61 affected users price P1 instead of P2 in every C2 and C3 comparison`);
+    }
+
+    const pri = show('supporthub-api/modern/src/utils/priority.ts');
+    if (pri === null) return reject(`${SEED} has no supporthub-api/modern/src/utils/priority.ts`);
+    // The patch adds `if (value === 'sev1'|'sev2'|'sev3') return ...`. A prose
+    // mention of severities in the file's doc comment is not a mapping.
+    const mapped = [...pri.matchAll(/value\s*===\s*'(sev\d)'/g)].map((m) => m[1]);
+    if (mapped.length) {
+      ok = reject(`${SEED}: the committed priority.ts already maps ${mapped.join(', ')}. That is run-3001.patch's other hunk, committed onto the seed, so C5 opens with its own answer already in the code`);
+    }
+    return ok;
+  },
+
   'seeded-patches-apply-and-touch-what-the-runbook-says': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const CLIPS = [
