@@ -134,6 +134,10 @@ $ [ "$(grep -h "approvedBy" automation/slack-drafts/*.json automation/linear-dra
 
 RESULT PASS  [c3] no draft is pre-approved
 
+$ node "${ROOT}/scripts/check.mjs" seed-branch-excludes-what-the-patches-add
+
+RESULT PASS  [all] the seed branch excludes what the patches add
+
 $ node "${ROOT}/scripts/check.mjs" seeded-patches-apply-and-touch-what-the-runbook-says
 
 RESULT PASS  [all] each seeded patch touches the files its runbook names
