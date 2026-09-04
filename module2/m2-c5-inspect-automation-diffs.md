@@ -174,12 +174,27 @@ Under **Changes** you will see both files.
 ```bash
 git diff --cached --stat
 git diff --stat
+git log --oneline -1
 ```
 
 `git diff --cached` shows staged changes. `git diff` shows what remains unstaged.
 
-PASS if `--cached` lists only `supporthub-api/modern/src/utils/priority.ts`, and `git diff` lists nothing.
-FAIL if the rubric file appears in either, or if `git diff` still shows unstaged work.
+PASS if `--cached` lists only `supporthub-api/modern/src/utils/priority.ts`, `git diff` lists nothing,
+and `git log` shows the same commit the clip started on.
+FAIL if the rubric file appears in either diff, if `git diff` still shows unstaged work, or if HEAD
+has moved.
+
+**The third command is not decoration.** This step stages a hunk, and a staged hunk is one keystroke
+from a commit — ⌘Enter in the Source Control message box will take it. A walk did exactly that: the
+patch's content landed as a commit on `demo/m2-c2-start` with an empty message. Afterwards
+`git status` read clean and the Changes view was empty, which is what a *reverted* change looks like
+and equally what a *committed* one looks like. Nothing here distinguished them, so the seed branch
+carried run-3001's edit for the next twenty minutes — and a committed rubric at 50 reprices
+`incident-2002` from P2 to P1 in every clip 2 and clip 3 comparison.
+
+**Never commit during this clip.** The staging is the demonstration; the commit is not part of it.
+`seed-branch-excludes-what-the-patches-add` catches it afterwards by reading the seed branch's
+committed content, but it runs in the preflight — which is after the take.
 
 **Recovery.** `./module2/scripts/demo_reset.sh` then re-apply the patch and repeat.
 
