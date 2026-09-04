@@ -255,6 +255,12 @@ check "all" "every check is run by some preflight" \
   "Add the check to the per-clip section it guards in module1/scripts/preflight_check.sh or module2/scripts/preflight_check.sh, or list it in the EXEMPT table inside every-check-is-wired with the reason it cannot run from a preflight." \
   "Which named checks in scripts/check.mjs are invoked by neither preflight script?"
 
+check "all" "no verification is blinded by staged changes" \
+  'node "${ROOT}/scripts/check.mjs" diff-verifications-see-the-index' \
+  "git diff shows only unstaged work, so it prints nothing once a change is staged -- byte-identical to a clean tree. C5 step 1 verified the seeded patch had applied that way, so a correct run that happened to be staged would have read as a patch that never applied. Third instance of one shape: two opposite states rendering identically, after route=none for a missing key and a clean status for a committed change." \
+  "Use git diff HEAD --stat, or pair the bare form with git diff --cached or git status --short in the same block." \
+  "Which on-camera verifications read a bare git diff without also showing the index?"
+
 check "all" "no verification reads an agent-written file at a fixed offset" \
   'node "${ROOT}/scripts/check.mjs" no-fixed-offsets-into-agent-files' \
   "C6 step 4 ran grep -A4 against the plan Codex had just written, and the recorded exception sat below line 4 -- a correct run and an empty one printed the same thing. Sweeping found two more in C3 against plans/ExecPlan.md." \
