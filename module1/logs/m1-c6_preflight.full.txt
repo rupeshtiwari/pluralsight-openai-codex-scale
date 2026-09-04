@@ -72,6 +72,10 @@ $ node "${ROOT}/scripts/check.mjs" every-check-is-wired
 
 RESULT PASS  [all] every check is run by some preflight
 
+$ node "${ROOT}/scripts/check.mjs" diff-verifications-see-the-index
+
+RESULT PASS  [all] no verification is blinded by staged changes
+
 $ node "${ROOT}/scripts/check.mjs" no-fixed-offsets-into-agent-files
 
 RESULT PASS  [all] no verification reads an agent-written file at a fixed offset

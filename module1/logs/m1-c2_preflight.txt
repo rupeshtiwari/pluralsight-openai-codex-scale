@@ -44,13 +44,13 @@ Step 4  READY
   pass  start and captured checkpoints are the same commit
         $ node "${ROOT}/scripts/check.mjs" c2-refs-identical
 
-SHARED GATES  21 of 21 pass
+SHARED GATES  22 of 22 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 27   FAIL: 0
+PASS: 28   FAIL: 0
 
 Full command output for this run: module1/logs/m1-c2_preflight.full.txt
 
