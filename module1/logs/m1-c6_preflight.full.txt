@@ -119,11 +119,7 @@ $ node "${ROOT}/scripts/check.mjs" contract-tests-pass
 RESULT PASS  [all] contract tests (expect 25)
 
 $ node "${ROOT}/scripts/check.mjs" c6-start-descends-from-c5-captured
-  local demo/m1-c5-captured is 7ecf0e1, origin has 77d7ae4 — the local one is not what was published
-    git fetch origin --prune && git branch -f demo/m1-c5-captured origin/demo/m1-c5-captured
-  local demo/m1-c6-start is 7ecf0e1, origin has 77d7ae4 — the local one is not what was published
-    git fetch origin --prune && git branch -f demo/m1-c6-start origin/demo/m1-c6-start
-  note: the published refs are correct; only the local branches above differ
+
 RESULT PASS  [c6] this clip's checkpoint descends from m1-c5-captured
 
 $ node "${ROOT}/scripts/check.mjs" clip-start-checkpoint-exists

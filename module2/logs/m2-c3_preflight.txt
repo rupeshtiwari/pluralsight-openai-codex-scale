@@ -56,13 +56,13 @@ Step 4  READY
   pass  drafts carry the priority their finding was triaged at
         $ node "${ROOT}/scripts/check.mjs" drafts-carry-the-triaged-priority
 
-SHARED GATES  9 of 9 pass
+SHARED GATES  10 of 10 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 18   FAIL: 0
+PASS: 19   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c3_preflight.full.txt
 

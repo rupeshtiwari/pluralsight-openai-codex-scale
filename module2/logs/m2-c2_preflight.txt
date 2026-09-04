@@ -66,13 +66,13 @@ Step 4  READY
   pass  step 4 specifies the shape it compares
         $ node "${ROOT}/scripts/check.mjs" c2-step4-specifies-the-shape-it-compares
 
-SHARED GATES  9 of 9 pass
+SHARED GATES  10 of 10 pass
 
   These gate every step above. A failure here blocks the whole clip.
 
 Every gate is green. This clip can be recorded.
 
-PASS: 20   FAIL: 0
+PASS: 21   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c2_preflight.full.txt
 
