@@ -318,6 +318,12 @@ check "c3" "no draft is pre-approved" \
   "Every draft must have approvedBy null. Show any that do not."
 
 sect c5 "clip 5 - inspect automation diffs"
+check "all" "the seed branch excludes what the patches add" \
+  'node "${ROOT}/scripts/check.mjs" seed-branch-excludes-what-the-patches-add' \
+  "A C5 walk committed run-3001.patch's content onto demo/m2-c2-start -- one commit, empty message, identical to the patch. Step 3 stages a hunk and a staged hunk is one keystroke from a commit. Afterwards git status read clean and Changes was empty, which is what a reverted change looks like and equally what a committed one looks like. The patch then no longer applied for C5, and the committed rubric repriced incident-2002 from P2 to P1 in every C2 and C3 comparison." \
+  "Reset the seed branch to the build head and force-push with a lease. git apply --check cannot see this: it reads the working tree of whatever is checked out, so a preflight run elsewhere passes while the seed carries the change." \
+  "Does demo/m2-c2-start already contain the rubric threshold or the sev mapping that run-3001.patch adds?"
+
 check "all" "each seeded patch touches the files its runbook names" \
   'node "${ROOT}/scripts/check.mjs" seeded-patches-apply-and-touch-what-the-runbook-says' \
   "C5 and C6 apply their patches live in the prep block rather than carrying them on a branch, so the patch and the 'Expect two modified files' line ARE the starting state and nothing was holding them to each other. C6's line had been split by an inserted paragraph, stranding one of its two filenames, so the block named one file where the patch touches two." \
