@@ -88,11 +88,18 @@ The other edits a document that decides how findings are prioritized.
 **Verification.**
 
 ```bash
-git diff --stat
+git diff HEAD --stat
 ```
 
 PASS if exactly two files are listed. FAIL if the patch did not apply — run
 `./module2/scripts/demo_reset.sh` and re-apply.
+
+**`HEAD` is what makes this readable.** A bare `git diff` shows only what is *unstaged*, so it prints
+nothing once the changes are staged — identical output to a clean tree, and a correct run would read
+as a patch that never applied. `git diff HEAD` compares the working tree *and* the index against the
+last commit, so it sees the two files whether or not anything has been staged. Step 3 keeps the bare
+form on purpose, because there it is paired with `--cached` and the split between the two is the
+point.
 
 **Recovery.** `./module2/scripts/demo_reset.sh` then re-apply the patch.
 
@@ -178,6 +185,12 @@ git log --oneline -1
 ```
 
 `git diff --cached` shows staged changes. `git diff` shows what remains unstaged.
+
+**Read the insertion count the moment you stage, before anything else.** Staging the hunk gives
+**4 insertions**; staging the whole file gives **8**. In Source Control the two look the same — same
+file, same checkmark — and the only thing that separates them is that number. A walk hit this: the
+first attempt staged 8, and a second attempt with the cursor *inside the added lines* gave 4. If you
+see 8, `git reset` and stage again from inside the hunk.
 
 PASS if `--cached` lists only `supporthub-api/modern/src/utils/priority.ts`, `git diff` lists nothing,
 and `git log` shows the same commit the clip started on.

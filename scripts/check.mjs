@@ -2576,6 +2576,50 @@ const CHECKS = {
    * Asserted as the states the patches depend on being absent: the rubric's P1
    * threshold as authored, and no severity mapping in the inbound normalizer.
    */
+  /**
+   * No on-camera block reads a bare `git diff` without seeing the index too.
+   *
+   * `git diff` shows only what is UNSTAGED. Once a change is staged it prints
+   * nothing -- byte-identical to a clean tree. C5 step 1 verified the seeded
+   * patch had applied with a bare `git diff --stat`, so a correct run that
+   * happened to be staged would have read as a patch that never applied.
+   *
+   * This is the third instance of one shape: two opposite states rendering
+   * identically. `route=none` for a missing key and a false one; a clean status
+   * for a reverted change and a committed one; and now empty output for a clean
+   * tree and a fully staged one. The rule that falls out: a verification must
+   * distinguish the states it is deciding between, not merely be true in one.
+   *
+   * A bare `git diff` is fine when the same block also shows the index -- via
+   * `git diff --cached` or `git status --short` -- because then the pair is
+   * complete and the split between staged and unstaged is usually the point.
+   * Alone, it has to be `git diff HEAD`, which compares working tree and index
+   * against the last commit and cannot be blinded by staging.
+   */
+  'diff-verifications-see-the-index': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const files = execSync('git ls-files "module1/*.md" "module2/*.md"', { encoding: 'utf8' })
+      .trim().split('\n').filter(Boolean);
+    let ok = true;
+    for (const file of files) {
+      const body = read(file);
+      for (const fence of body.matchAll(/```bash\n([\s\S]*?)\n```/g)) {
+        const blockText = fence[1];
+        const lines = blockText.split('\n');
+        // A bare `git diff`: no --cached, no HEAD, no --no-index, no explicit ref.
+        const bare = lines.filter((l) => /^\s*git diff\b/.test(l)
+          && !/--cached|--staged|--no-index|\bHEAD\b|\borigin\/|\bdemo\//.test(l));
+        if (bare.length === 0) continue;
+        const seesIndex = /git diff\s+(--cached|--staged)|git status\s+--short|git status\s+--porcelain/.test(blockText);
+        if (seesIndex) continue;
+        const line = bare[0].trim();
+        const at = body.slice(0, fence.index).split('\n').length + lines.indexOf(bare[0]) + 1;
+        ok = reject(`${file}:${at} runs "${line}" with nothing else in the block showing the index. Staged changes make it print nothing, which is the same output a clean tree gives -- use "git diff HEAD --stat", or pair it with "git diff --cached" or "git status --short"`);
+      }
+    }
+    return ok;
+  },
+
   'seed-branch-excludes-what-the-patches-add': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const SEED = 'demo/m2-c2-start';

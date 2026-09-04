@@ -395,10 +395,14 @@ work table has an entry; 25 tests pass.
 **Verification.**
 
 ```bash
-git diff --stat
+git diff HEAD --stat
 awk '/^## /{p = /^## Validation checks/} p' plans/ExecPlan.md   # run each command it names
 awk '/^## /{p = /^## Deferred work/} p' plans/ExecPlan.md
 ```
+
+`git diff HEAD` rather than a bare `git diff`: the bare form shows only unstaged work, so it prints
+nothing once anything is staged — the same output a clean tree gives, which would read here as Codex
+having changed nothing.
 
 Both print a whole section, however long Codex writes it. They used to be `grep -A6` and `grep -A3`,
 which are guesses about how much an agent will write into a file it authors on camera. However many
