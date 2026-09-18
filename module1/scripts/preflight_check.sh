@@ -231,6 +231,12 @@ check "all" "runbooks match the approved outline" \
   "Restore the runbook to match docs/outline-clip-map.json. Edit the runbook, never the map." \
   "Which runbook steps differ from their outline bullets?"
 
+check "all" "no demo branch carries work the build branch lacks" \
+  'node "${ROOT}/scripts/check.mjs" demo-branches-carry-nothing-the-build-branch-lacks' \
+  "A fix was pushed to demo/m2-c2-start and nowhere else. The routine that publishes a cycle resets every seed branch to the build head, so it would have dropped that commit silently and the next walk would have run on the state the fix removed. Same shape as a walk committing onto a seed, except caused by the publishing routine." \
+  "Cherry-pick the commits onto build/course-demo-repo, then publish. Never force the seed branch back -- that is what destroys them. Branches moved onto a captured branch by design are ignored." \
+  "Which demo start branches are ahead of the build branch, and do those commits exist anywhere else?"
+
 check "all" "every demo branch a runbook names exists" \
   'node "${ROOT}/scripts/check.mjs" demo-branch-refs-exist' \
   "Some demo checkpoints depend on a walkthrough having been run, and a runbook handing out a checkout of one fails on its first line in front of the camera. Reading only runnable blocks missed three more: m2-c3, m2-c5 and m2-c6 each opened with 'Starting state. Branch demo/m2-cN-start' for a branch that has never existed, while the preflight reported every clip READY on the single seed they actually run from." \

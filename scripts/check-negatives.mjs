@@ -48,6 +48,7 @@ const GIT_BACKED = {
   'destinations-match-the-drafts-fixture': 'it globs the real automation/*-drafts tree, so CHECK_ROOT cannot relocate it. Proven red three ways by hand: pointing C3 at "the SupportHub project" -- the name Codex reported actually existing in the workspace -- reports the mismatch against the fixture; renaming the fixture and leaving the runbooks behind reports both the sibling draft and both runbooks; and giving one draft a different project reports that the two drafts disagree. All restored afterwards',
   'seed-branch-excludes-what-the-patches-add': 'it reads the seed branch with git show, so CHECK_ROOT cannot relocate it. Proven red on the real defect: a C5 walk committed run-3001.patch onto demo/m2-c2-start (9773b04, empty message, byte-identical to the patch), and pointing the branch back at that commit reports both hunks by name -- the rubric threshold at 50 and the sev1/sev2/sev3 mapping. Proven red again on the rubric hunk alone, built in a throwaway worktree, so neither half depends on the other. The branch was restored to the build head and force-pushed with a lease',
   'diff-verifications-see-the-index': 'it globs the tracked runbooks with git ls-files, so CHECK_ROOT cannot relocate it. Proven red three ways by hand: restoring C5 step 1 to the bare git diff --stat reports it by line -- the form a walk found blind to staged changes; removing step 3\'s --cached partner leaves its bare diff alone and reports that too, which shows the pairing rule is what makes the difference rather than the file; and reverting m1-c3 step 4 reports the second instance the sweep found. All restored afterwards',
+  'demo-branches-carry-nothing-the-build-branch-lacks': 'it reads git refs, so CHECK_ROOT cannot relocate it. It was RED on its first run for a true reason: bfaf2b5 had been pushed to demo/m2-c2-start and nowhere else, and the publish routine that resets every seed branch to the build head would have dropped it silently. Proven green again only after the commit was cherry-picked onto the build branch, which is the fix it names. Proven not to over-fire in the same run: demo/m1-c6-start sits 34 commits ahead by design, moved onto demo/m1-c5-captured, and is correctly ignored because those commits live on a captured branch',
   'migration-tests-pass': 'append a failing test to supporthub-api/migration/tests/tickets.test.js and watch it go red -- done, it does',
 };
 
@@ -918,6 +919,53 @@ for (const [check, rb, saved] of [
       what: 'C2 drifts off the window while C3 stays on it, so one conversation is told two things again',
       control: ctl,
       negative: { ...ctl, [C2]: ctl[C2].replace(WIN, '2025-03-01T00:00:00Z to 2025-03-02T00:00:00Z') },
+    },
+  );
+}
+
+{
+  const ISS = 'automation/sentry-fixtures/issues.json';
+  const CMT = 'automation/github-seed/commits.json';
+  const RB = 'module2/m2-c2-manual-triage.md';
+  const ctl = Object.fromEntries([ISS, CMT, RB].map((f) => [f, readFileSync(f, 'utf8')]));
+  const withCommits = (fn) => {
+    const d = JSON.parse(ctl[CMT]);
+    fn(d);
+    return { ...ctl, [CMT]: JSON.stringify(d, null, 2) + '\n' };
+  };
+  SYNTHETIC_CASES.push(
+    {
+      check: 'c2-seed-commits-are-inside-the-swept-window',
+      what: 'the dates drift back to where two of the three sat outside the window the author sweeps on camera',
+      control: ctl,
+      negative: withCommits((d) => {
+        d.commits[0].committedAt = '2025-03-01T14:06:22.000Z';
+        d.commits[2].committedAt = '2025-03-02T16:30:00.000Z';
+      }),
+    },
+    {
+      check: 'c2-seed-commits-are-inside-the-swept-window',
+      what: "a commit lands one second past the window's end, which no eye would catch in review",
+      control: ctl,
+      negative: withCommits((d) => { d.commits[1].committedAt = '2025-03-04T00:00:01.000Z'; }),
+    },
+    {
+      check: 'c2-seed-commits-are-inside-the-swept-window',
+      what: 'a fourth commit is seeded while step 1 still tells the author to expect three',
+      control: ctl,
+      negative: withCommits((d) => {
+        d.commits.push({
+          sha: '99z9z9z', message: 'x', author: 'a',
+          committedAt: '2025-03-03T05:00:00.000Z', filesChanged: ['a.ts'],
+        });
+      }),
+    },
+    {
+      // The count is read from the runbook, so it drifts from either side.
+      check: 'c2-seed-commits-are-inside-the-swept-window',
+      what: 'the runbook is edited to expect a different count than the fixture holds',
+      control: ctl,
+      negative: { ...ctl, [RB]: ctl[RB].replace('three commits', 'four commits') },
     },
   );
 }
