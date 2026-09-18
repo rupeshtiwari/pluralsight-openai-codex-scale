@@ -2513,6 +2513,62 @@ const CHECKS = {
     return ok;
   },
 
+  /**
+   * C2 shows the plugins EO3a names, on camera.
+   *
+   * EO3a reads "using the Sentry, Slack, Linear, and GitHub plugins". Step 1's
+   * prompt named all four sources by role, and the connections themselves lived
+   * only in the prep block under "already configured and not part of this demo"
+   * -- so the prompt claimed four plugins while the screen proved none. A
+   * coverage audit found it; nothing in the repository could, because naming a
+   * source in a prompt is not showing a connection.
+   *
+   * The four names are read out of EO3a in docs/outline-clip-map.json rather
+   * than hardcoded here, so adding or dropping a plugin in the outline moves
+   * this check with it instead of leaving it measuring the old set.
+   *
+   * Asserted of the Navigation block, which is what the author performs, not of
+   * the prep block, which is not on camera.
+   */
+  'c2-shows-the-plugins-the-objective-names': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const map = JSON.parse(read('docs/outline-clip-map.json'));
+    const eo3a = (map.objectives || {}).EO3a;
+    if (!eo3a) return reject('docs/outline-clip-map.json has no EO3a, so there is no plugin list to hold the runbook to');
+    // "the Sentry, Slack, Linear, and GitHub plugins" -> the capitalised names
+    // between "using the" and "plugins".
+    const span = (eo3a.match(/using the\s+([^.]*?)\s+plugins/i) || [])[1];
+    if (!span) return reject(`EO3a does not read "using the <names> plugins", so the plugin list cannot be derived: ${eo3a}`);
+    const plugins = [...span.matchAll(/[A-Z][A-Za-z]+/g)].map((m) => m[0]);
+    if (plugins.length < 2) return reject(`EO3a names ${plugins.length} plugin(s); expected a list`);
+
+    const RUNBOOK = map.clips['m2-c2'].runbook;
+    const doc = read(RUNBOOK);
+    const from = doc.indexOf('## Step 1 —');
+    if (from < 0) return reject(`${RUNBOOK}: no step 1`);
+    const next = doc.indexOf('\n## ', from + 1);
+    const step = doc.slice(from, next < 0 ? doc.length : next);
+    const navAt = step.indexOf('**Navigation.**');
+    if (navAt < 0) return reject(`${RUNBOOK}: step 1 has no Navigation block`);
+    const nav = step.slice(navAt, step.indexOf('**Prompt.**') < 0 ? step.length : step.indexOf('**Prompt.**'));
+
+    let ok = true;
+    // Bold, not bare. The Navigation block also quotes EO3a to explain why the
+    // beat exists, and that quote contains every plugin name -- so a bare
+    // substring test passes on a block that never names one as an action. It
+    // did: dropping Slack from the instruction left the check green because
+    // "Slack" survived inside the quoted objective. Bold is how this repository
+    // marks what the author performs.
+    const missing = plugins.filter((n) => !new RegExp(`\\*\\*${n}\\*\\*`).test(nav));
+    if (missing.length) {
+      ok = reject(`${RUNBOOK}: step 1's Navigation does not name ${missing.join(', ')} as a bold on-screen action. EO3a is "using the ${span} plugins", and a plugin named only in a prompt, a prep block or a quoted objective is never shown`);
+    }
+    if (!/plugins? panel/i.test(nav)) {
+      ok = reject(`${RUNBOOK}: step 1's Navigation never opens the plugins panel. Naming the sources in a prompt is not showing that they are connected`);
+    }
+    return ok;
+  },
+
   'scheduled-sweep-window-matches-the-fixtures': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const norm = (t) => new Date(t).toISOString();
