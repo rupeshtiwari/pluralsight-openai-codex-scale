@@ -210,6 +210,18 @@ check "c2" "step 4 specifies the shape it compares" \
   "Keep the template, the baseline and step 4's selectors on the same keys, and keep the require lines above the tables. node scripts/check.mjs c2-step4-specifies-the-shape-it-compares says which key and which file." \
   "Do m2-c2 step 4's template, baseline and verification selectors agree on the same keys?"
 
+check "c2" "the plugins the objective names are shown on camera" \
+  'node "${ROOT}/scripts/check.mjs" c2-shows-the-plugins-the-objective-names' \
+  "EO3a reads 'using the Sentry, Slack, Linear, and GitHub plugins'. Step 1's prompt named all four sources by role while the connections lived only in the prep block, which is not on camera -- so the prompt claimed four plugins and the screen proved none. A coverage audit found it; no check could, because naming a source in a prompt is not showing a connection." \
+  "Open the plugins panel in step 1's Navigation and name each one in bold. The four names come from EO3a in docs/outline-clip-map.json, so change the outline and this moves with it." \
+  "Does m2-c2 step 1 show the four plugins EO3a names, or only mention them?"
+
+check "c2" "every seeded commit is inside the swept window" \
+  'node "${ROOT}/scripts/check.mjs" c2-seed-commits-are-inside-the-swept-window' \
+  "Step 1 has the author say 'five Sentry issues and three commits' with the window just restated, so the fixture has to make that sentence true. Two commits sat outside it until they were moved in; the trap survived the move -- d4e5f6a is still seventeen minutes before evt-1042 while a1b2c3d precedes its errors by hours -- so only window membership changed. This guards against drift back, and is not a claim that a root cause must fall inside a sweep window." \
+  "Move the commit inside the window, or change what step 1 tells the author to expect. node scripts/check.mjs c2-seed-commits-are-inside-the-swept-window names which." \
+  "Which seeded commits fall outside the window m2-c2 sweeps, and does step 1's expected count match the fixture?"
+
 check "c2" "every baseline priority derives from the rubric" \
   'node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric' \
   "incident-2001 sat at P0 for the life of this repository and could not be derived: the rubric's P0 affected-user column is \"any number\", which subsumes P1's \"100 or more\", so only the impact column separates them and the fixture describes a subset of status updates failing. The walk's Codex said P1 and quoted the row. Step 4 calls this file the rubric-derived baseline." \

@@ -2569,6 +2569,129 @@ const CHECKS = {
     return ok;
   },
 
+  /**
+   * Every seeded commit falls inside the window C2 sweeps.
+   *
+   * Not a claim about triage in general: a window bounds errors, and a real root
+   * cause often predates the alerts it produced. This is narrower and specific
+   * to C2. Step 1's expected result is "Codex confirms five Sentry issues and
+   * three commits", and the narration says three commits inside the window -- so
+   * the fixture has to make that sentence true, or the author reads a count on
+   * camera that the data does not support.
+   *
+   * Two commits were outside it until bfaf2b5 moved them in. The trap survives
+   * the move and that is what makes it the right fix rather than a compromise:
+   * d4e5f6a at 08:55 is still seventeen minutes before evt-1042 at 09:12, while
+   * a1b2c3d at 00:48 precedes its errors by hours. Recency is still the wrong
+   * signal and proximity still misleads; only window membership changed.
+   *
+   * A regression guard, then, against silent drift back -- not a design rule.
+   */
+  /**
+   * No demo branch carries a commit the build branch has not got.
+   *
+   * bfaf2b5 -- the commit that moved the seed commits into the swept window --
+   * was pushed to demo/m2-c2-start and nowhere else. The routine that publishes
+   * a cycle's work resets every seed branch to the build head:
+   *
+   *   for b in demo/...; do git branch -f "$b" HEAD; done
+   *
+   * Run against that state it would have dropped the fix silently, and the next
+   * C2 walk would have swept a window two of its three commits sat outside. The
+   * same shape as the C5 incident, except caused by the publishing routine
+   * rather than by a stray commit during a take.
+   *
+   * So: anything committed on a demo branch has to be carried onto the build
+   * branch before that routine runs. This reports the commits, and the fix is
+   * always to cherry-pick them onto the build branch -- never to force the seed
+   * back, which is what destroys them.
+   */
+  'demo-branches-carry-nothing-the-build-branch-lacks': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const BUILD = 'build/course-demo-repo';
+    const rev = (r) => {
+      try { return execSync(`git rev-parse --verify -q ${r}`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); }
+      catch { return ''; }
+    };
+    const build = rev(`origin/${BUILD}`) || rev(BUILD);
+    if (!build) return reject(`${BUILD} does not resolve -- fetch the demo branches`);
+
+    let names;
+    try {
+      names = execSync('git for-each-ref --format="%(refname:short)" refs/remotes/origin/demo refs/heads/demo', { encoding: 'utf8' })
+        .trim().split('\n').filter(Boolean)
+        .map((n) => n.replace(/^origin\//, ''));
+    } catch { return reject('could not list demo branches'); }
+    const captured = [...new Set(names.filter((n) => /-captured$/.test(n)))]
+      .map((n) => rev(`origin/${n}`) || rev(n)).filter(Boolean);
+    const seen = new Set();
+    let ok = true;
+    for (const b of names) {
+      if (seen.has(b)) continue;
+      seen.add(b);
+      // Captured branches are SUPPOSED to be ahead: they hold a walk's result.
+      if (!/-start$/.test(b)) continue;
+      const head = rev(`origin/${b}`) || rev(b);
+      if (!head) continue;
+      // And a start branch may sit on a captured one by design --
+      // demo/m1-c6-start is moved onto demo/m1-c5-captured, which is what
+      // c6-start-descends-from-c5-captured requires. Being ahead of build is
+      // only a hazard when the commits live on no captured branch, because
+      // those are the ones nothing else preserves.
+      if (captured.some((c) => {
+        try {
+          execSync(`git merge-base --is-ancestor ${head} ${c}`, { stdio: 'ignore' });
+          return true;
+        } catch { return false; }
+      })) continue;
+      let ahead;
+      try { ahead = execSync(`git rev-list --count ${build}..${head}`, { encoding: 'utf8' }).trim(); }
+      catch { continue; }
+      if (ahead !== '0') {
+        let subjects = '';
+        try { subjects = execSync(`git log --format=%h\\ %s ${build}..${head}`, { encoding: 'utf8' }).trim().split('\n').join('; '); }
+        catch { /* the count is enough */ }
+        ok = reject(`${b} is ${ahead} commit(s) ahead of ${BUILD}: ${subjects}. Cherry-pick them onto ${BUILD} before publishing -- the publish routine resets seed branches to the build head and would drop them`);
+      }
+    }
+    return ok;
+  },
+
+  'c2-seed-commits-are-inside-the-swept-window': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const w = JSON.parse(read('automation/sentry-fixtures/issues.json')).query_window;
+    if (!w || !w.from || !w.to) return reject('automation/sentry-fixtures/issues.json has no query_window');
+    const from = Date.parse(w.from);
+    const to = Date.parse(w.to);
+    const { commits } = JSON.parse(read('automation/github-seed/commits.json'));
+    if (!Array.isArray(commits) || commits.length === 0) return reject('automation/github-seed/commits.json holds no commits');
+
+    let ok = true;
+    for (const c of commits) {
+      const t = Date.parse(c.committedAt);
+      if (Number.isNaN(t)) { ok = reject(`${c.sha}: committedAt "${c.committedAt}" is not a date`); continue; }
+      if (t < from || t >= to) {
+        ok = reject(`${c.sha} was committed ${c.committedAt}, outside the swept window ${w.from} to ${w.to}. C2 step 1 has the author say "${commits.length} commits" on camera with the window just restated, so every seeded commit has to be inside it`);
+      }
+    }
+
+    // The count the runbook tells the author to expect must be the real one.
+    const doc = read('module2/m2-c2-manual-triage.md');
+    const i = doc.indexOf('## Step 1 —');
+    const step = doc.slice(i, doc.indexOf('\n## ', i + 1));
+    const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+    const m = step.match(/\b(\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten)\s+commits\b/i);
+    if (!m) {
+      ok = reject('module2/m2-c2-manual-triage.md: step 1 never states how many commits to expect, so nothing ties the narration to the fixture');
+    } else {
+      const said = /^\d+$/.test(m[1]) ? Number(m[1]) : WORDS.indexOf(m[1].toLowerCase());
+      if (said !== commits.length) {
+        ok = reject(`module2/m2-c2-manual-triage.md: step 1 says "${m[1]} commits", the fixture holds ${commits.length}`);
+      }
+    }
+    return ok;
+  },
+
   'scheduled-sweep-window-matches-the-fixtures': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const norm = (t) => new Date(t).toISOString();
