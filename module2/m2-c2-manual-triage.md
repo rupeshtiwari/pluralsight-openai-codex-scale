@@ -99,8 +99,19 @@ reasoning, not from different inputs.
 
 **Starting state.** Branch `demo/m2-c2-start`, clean tree.
 
-**Navigation.** Codex Desktop. Open a **new conversation** — this thread becomes the context a
-scheduled automation reuses, so it must contain the whole sweep from the beginning.
+**Navigation.** Codex Desktop, in two moves and one application.
+
+**First, open the plugins panel and hold on it for about eight seconds** while the narration names
+them: **Sentry** and **GitHub** as evidence sources, **Slack** and **Linear** as routing
+destinations. All four must read as connected. EO3a says *using the Sentry, Slack, Linear, and
+GitHub plugins* — the prompt below names four sources by role, and without this beat the screen
+proves none of them. It is the only place in the module where the connections themselves are
+visible; the prep block confirms they exist, and a prep block is not on camera.
+
+**Then open a new conversation** — this thread becomes the context a scheduled automation reuses, so
+it must contain the whole sweep from the beginning.
+
+Both moves are inside Codex Desktop, so the step stays on one surface.
 
 **Prompt.**
 
