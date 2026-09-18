@@ -970,6 +970,49 @@ for (const [check, rb, saved] of [
   );
 }
 
+{
+  const RB = 'module2/m2-c2-manual-triage.md';
+  const MAP = 'docs/outline-clip-map.json';
+  const ctl = Object.fromEntries([RB, MAP].map((f) => [f, readFileSync(f, 'utf8')]));
+  const navStart = ctl[RB].indexOf('**Navigation.** Codex Desktop, in two moves');
+  const navEnd = ctl[RB].indexOf('**Prompt.**', navStart);
+  if (navStart < 0 || navEnd < 0) throw new Error(`${RB}: step 1's Navigation block not found for the plugin cases`);
+  SYNTHETIC_CASES.push(
+    {
+      check: 'c2-shows-the-plugins-the-objective-names',
+      what: 'the beat is gone and the plugins are only named in the prompt and the prep block, which is the state a coverage audit found',
+      control: ctl,
+      negative: {
+        ...ctl,
+        [RB]: ctl[RB].slice(0, navStart) + '**Navigation.** Codex Desktop. Open a **new conversation**.\n\n' + ctl[RB].slice(navEnd),
+      },
+    },
+    {
+      // The first version of this check passed here, because the Navigation
+      // quotes EO3a and the quote carries every name.
+      check: 'c2-shows-the-plugins-the-objective-names',
+      what: 'one plugin is dropped from the bold instruction while the quoted objective beside it still names all four',
+      control: ctl,
+      negative: { ...ctl, [RB]: ctl[RB].replace('**Slack** and **Linear** as routing', '**Linear** as routing') },
+    },
+    {
+      check: 'c2-shows-the-plugins-the-objective-names',
+      what: 'the outline gains a fifth plugin and the runbook is left behind',
+      control: ctl,
+      negative: {
+        ...ctl,
+        [MAP]: ctl[MAP].replace('and GitHub plugins', 'GitHub, and Datadog plugins'),
+      },
+    },
+    {
+      check: 'c2-shows-the-plugins-the-objective-names',
+      what: 'the panel is never opened, so the names are spoken over a conversation rather than over the connections',
+      control: ctl,
+      negative: { ...ctl, [RB]: ctl[RB].replace('plugins panel', 'conversation list') },
+    },
+  );
+}
+
 process.stdout.write('PROVING EACH CHECK FAILS ON ITS NEGATIVE CASE\n\n');
 
 for (const c of CASES) {
