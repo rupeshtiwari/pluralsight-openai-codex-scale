@@ -18,6 +18,10 @@ Step 1  READY
         $ node "${ROOT}/scripts/json.mjs" valid automation/sentry-fixtures/issues.json
   pass  five sentry issues in window
         $ [ "$(node "${ROOT}/scripts/json.mjs" count automation/sentry-fixtures/issues.json issues)" -eq 5 ]
+  pass  the plugins the objective names are shown on camera
+        $ node "${ROOT}/scripts/check.mjs" c2-shows-the-plugins-the-objective-names
+  pass  every seeded commit is inside the swept window
+        $ node "${ROOT}/scripts/check.mjs" c2-seed-commits-are-inside-the-swept-window
 
 Step 2  READY
   Run the sweep manually so the same thread context captures source evidence before scheduling
@@ -72,7 +76,7 @@ SHARED GATES  10 of 10 pass
 
 Every gate is green. This clip can be recorded.
 
-PASS: 21   FAIL: 0
+PASS: 23   FAIL: 0
 
 Full command output for this run: module2/logs/m2-c2_preflight.full.txt
 

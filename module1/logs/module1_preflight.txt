@@ -76,6 +76,10 @@ $ node "${ROOT}/scripts/check.mjs" clip-outline-alignment
 
 RESULT PASS  [all] runbooks match the approved outline
 
+$ node "${ROOT}/scripts/check.mjs" demo-branches-carry-nothing-the-build-branch-lacks
+
+RESULT PASS  [all] no demo branch carries work the build branch lacks
+
 $ node "${ROOT}/scripts/check.mjs" demo-branch-refs-exist
 
 RESULT PASS  [all] every demo branch a runbook names exists

@@ -102,6 +102,14 @@ $ node "${ROOT}/scripts/check.mjs" c2-step4-specifies-the-shape-it-compares
 
 RESULT PASS  [c2] step 4 specifies the shape it compares
 
+$ node "${ROOT}/scripts/check.mjs" c2-shows-the-plugins-the-objective-names
+
+RESULT PASS  [c2] the plugins the objective names are shown on camera
+
+$ node "${ROOT}/scripts/check.mjs" c2-seed-commits-are-inside-the-swept-window
+
+RESULT PASS  [c2] every seeded commit is inside the swept window
+
 $ node "${ROOT}/scripts/check.mjs" baseline-priorities-derive-from-rubric
 
 RESULT PASS  [c2] every baseline priority derives from the rubric
