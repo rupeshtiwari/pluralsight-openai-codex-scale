@@ -96,6 +96,71 @@ const onCameraPrompts = (f) => {
   return [...s.slice(i).matchAll(/```text\n([\s\S]*?)\n```/g)].map((m) => m[1]);
 };
 
+/**
+ * A prompt that asks for a file has to ask for it first, and has to make the
+ * agent look at the result.
+ *
+ * Three walks of C2 step 4, on the correct project binding, wrote the file zero
+ * times. One replied that the report was saved at an absolute path for a file
+ * that existed nowhere on the machine. The prompt opened with nine lines of
+ * content requirements and named the output path below them, so the report read
+ * as the deliverable and the write as a footnote. The write landed only once it
+ * led AND the prompt required a command to be run against the result.
+ *
+ * Written as a helper because C2 step 4's prompt needs the same rule the moment
+ * that clip is ever re-recorded; today C3 step 1 is its only caller, because C2
+ * is already filmed and its runbook has to match the take. It asserts an order
+ * and a closing command,
+ * which is all a prompt can be held to; whether the file lands is an artifact
+ * check's job. The proof command is wc -c rather than a long listing, because
+ * ls -l prints the account name and these prompts run on camera.
+ */
+function promptLeadsWithTheWrite(runbook, heading, out) {
+  const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+  const doc = read(runbook);
+  const from = doc.indexOf(heading);
+  if (from < 0) return reject(`${runbook}: no "${heading}" section`);
+  const nextH = doc.indexOf('\n## ', from + 1);
+  const step = doc.slice(from, nextH < 0 ? doc.length : nextH);
+  const prompt = (step.match(/```text\n([\s\S]*?)\n```/) || [, ''])[1];
+  if (!prompt.trim()) return reject(`${runbook}: ${heading.trim()} has no prompt block`);
+
+  let ok = true;
+
+  // "The write leads" is a position, not a phrase.
+  const opening = prompt.split(/\n\s*\n/)[0];
+  if (!opening.includes(out)) {
+    ok = reject(`${runbook}: the prompt does not name ${out} in its opening paragraph. Shaped the other way, it produced the report in the reply and no file at all, three times`);
+  }
+  const firstBullet = prompt.search(/^- /m);
+  const firstOut = prompt.indexOf(out);
+  if (firstBullet >= 0 && firstOut > firstBullet) {
+    ok = reject(`${runbook}: the prompt states its content requirements before it names ${out}, which is the shape that produced a report and no file`);
+  }
+
+  // A reply saying the file was written is not the file.
+  const WC = `wc -c ${out}`;
+  const wcAt = prompt.indexOf(WC);
+  if (wcAt < 0) {
+    ok = reject(`${runbook}: the prompt never requires \`${WC}\`. The write landed only once the prompt made the agent run a command against the result and show its exact output`);
+  } else {
+    const lastBullet = prompt.lastIndexOf('\n- ');
+    if (lastBullet >= 0 && wcAt < lastBullet) {
+      ok = reject(`${runbook}: the prompt asks for \`${WC}\` above its content requirements, so it is not the closing instruction and the agent can satisfy the prompt without ever looking at the file`);
+    }
+  }
+
+  if (/\bls\s+-l/.test(step)) {
+    ok = reject(`${runbook}: the step proves the write with a long listing. ls -l prints the account name, and this runs on camera; wc -c proves the same thing and prints a byte count`);
+  }
+  for (const term of ['relative path', 'absolute path']) {
+    if (!prompt.includes(term)) {
+      ok = reject(`${runbook}: the prompt does not state the "${term}" rule, so an agent is free to answer with /Users/<name>/... and put the account name on camera`);
+    }
+  }
+  return ok;
+}
+
 const CHECKS = {
   /** createTicket must carry all four responsibilities, so one cleanup pass touches them together. */
   'load-bearing-function': () => {
@@ -3164,6 +3229,69 @@ const CHECKS = {
       const args = m[1].trim();
       if (args && !/^--\s*'?:!/.test(args)) {
         ok = reject(`${RUNBOOK}: on-camera \`git status --short ${args}\` narrows to a path -- it goes blind to everything outside it, which is how a run that also rewrote plans/migration-plan.md passed step 1. Leave it bare, or exclude with -- ':!<path>'`);
+      }
+    }
+    return ok;
+  },
+  /**
+   * C3 step 1's scheduled instruction, held to the same rule, plus the clause
+   * that only matters when the run is unattended.
+   *
+   * It had the identical shape C2 step 4 had: window, four rules, then the file.
+   * Worse, this text becomes a scheduled task, so nobody is watching the turn in
+   * which the write does not happen -- and the schedule inherits C2's thread, so
+   * clip 2's own output is sitting on disk where the run can overwrite it or read
+   * it back as its own answer. The instruction has to name that file and refuse
+   * it, and m2-c2-starts-without-the-correction fails when a previous take left
+   * it there.
+   */
+  'c3-step1-prompt-leads-with-the-write': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const RUNBOOK = 'module2/m2-c3-schedule-triage.md';
+    let ok = promptLeadsWithTheWrite(RUNBOOK, '## Step 1', 'automation/triage/scheduled-sweep.json');
+    const doc = read(RUNBOOK);
+    const from = doc.indexOf('## Step 1');
+    const nextH = doc.indexOf('\n## ', from + 1);
+    const step = doc.slice(from, nextH < 0 ? doc.length : nextH);
+    const prompt = (step.match(/```text\n([\s\S]*?)\n```/) || [, ''])[1];
+    if (!/\bdo not write to [^.]*corrected-sweep\.json/i.test(prompt.replace(/\s+/g, ' '))) {
+      ok = reject(`${RUNBOOK}: step 1's instruction does not forbid writing to corrected-sweep.json. The scheduled run inherits clip 2's conversation, and a C3 walk has already been seen taking C2's output path from the thread`);
+    }
+    return ok;
+  },
+
+  /**
+   * A clip whose own check fails can never print READY.
+   *
+   * The per-clip count was re-derived from the rendered transcript with
+   * `grep -c '^    FAIL  '`, four spaces, which matches only the SHARED GATES
+   * block. Clip-scoped failures render two spaces in, under their step, so they
+   * counted zero: with one failure, and that failure clip-scoped, the preflight
+   * printed `m2-c2: READY` and appended `VERDICT READY - this clip can be
+   * recorded.` to the same file whose READINESS line read
+   * `NOT READY - 1 of 24 checks failed`. Two opposite verdicts in one file, and
+   * the green one was the line an author reads per clip.
+   *
+   * clip-report.mjs now exits with the number of failures it recorded, so the
+   * verdict and the transcript come from one number. This holds both preflights
+   * to that, and rejects the re-derivation coming back.
+   */
+  'per-clip-verdict-counts-every-failure': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    let ok = true;
+    for (const f of ['module1/scripts/preflight_check.sh', 'module2/scripts/preflight_check.sh']) {
+      const t = read(f);
+      const i = t.indexOf('per-clip readiness');
+      if (i < 0) { ok = reject(`${f}: no per-clip readiness section`); continue; }
+      const sect = t.slice(i);
+      if (!/clip-report\.mjs"\s+"m\d-\$c"\s+"\$f"\s*\n\s*n=\$\?/.test(sect)) {
+        ok = reject(`${f}: the per-clip count does not come from clip-report.mjs's exit status. Any other source can disagree with the transcript the verdict is appended to`);
+      }
+      // Comments stripped: the fix documents the pattern it replaced.
+      const code = sect.replace(/^\s*#.*$/gm, '');
+      const stale = code.match(/grep\s+-c\s+'\^\s+FAIL/);
+      if (stale) {
+        ok = reject(`${f}: the per-clip count is re-derived from the rendered text ("${stale[0]}"), which sees only the shared gates. A clip whose own check is the only failure counts zero and prints READY`);
       }
     }
     return ok;

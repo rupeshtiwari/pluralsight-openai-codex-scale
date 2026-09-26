@@ -583,16 +583,19 @@ log "PER-CLIP TRANSCRIPTS"
 # in a parallel counter that could disagree with the file an author opens.
 # Rewrite each clip transcript as a step-grouped report before verdicts are
 # appended. The raw run is kept beside it as <clip>_preflight.full.txt.
-for c in $CLIPS; do
-  node "${ROOT}/scripts/clip-report.mjs" "m1-$c" "${CLIPDIR}/m1-${c}_preflight.txt"
-done
-
 $FMT section "per-clip readiness"
 for c in $CLIPS; do
   f="${CLIPDIR}/m1-${c}_preflight.txt"
   [ -f "$f" ] || continue
-  n="$(grep -c '^    FAIL  ' "$f" 2>/dev/null || true)"
-  n="${n:-0}"
+  # clip-report.mjs exits with the number of failures the transcript records, and
+  # the verdict below is appended to that same transcript, so the two cannot
+  # disagree. The count used to be re-derived here with `grep -c '^    FAIL  '`,
+  # which matches only the SHARED GATES block -- clip-scoped failures render two
+  # spaces in, under their step. A clip whose own check was the only red one
+  # counted zero and printed READY into a file whose READINESS line read
+  # NOT READY.
+  node "${ROOT}/scripts/clip-report.mjs" "m1-$c" "$f"
+  n=$?
   if [ "$n" -eq 0 ]; then
     printf '\nVERDICT  READY - this clip can be recorded.\n' >> "$f"
     $FMT item "m1-$c: READY"

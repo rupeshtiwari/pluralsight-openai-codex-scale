@@ -186,6 +186,12 @@ check "all" "every preflight calls check after defining it" \
   "Move the invocation below check(). Read stderr when you run a preflight: a script that half-works still prints a verdict." \
   "Does either preflight script call check before check() is defined?"
 
+check "all" "a clip's own failure cannot print READY" \
+  'node "${ROOT}/scripts/check.mjs" per-clip-verdict-counts-every-failure' \
+  "The per-clip count was re-derived from the rendered transcript by grepping four-space FAIL lines, which match only the SHARED GATES block. Clip-scoped failures render two spaces in, under their step, so they counted zero -- one failure, clip-scoped, and the preflight printed READY into a file whose own READINESS line said NOT READY - 1 of 24 checks failed." \
+  "Take the count from clip-report.mjs's exit status, which is the number of failures it recorded into the transcript the verdict is appended to." \
+  "Where does each preflight get its per-clip failure count, and can it disagree with the transcript?"
+
 check "all" "fixtures, rubric and config shape are ready" \
   './scripts/verify_integrations.sh' \
   "Every Module 2 clip reads these fixtures and this rubric. Running the preparation script from here means it cannot be the separate thing an author forgets -- and it deliberately does not claim plugin reachability, which is C2 step 1's on-camera job." \
@@ -287,6 +293,12 @@ check "c3" "the scheduled sweep names the window the fixtures cover" \
   "Step 1 told the scheduled task to sweep 'the most recent 24-hour window'. The fixtures cover 2025-03-03 only, so the run reported 'No actionable update' -- correct behaviour applied to an empty window -- and step 2 had no report to compare, steps 3 and 4 nothing to approve or draft. Clip 2 step 1 had named the window explicitly all along, so one conversation was being told two different things." \
   "Name the fixture window in both step 1 prompts, or re-date the fixtures and the baseline together. node scripts/check.mjs scheduled-sweep-window-matches-the-fixtures says which is out of step." \
   "Which window do the M2 step 1 prompts sweep, and is it the window the fixtures cover?"
+
+check "c3" "step 1's instruction asks for the file before the content" \
+  'node "${ROOT}/scripts/check.mjs" c3-step1-prompt-leads-with-the-write' \
+  "Step 1's instruction had the shape that wrote nothing in three C2 walks: window, four rules, then the file. This one becomes a scheduled task, so nobody is watching the turn in which the write does not happen, and step 2 then has no artifact to compare. It also inherits clip 2's thread, so corrected-sweep.json is on disk where the run can overwrite it or read it back as its own answer." \
+  "Put automation/triage/scheduled-sweep.json in the instruction's opening paragraph, keep the refusal to write corrected-sweep.json, and close with wc -c on the result." \
+  "Does m2-c3 step 1's instruction name its output file before the rules, refuse corrected-sweep.json, and end by requiring wc -c?"
 
 check "c3" "drafts carry the priority their finding was triaged at" \
   'node "${ROOT}/scripts/check.mjs" drafts-carry-the-triaged-priority' \
@@ -408,16 +420,19 @@ fi
 # in a parallel counter that could disagree with the file an author opens.
 # Rewrite each clip transcript as a step-grouped report before verdicts are
 # appended. The raw run is kept beside it as <clip>_preflight.full.txt.
-for c in $CLIPS; do
-  node "${ROOT}/scripts/clip-report.mjs" "m2-$c" "${CLIPDIR}/m2-${c}_preflight.txt"
-done
-
 $FMT section "per-clip readiness"
 for c in $CLIPS; do
   f="${CLIPDIR}/m2-${c}_preflight.txt"
   [ -f "$f" ] || continue
-  n="$(grep -c '^    FAIL  ' "$f" 2>/dev/null || true)"
-  n="${n:-0}"
+  # clip-report.mjs exits with the number of failures the transcript records, and
+  # the verdict below is appended to that same transcript, so the two cannot
+  # disagree. The count used to be re-derived here with `grep -c '^    FAIL  '`,
+  # which matches only the SHARED GATES block -- clip-scoped failures render two
+  # spaces in, under their step. A clip whose own check was the only red one
+  # counted zero and printed READY into a file whose READINESS line read
+  # NOT READY.
+  node "${ROOT}/scripts/clip-report.mjs" "m2-$c" "$f"
+  n=$?
   if [ "$n" -eq 0 ]; then
     printf '\nVERDICT  READY - this clip can be recorded.\n' >> "$f"
     $FMT item "m2-$c: READY"
