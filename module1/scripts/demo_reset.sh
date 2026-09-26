@@ -24,7 +24,27 @@ for arg in "$@"; do
   esac
 done
 
-OUTSIDE="$(git status --porcelain | awk '{print $2}' | grep -Ev "$DEMO_SURFACE_RE" || true)"
+# git status --porcelain quotes any path containing a space, and `awk '{print $2}'`
+# then returns the fragment up to that space. Four stray files named after failing
+# check names ("working tree clean", "C2 starts without its own answer on disk")
+# printed as `"working` and `"C2`, so the list an author is asked to judge before
+# discarding was unreadable -- and the leading quote can never match
+# DEMO_SURFACE_RE, so a demo-surface file with a space in its name would block
+# every reset. Read the records null-delimited instead, where paths are literal.
+OUTSIDE=""
+while IFS= read -r -d '' entry; do
+  # "XY <path>" for a change; a rename also emits its source path as a bare
+  # record with no status prefix, which must still be classified.
+  case "$entry" in
+    [\ MADRCU?!][\ MADRCU?!]\ *) p="${entry:3}" ;;
+    *) p="$entry" ;;
+  esac
+  [ -n "$p" ] || continue
+  if [[ ! $p =~ $DEMO_SURFACE_RE ]]; then
+    OUTSIDE="${OUTSIDE}${p}"$'\n'
+  fi
+done < <(git status --porcelain -z)
+OUTSIDE="${OUTSIDE%$'\n'}"
 if [ -n "$OUTSIDE" ] && [ "$FORCE" -eq 0 ]; then
   $FMT title "Reset refused" "Changes exist outside the demo surface"
   $FMT section "WOULD BE DISCARDED"

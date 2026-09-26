@@ -125,3 +125,13 @@ out.push(`PASS: ${results.filter((r) => r.state === 'PASS').length}   FAIL: ${fa
 out.push(`Full command output for this run: ${rel}`, '');
 writeFileSync(file.replace(/\.txt$/, '.full.txt'), readFileSync(file, 'utf8'));
 writeFileSync(file, out.join('\n'));
+
+// The count the preflight prints per clip has to be THIS number -- every failure
+// the transcript records -- and not something re-derived from the rendered text.
+// It used to be re-derived, with `grep -c '^    FAIL  '`, which matches only the
+// SHARED GATES block: clip-scoped failures render two spaces in under their step,
+// so a clip whose own check was the only red one counted zero and printed READY,
+// in the same file whose READINESS line said NOT READY. Exiting with the count
+// makes the two unable to disagree. A crash exits 1, which reads as one failure --
+// pessimistic, which is the safe direction for a recording gate.
+process.exit(Math.min(failed.length, 200));
