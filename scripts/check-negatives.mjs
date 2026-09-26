@@ -1013,6 +1013,86 @@ for (const [check, rb, saved] of [
   );
 }
 
+// C3 step 1's instruction IS the artifact, so the control is the real runbook and
+// each negative is one property of the restructure undone. The last one is the
+// clause that only matters unattended: the scheduled run inherits clip 2's
+// thread, so clip 2's output is reachable on disk.
+{
+  const RB = 'module2/m2-c3-schedule-triage.md';
+  // Regexes, not wrapped sentences. Two cases in this file have already stopped
+  // mutating anything when a prompt was rewrapped; one reported STILL GREEN, and
+  // the other was caught only because the harness checks that a mutation changed
+  // something. A pattern keyed on the path survives rewording of the prose.
+  const LEAD = /Write the report to automation\/triage\/scheduled-sweep\.json\.[\s\S]*?\n\n/;
+  const NOCLOBBER = /Do not write\s+to corrected-sweep\.json[^.]*\.\s*/;
+  const WC = 'Last, run wc -c automation/triage/scheduled-sweep.json and show its exact\n'
+    + 'output. Do not describe the file in place of running the command.\n';
+  const PATHS = 'Refer to files by relative path only. Do not print absolute paths.\n';
+  const C = 'c3-step1-prompt-leads-with-the-write';
+  CASES.push(
+    {
+      check: C,
+      file: RB,
+      what: 'the write is back below the window and the four rules -- the shape that wrote nothing in three C2 walks, here as an unattended schedule',
+      mutate: (s) => s.replace(LEAD, ''),
+    },
+    {
+      check: C,
+      file: RB,
+      what: 'the closing wc -c is gone, so an unattended run can report success with no file on disk and nothing contradicts it',
+      mutate: (s) => s.replace('\n' + WC, '\n'),
+    },
+    {
+      check: C,
+      file: RB,
+      what: 'the proof command is a long listing again, which prints the account name on camera',
+      mutate: (s) => s.replace('wc -c automation/triage/scheduled-sweep.json', 'ls -la automation/triage/scheduled-sweep.json'),
+    },
+    {
+      check: C,
+      file: RB,
+      what: 'the relative-path rule is dropped, so an absolute path in the run report is fair game',
+      mutate: (s) => s.replace('\n' + PATHS, '\n'),
+    },
+    {
+      check: C,
+      file: RB,
+      what: 'the refusal to write corrected-sweep.json is dropped, so the scheduled run can overwrite clip 2 evidence it inherited the path to',
+      mutate: (s) => s.replace(NOCLOBBER, ''),
+    },
+  );
+}
+
+// The two preflight scripts ARE the artifact for the counter, so the control is
+// their real contents and each negative puts one half of the defect back.
+{
+  const M1 = 'module1/scripts/preflight_check.sh';
+  const M2 = 'module2/scripts/preflight_check.sh';
+  const C = 'per-clip-verdict-counts-every-failure';
+  const ctl = { [M1]: readFileSync(M1, 'utf8'), [M2]: readFileSync(M2, 'utf8') };
+  const STALE = '  n="$(grep -c \'^    FAIL  \' "$f" 2>/dev/null || true)"\n';
+  SPLIT_CASES.push(
+    {
+      check: C,
+      what: 'the count is re-derived from the rendered transcript again, so a clip-scoped failure counts zero',
+      control: ctl,
+      negative: { ...ctl, [M2]: ctl[M2].replace('  n=$?\n', STALE) },
+    },
+    {
+      check: C,
+      what: 'module 1 keeps the re-derivation, so the defect survives in the module nobody re-reads',
+      control: ctl,
+      negative: { ...ctl, [M1]: ctl[M1].replace('  n=$?\n', STALE) },
+    },
+    {
+      check: C,
+      what: 'the count stops coming from clip-report.mjs at all',
+      control: ctl,
+      negative: { ...ctl, [M2]: ctl[M2].replace('  n=$?\n', '  n=0\n') },
+    },
+  );
+}
+
 process.stdout.write('PROVING EACH CHECK FAILS ON ITS NEGATIVE CASE\n\n');
 
 for (const c of CASES) {

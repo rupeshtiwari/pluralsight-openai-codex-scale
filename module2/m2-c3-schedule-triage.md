@@ -83,6 +83,12 @@ scheduling from a new one loses the context this step depends on.
 **Prompt.** Set the scheduled task's instruction to:
 
 ```text
+Write the report to automation/triage/scheduled-sweep.json. Creating that file
+on disk is the deliverable of this run; a report in the reply is not. Use the
+same structure as automation/triage/corrected-sweep.template.json. Do not write
+to corrected-sweep.json -- that is the manual sweep's output and must stay as
+it is.
+
 Repeat the triage sweep established in this conversation for the window
 2025-03-03T00:00:00Z to 2025-03-04T00:00:00Z.
 
@@ -92,11 +98,12 @@ Apply the same rules that were corrected here:
 - price every finding from docs/triage-rubric.md, quoting the row
 - defer findings whose confidence is low rather than assigning a priority
 
-Write the report to automation/triage/scheduled-sweep.json, using the same
-structure as automation/triage/corrected-sweep.template.json. Do not write to
-corrected-sweep.json -- that is clip 2's output and must stay as it is.
-
 Do not send anything to Slack or Linear.
+
+Refer to files by relative path only. Do not print absolute paths.
+
+Last, run wc -c automation/triage/scheduled-sweep.json and show its exact
+output. Do not describe the file in place of running the command.
 ```
 
 **The window is pinned, and that is deliberate.** This instruction used to say *the most recent
@@ -135,7 +142,9 @@ Comparing against a recorded baseline turns "looks right" into a specific pass o
 **Navigation.** In the scheduled task, choose the option to run it now rather than waiting.
 
 **Expected result.** A report with four findings: `incident-2001` at P1 with 500 combined users,
-`incident-2002` at P2, `evt-1088` at P3, `evt-1099` deferred.
+`incident-2002` at P2, `evt-1088` at P3, `evt-1099` deferred. The reply ends with the byte count of
+`scheduled-sweep.json`, which is the write proof step 1's instruction asked for: no byte count means
+no file, whatever else the reply says about having saved one.
 
 **Command.** Show the baseline beside it:
 
