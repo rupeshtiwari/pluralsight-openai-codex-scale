@@ -190,6 +190,9 @@
     ],
     "every seeded commit is inside the swept window": [
       1
+    ],
+    "step 4's prompt asks for the file before the content": [
+      4
     ]
   },
   "m2-c3": {
@@ -221,6 +224,10 @@
       2
     ],
     "C3 starts without its own answer on disk": [
+      1,
+      2
+    ],
+    "step 1's instruction asks for the file before the content": [
       1,
       2
     ]
