@@ -107,10 +107,8 @@ const onCameraPrompts = (f) => {
  * as the deliverable and the write as a footnote. The write landed only once it
  * led AND the prompt required a command to be run against the result.
  *
- * Written as a helper because C2 step 4's prompt needs the same rule the moment
- * that clip is ever re-recorded; today C3 step 1 is its only caller, because C2
- * is already filmed and its runbook has to match the take. It asserts an order
- * and a closing command,
+ * Shared by the two clips whose prompts write a file, so the rule cannot hold in
+ * one runbook and rot in the other. It asserts an order and a closing command,
  * which is all a prompt can be held to; whether the file lands is an artifact
  * check's job. The proof command is wc -c rather than a long listing, because
  * ls -l prints the account name and these prompts run on camera.
@@ -1341,6 +1339,7 @@ const CHECKS = {
     const EXEMPT = {
       'c5-captured-opens-on-split': 'asserted from a demo/m1-c5-captured checkout at walkthrough step 4; fails by design on the seed branches a preflight runs from',
       'c6-start-opens-on-split': 'asserted from a demo/m1-c6-start checkout at walkthrough step 6; same reason',
+      'c2-step4-output-carries-the-corrected-shape': 'reads the artifact C2 step 4 writes, which must not exist before a take -- the preflight asserts its absence two checks above, so a preflight that also required its presence would contradict itself. Step 4\'s verification runs it after the walk, which is the only moment it can be true',
     };
     const wired = new Set();
     for (const f of ['module1/scripts/preflight_check.sh', 'module2/scripts/preflight_check.sh']) {
@@ -3245,6 +3244,9 @@ const CHECKS = {
    * it, and m2-c2-starts-without-the-correction fails when a previous take left
    * it there.
    */
+  'c2-step4-prompt-leads-with-the-write': () => promptLeadsWithTheWrite(
+    'module2/m2-c2-manual-triage.md', '## Step 4', 'automation/triage/corrected-sweep.json'),
+
   'c3-step1-prompt-leads-with-the-write': () => {
     const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
     const RUNBOOK = 'module2/m2-c3-schedule-triage.md';
@@ -3292,6 +3294,93 @@ const CHECKS = {
       const stale = code.match(/grep\s+-c\s+'\^\s+FAIL/);
       if (stale) {
         ok = reject(`${f}: the per-clip count is re-derived from the rendered text ("${stale[0]}"), which sees only the shared gates. A clip whose own check is the only failure counts zero and prints READY`);
+      }
+    }
+    return ok;
+  },
+  /**
+   * The artifact clip 2 step 4 was asked for exists, and holds the shape the
+   * step then compares.
+   *
+   * This is the half a prompt check cannot cover. c2-step4-prompt-leads-with-the-write
+   * asserts the instruction; this reads the file. The failure it exists to catch
+   * is the one three walks hit: nothing on disk, and a reply confident that
+   * something was written.
+   *
+   * The contract is not hardcoded. It is whatever step 4's own verification
+   * selects out of $OUT -- the require key lists and the fields paths -- so the
+   * gate and the on-camera comparison cannot drift apart. The finding count comes
+   * from the baseline rather than a literal 4, because the merge of evt-1042 and
+   * evt-1043 is what makes the counts equal.
+   *
+   * It is red before every take by design: the file must not exist then, and
+   * m2-c2-starts-without-the-correction fails when it does. So it is exempt from
+   * preflight wiring and step 4's verification runs it after the walk.
+   */
+  'c2-step4-output-carries-the-corrected-shape': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const RUNBOOK = 'module2/m2-c2-manual-triage.md';
+    const OUT = 'automation/triage/corrected-sweep.json';
+    const BASE = 'automation/triage/baseline-manual-sweep.json';
+
+    if (!existsSync(join(ROOT, OUT))) {
+      return reject(`${OUT} does not exist, so step 4 produced nothing to compare. Codex may still have said it wrote it: three walks ended with the report in the reply, one of them naming an absolute path for a file that was nowhere on the machine. Re-prompt with the write leading, and read the wc -c output the prompt asks for`);
+    }
+    let report;
+    try { report = JSON.parse(read(OUT)); } catch (e) {
+      return reject(`${OUT} exists but does not parse (${e.message}), so the tables below it would compare nothing`);
+    }
+
+    const doc = read(RUNBOOK);
+    const from = doc.indexOf('## Step 4');
+    if (from < 0) return reject(`${RUNBOOK}: no step 4`);
+    const nextH = doc.indexOf('\n## ', from + 1);
+    const step = doc.slice(from, nextH < 0 ? doc.length : nextH);
+
+    const perFinding = new Set();
+    const topLevel = new Set();
+    for (const m of step.matchAll(/json\.mjs require "\$OUT"\s+(\S+)\s+([^\n]*)/g)) {
+      for (const key of m[2].trim().split(/\s+/)) {
+        if (key) (m[1] === '.' ? topLevel : perFinding).add(key);
+      }
+    }
+    if (perFinding.size === 0 || topLevel.size === 0) {
+      return reject(`${RUNBOOK}: step 4's verification does not require both a per-finding and a top-level shape out of $OUT, so there is no stated contract to hold ${OUT} to`);
+    }
+
+    let ok = true;
+    const base = JSON.parse(read(BASE));
+    const findings = report.findings;
+    if (!Array.isArray(findings)) {
+      return reject(`${OUT} has no top-level "findings" array, so the report was written in some other shape`);
+    }
+    if (findings.length !== base.findings.length) {
+      ok = reject(`${OUT} holds ${findings.length} finding(s); the baseline it is compared against holds ${base.findings.length}. evt-1042 and evt-1043 merge into one finding, so a higher count means the duplicates are still separate`);
+    }
+    findings.forEach((f, i) => {
+      for (const key of perFinding) {
+        if (!f || typeof f !== 'object' || !(key in f)) {
+          ok = reject(`${OUT}: finding ${i + 1} (${(f && f.id) || 'no id'}) carries no top-level "${key}", which step 4's table then prints as a column of absent`);
+        }
+      }
+    });
+    for (const key of topLevel) {
+      if (!(key in report)) {
+        ok = reject(`${OUT} carries no top-level "${key}"`);
+      } else if (Array.isArray(report[key]) && report[key].length === 0) {
+        ok = reject(`${OUT}'s "${key}" is an empty array. The rejected correlation has to be stated in writing, which is the Highlight; an empty slot is not a rejection`);
+      }
+    }
+    for (const m of step.matchAll(/json\.mjs fields "\$OUT"\s+([^\n]*)/g)) {
+      for (const spec of m[1].match(/"[^"]+"/g) || []) {
+        const path = spec.slice(1, -1).replace(/^[^=]+=/, '');
+        let cur = report;
+        for (const seg of path.split('.')) {
+          cur = (cur === null || cur === undefined) ? undefined : cur[seg];
+        }
+        if (cur === undefined || cur === null || cur === '') {
+          ok = reject(`${OUT}: step 4 reads "${path}" and it resolves to nothing`);
+        }
       }
     }
     return ok;
