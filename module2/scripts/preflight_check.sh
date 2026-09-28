@@ -216,6 +216,12 @@ check "c2" "step 4 specifies the shape it compares" \
   "Keep the template, the baseline and step 4's selectors on the same keys, and keep the require lines above the tables. node scripts/check.mjs c2-step4-specifies-the-shape-it-compares says which key and which file." \
   "Do m2-c2 step 4's template, baseline and verification selectors agree on the same keys?"
 
+check "c2" "step 4's prompt asks for the file before the content" \
+  'node "${ROOT}/scripts/check.mjs" c2-step4-prompt-leads-with-the-write' \
+  "Three walks on the correct project binding wrote the file zero times. One replied that the report was saved at an absolute path for a file that existed nowhere on the machine. The prompt opened with nine lines of content requirements and named the output path below them, so the report read as the deliverable and the write as a footnote. This asserts the order and the closing wc -c, which is all a prompt can be held to -- whether the file lands is c2-step4-output-carries-the-corrected-shape, which step 4's verification runs after the walk." \
+  "Put the output path in the prompt's opening paragraph, above the bullets, and close with wc -c automation/triage/corrected-sweep.json. Keep the relative-path rule: ls -l would print the account name on camera." \
+  "Does m2-c2 step 4's prompt name its output file before it states what to put in it, and does it end by requiring wc -c on the result?"
+
 check "c2" "the plugins the objective names are shown on camera" \
   'node "${ROOT}/scripts/check.mjs" c2-shows-the-plugins-the-objective-names' \
   "EO3a reads 'using the Sentry, Slack, Linear, and GitHub plugins'. Step 1's prompt named all four sources by role while the connections lived only in the prep block, which is not on camera -- so the prompt claimed four plugins and the screen proved none. A coverage audit found it; no check could, because naming a source in a prompt is not showing a connection." \

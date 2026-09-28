@@ -265,7 +265,15 @@ corrections are what will make the scheduled version trustworthy.
 **Prompt.**
 
 ```text
-Produce the corrected triage report:
+Write the file automation/triage/corrected-sweep.json. Creating that file on
+disk is the deliverable of this task; a report in your reply is not.
+
+Read automation/triage/corrected-sweep.template.json first and use exactly that
+structure: the same key names, at the same nesting depth, with your values in
+place of the placeholders. Do not rename a key, do not nest one inside a new
+object, and do not add a wrapper around the findings array.
+
+Fill it with the corrected triage report:
 
 - merge evt-1042 and evt-1043 into incident-2001 with combined counts
 - correlate incident-2001 to the commit that touched a file in its stack, and
@@ -277,14 +285,13 @@ Produce the corrected triage report:
 - mark evt-1099 deferred for insufficient evidence rather than assigning it a
   priority
 
-Read automation/triage/corrected-sweep.template.json and write your report to
-automation/triage/corrected-sweep.json using exactly that structure: the same
-key names, at the same nesting depth, with your values in place of the
-placeholders. Do not rename a key, do not nest one inside a new object, and do
-not add a wrapper around the findings array.
-
 The template's "route" is the decision, not an action: true if the finding
 should be routed, false if not. Route nothing yet.
+
+Refer to files by relative path only. Do not print absolute paths.
+
+Last, run wc -c automation/triage/corrected-sweep.json and show its exact
+output. Do not describe the file in place of running the command.
 ```
 
 **Expected result.** Four findings: `incident-2001` at P1 with 500 users, `incident-2002` at P2,
@@ -302,7 +309,7 @@ all false — but it answered *was this routed*, while the baseline's `route` re
 *should this be routed*. Two correct answers to two different questions, and the only
 difference on screen was a key nobody had named. §11c says an assertion tests a
 contract value rather than the identifier it first saw; here the contract value **is**
-a key, so the prompt has to state it. `c2-step4-names-the-keys-it-compares` fails when
+a key, so the prompt has to state it. `c2-step4-specifies-the-shape-it-compares` fails when
 the prompt, the verification and the baseline stop agreeing on one.
 
 **The output path is named on purpose.** Gate 1 established that Codex persists a mid-thread
@@ -338,6 +345,19 @@ separate.
 
 A missing key and a wrong value are different failures with different recoveries, which is why the
 shape is checked first.
+
+**And one assertion for the case where there is no file at all.** The tables above compare values;
+this reads existence and shape. It is the gate that was missing when three walks ended with the
+report in the reply and nothing on disk:
+
+```bash
+node scripts/check.mjs c2-step4-output-carries-the-corrected-shape
+```
+
+It holds the output to the keys the `require` lines above name and to the baseline's finding count,
+so it cannot drift from what this step compares. It is red before every take by design — the file
+must not exist then — which is why the preflight asserts its absence instead and this runs after the
+walk.
 
 **Recovery.** If `require` named a missing key, re-prompt rather than reset — the reasoning is sound
 and only the shape is wrong:

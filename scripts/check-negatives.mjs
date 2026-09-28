@@ -826,8 +826,14 @@ for (const [check, rb, saved] of [
       control: shapeCtl,
       negative: {
         ...shapeCtl,
-        [RB]: shapeCtl[RB].replace('automation/triage/corrected-sweep.template.json and write your report to\nautomation/triage/corrected-sweep.json using exactly that structure',
-          'the finding list and write your report to\nautomation/triage/corrected-sweep.json with keys id, priority, affectedUsers and route'),
+        // Keyed on the template's path rather than the sentence around it. The
+        // sentence-matching form stopped mutating anything the moment step 4's
+        // prompt was restructured to lead with the write, and reported STILL
+        // GREEN -- a broken negative, not a broken check. The path's first
+        // occurrence in the runbook is inside the step 4 prompt, which is the
+        // only occurrence this check reads.
+        [RB]: shapeCtl[RB].replace('automation/triage/corrected-sweep.template.json',
+          'the finding list, whose keys are id, priority, affectedUsers and route'),
       },
     },
     {
@@ -1089,6 +1095,112 @@ for (const [check, rb, saved] of [
       what: 'the count stops coming from clip-report.mjs at all',
       control: ctl,
       negative: { ...ctl, [M2]: ctl[M2].replace('  n=$?\n', '  n=0\n') },
+    },
+  );
+}
+
+// Step 4's prompt IS the artifact here, so the honest control is the real
+// runbook and each negative is one property of the restructure undone. All four
+// mutations are shapes the prompt actually had, or nearly had: the pre-fix
+// ordering, the missing proof command, the long listing that put an account name
+// on camera, and the dropped path rule.
+//
+// Keyed on regexes anchored to the output path, not on the wrapped sentences
+// around it. The literal-string form has rotted twice in this file: once
+// reporting STILL GREEN, once caught only because the harness checks that a
+// mutation changed something.
+{
+  const RB = 'module2/m2-c2-manual-triage.md';
+  const C = 'c2-step4-prompt-leads-with-the-write';
+  const LEAD = /Write the file automation\/triage\/corrected-sweep\.json\.[\s\S]*?\n\n/;
+  const WC = /\nLast, run wc -c automation\/triage\/corrected-sweep\.json[^.]*\.[^.]*\.\n/;
+  const PATHS = /\nRefer to files by relative path only\. Do not print absolute paths\.\n/;
+  CASES.push(
+    {
+      check: C,
+      file: RB,
+      what: 'the write instruction is below the content requirements again -- the shape that wrote the file zero times in three walks',
+      mutate: (s) => s.replace(LEAD, ''),
+    },
+    {
+      check: C,
+      file: RB,
+      what: 'the closing wc -c instruction is gone, so the agent can satisfy the prompt without looking at the file',
+      mutate: (s) => s.replace(WC, '\n'),
+    },
+    {
+      check: C,
+      file: RB,
+      what: 'the proof command is a long listing again, which prints the account name on camera',
+      mutate: (s) => s.replace('wc -c automation/triage/corrected-sweep.json', 'ls -la automation/triage/corrected-sweep.json'),
+    },
+    {
+      check: C,
+      file: RB,
+      what: 'the relative-path rule is dropped, so an absolute path in the reply is fair game',
+      mutate: (s) => s.replace(PATHS, '\n'),
+    },
+  );
+}
+
+// The output check reads three files, so its root is synthetic: a step 4 that
+// states the contract, a baseline to count against, and the artifact itself.
+// The first negative is the walk failure it was written for -- no file.
+{
+  const RB = 'module2/m2-c2-manual-triage.md';
+  const BASE = 'automation/triage/baseline-manual-sweep.json';
+  const OUTF = 'automation/triage/corrected-sweep.json';
+  const CHECK = 'c2-step4-output-carries-the-corrected-shape';
+  const rb = [
+    '## Step 4 — Correct weak prioritization or duplicate entries before automation is promoted',
+    '',
+    '```bash',
+    'BASE=automation/triage/baseline-manual-sweep.json',
+    'OUT=automation/triage/corrected-sweep.json',
+    'node scripts/json.mjs require "$OUT" findings id priority affectedUsers route',
+    'node scripts/json.mjs require "$OUT" . rejectedCorrelations',
+    'node scripts/json.mjs table "$OUT" findings id:16 priority:9 users=affectedUsers:4 route=route',
+    'node scripts/json.mjs fields "$OUT" "rejected=rejectedCorrelations.0.commit"',
+    '```',
+    '',
+  ].join('\n');
+  const f = (id, priority, affectedUsers, route) => ({ id, priority, affectedUsers, route });
+  const four = [
+    f('incident-2001', 'P1', 500, true),
+    f('incident-2002', 'P2', 61, true),
+    f('evt-1088', 'P3', 3, false),
+    f('evt-1099', 'deferred', 2, false),
+  ];
+  const doc = (findings, rejectedCorrelations) => JSON.stringify({ findings, rejectedCorrelations }, null, 2);
+  const REJECTED = [{ commit: 'd4e5f6a', proposedFor: 'incident-2001', rejectedBecause: 'Proximity in time only.' }];
+  const ctl = { [RB]: rb, [BASE]: doc(four, REJECTED), [OUTF]: doc(four, REJECTED) };
+  SPLIT_CASES.push(
+    {
+      check: CHECK,
+      what: 'step 4 answered with the report and wrote no file -- three walks ended here, one of them naming a path for a file that was nowhere on the machine',
+      control: ctl,
+      negative: { [RB]: rb, [BASE]: doc(four, REJECTED) },
+    },
+    {
+      check: CHECK,
+      what: 'the duplicate pair is still two findings, so the merge never happened',
+      control: ctl,
+      negative: { ...ctl, [OUTF]: doc([...four, f('evt-1043', 'P1', 500, true)], REJECTED) },
+    },
+    {
+      check: CHECK,
+      what: 'rejectedCorrelations is an empty array -- the slot is there and the rejection is not',
+      control: ctl,
+      negative: { ...ctl, [OUTF]: doc(four, []) },
+    },
+    {
+      check: CHECK,
+      what: 'one finding lost its route key, which the table below prints as absent rather than as a missing shape',
+      control: ctl,
+      negative: {
+        ...ctl,
+        [OUTF]: doc(four.map((x, i) => (i === 2 ? { id: x.id, priority: x.priority, affectedUsers: x.affectedUsers } : x)), REJECTED),
+      },
     },
   );
 }
