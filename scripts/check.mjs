@@ -3385,6 +3385,86 @@ const CHECKS = {
     }
     return ok;
   },
+  /**
+   * The failure run-3002 records is a failure this repository actually has.
+   *
+   * run-3002.json says build: fail, test: fail. For a long time that was simply
+   * untrue: applying run-3002.patch produced a green tsc build and 25 passing
+   * tests, because nothing in supporthub-api/modern depended on Express 5, so
+   * pinning Express 4 changed nothing a gate could see. Clip 6 step 1 reads
+   * those two fields on camera and step 2 reasons from them, so the clip rested
+   * on a record no one had measured.
+   *
+   * This measures it, by running the gates rather than inspecting the patch:
+   *
+   *   A  clean tree           build and test pass
+   *   B  patch applied        build and test BOTH fail
+   *   C  bad hunk reverted    build and test pass, and the guard is still there
+   *
+   * B is the assertion that a benign patch cannot satisfy, which is the point:
+   * swap run-3002.patch for one that changes nothing load-bearing and this goes
+   * red on state B rather than quietly agreeing with the record.
+   *
+   * It runs in place and reinstalls dependencies three times, which takes about
+   * twenty seconds on a warm npm cache. It refuses to start on a dirty tree,
+   * because it cannot tell its own states apart from an author's edits, and it
+   * restores package.json and node_modules in a finally block.
+   *
+   * Shells out to git and npm, so CHECK_ROOT cannot relocate it.
+   */
+  'c6-seeded-failure-actually-fails': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const PATCH = 'automation/runs/run-3002.patch';
+    const PKG = 'supporthub-api/modern/package.json';
+    const SVC = 'supporthub-api/modern/src/services/ticketService.ts';
+    const sh = (cmd) => {
+      try { execSync(cmd, { stdio: ['ignore', 'ignore', 'ignore'] }); return 0; }
+      catch (e) { return e.status || 1; }
+    };
+
+    const dirty = execSync('git status --porcelain -- supporthub-api', { encoding: 'utf8' }).trim();
+    if (dirty) {
+      return reject(`the working tree under supporthub-api is not clean, so this check cannot tell its own states apart from your edits:\n${dirty}\n  ./module2/scripts/demo_reset.sh`);
+    }
+
+    // The record these states have to match.
+    const run = JSON.parse(read('automation/runs/run-3002.json'));
+    const want = run.validation || {};
+    if (want.build !== 'fail' || want.test !== 'fail') {
+      return reject(`automation/runs/run-3002.json records build: ${want.build}, test: ${want.test}. This check exists to hold the patch to that record; if the record changes, change this check with it`);
+    }
+
+    let ok = true;
+    try {
+      if (sh('npm run build') !== 0 || sh('npm test') !== 0) {
+        return reject('state A: the gates are red before the patch is applied, so a seeded failure would be indistinguishable from a pre-existing one');
+      }
+
+      if (sh(`git apply ${PATCH}`) !== 0) return reject(`${PATCH} does not apply`);
+      sh('npm install');
+      const buildB = sh('npm run build');
+      const testB = sh('npm test');
+      if (buildB === 0 || testB === 0) {
+        ok = reject(`state B: with ${PATCH} applied, build exited ${buildB} and test exited ${testB} -- step 1 reads "build: fail, test: fail" off the run record, and at least one of them passed. The dependency pin has to break something the gates can see`);
+      }
+
+      // Revert the dependency hunk only. The guard is the work clip 6 preserves.
+      sh(`git checkout -- ${PKG}`);
+      sh('npm install');
+      const buildC = sh('npm run build');
+      const testC = sh('npm test');
+      if (buildC !== 0 || testC !== 0) {
+        ok = reject(`state C: reverting the dependency hunk left build at ${buildC} and test at ${testC}. Step 3 reverts exactly that hunk and step 4 expects four green gates`);
+      }
+      if (!/ALLOWED_TRANSITIONS\[ticket\.status\] \?\? \[\]/.test(read(SVC))) {
+        ok = reject('state C: the guard from the sound hunk is gone. Clip 6 preserves it; a recovery that drops it is just a revert');
+      }
+    } finally {
+      sh('git checkout -- supporthub-api');
+      sh('npm install');
+    }
+    return ok;
+  },
 };
 
 const name = process.argv[2];

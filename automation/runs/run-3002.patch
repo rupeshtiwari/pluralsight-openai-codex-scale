@@ -1,8 +1,8 @@
 diff --git a/supporthub-api/modern/package.json b/supporthub-api/modern/package.json
-index edf7e35..a1e6e60 100644
+index d5e88cc..7ad8a25 100644
 --- a/supporthub-api/modern/package.json
 +++ b/supporthub-api/modern/package.json
-@@ -11,7 +11,7 @@
+@@ -11,11 +11,11 @@
      "test:route": "vitest run tests/contracts/*route*.contract.test.ts"
    },
    "dependencies": {
@@ -11,11 +11,16 @@ index edf7e35..a1e6e60 100644
    },
    "devDependencies": {
      "@eslint/js": "^9.15.0",
+-    "@types/express": "^5.0.0",
++    "@types/express": "^4.17.21",
+     "@types/node": "^22.9.0",
+     "@types/supertest": "^6.0.2",
+     "eslint": "^9.15.0",
 diff --git a/supporthub-api/modern/src/services/ticketService.ts b/supporthub-api/modern/src/services/ticketService.ts
-index 527aa7e..60cc8db 100644
+index 4dbdf1b..10fee33 100644
 --- a/supporthub-api/modern/src/services/ticketService.ts
 +++ b/supporthub-api/modern/src/services/ticketService.ts
-@@ -201,7 +201,7 @@ export function changeStatus(id: string, next: unknown, now: string): Transition
+@@ -250,7 +250,7 @@ export function changeStatus(id: string, next: unknown, now: string): Transition
      return { ok: false, reason: 'invalid_status' };
    }
  

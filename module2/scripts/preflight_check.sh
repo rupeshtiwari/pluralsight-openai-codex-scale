@@ -401,6 +401,12 @@ check "c6" "baseline gates green before seeding a failure" \
   "Run npm test and read the first failing test. The baseline must be green before clip 6 seeds its failure; the transcript above this line has the full output." \
   "npm test fails on the unmodified baseline. Show which test and the minimal fix."
 
+check "c6" "the seeded failure actually fails" \
+  'node "${ROOT}/scripts/check.mjs" c6-seeded-failure-actually-fails' \
+  "run-3002.json records build: fail and test: fail, and step 1 reads both on camera. For a long time neither was true of this repository: applying run-3002.patch produced a green build and 25 passing tests, because nothing under supporthub-api/modern depended on Express 5, so pinning Express 4 changed nothing a gate could see. This runs the gates in three states rather than inspecting the patch -- clean, patched, bad hunk reverted -- and takes about twenty seconds." \
+  "Read its own output: it names the state that disagreed. A patch that does not break a gate cannot seed the failure step 1 narrates." \
+  "With run-3002.patch applied, do npm run build and npm test both fail, and does reverting the package.json hunk alone make both pass again?"
+
 log ""
 log "STEP TO OBJECTIVE COVERAGE"
 log "  Clip 2 step 1    EO3a  sources, destinations, and window configured"
