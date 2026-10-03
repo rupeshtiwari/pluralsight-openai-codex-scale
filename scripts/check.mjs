@@ -3517,6 +3517,57 @@ const CHECKS = {
     }
     return ok;
   },
+  /**
+   * Every C6 prompt that can come back naming a file forbids absolute paths.
+   *
+   * Step 2's prompt asks Codex to judge two changed files, and Codex answers
+   * with file links. In Codex Desktop those render from the project root, which
+   * is under the operator's home directory, so the account name lands on camera
+   * in a clip whose whole middle section is spent reading file names aloud.
+   * C2 step 4 and C3 step 1 already carry the rule; this runbook did not.
+   *
+   * A ```text block here is either a prompt or an expected-output sample, and
+   * only the prompts can be held to it. They are told apart by the bold label
+   * above them: "Expected output" and "Expected result" introduce samples,
+   * everything else introduces something typed at an agent. An unfamiliar label
+   * is therefore treated as a prompt, which is a nuisance to fix and never a
+   * hazard shipped. The opposite move is the dangerous one -- relabelling a
+   * prompt as a sample takes it out of scope silently -- so the count is
+   * asserted too.
+   */
+  'c6-prompts-forbid-absolute-paths': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const RUNBOOK = 'module2/m2-c6-recover-failed-automation.md';
+    const RULE = 'Refer to files by relative path only. Do not print absolute paths.';
+    const doc = read(RUNBOOK);
+
+    const blocks = [...doc.matchAll(/```text\n([\s\S]*?)\n```/g)];
+    if (blocks.length === 0) return reject(`${RUNBOOK}: no \`\`\`text blocks found -- the runbook shape changed`);
+
+    let ok = true;
+    let prompts = 0;
+    for (const m of blocks) {
+      const before = doc.slice(0, m.index);
+      const labels = [...before.matchAll(/^\*\*([^*]+)\*\*/gm)];
+      const label = labels.length ? labels[labels.length - 1][1].trim() : '(none)';
+      if (/^Expected (output|result)/i.test(label)) continue;
+      prompts += 1;
+      if (!m[1].includes(RULE)) {
+        const line = before.split('\n').length;
+        ok = reject(`${RUNBOOK}:${line}: the prompt under "${label}" does not carry "${RULE}" Codex answers these with file links, which render from the operator's home directory and put the account name on camera`);
+      }
+    }
+    // Label-based scoping has an escape hatch, which the negative case found:
+    // relabel a prompt "Expected output." and it leaves scope silently, leaving
+    // the check green on a runbook that lost the rule. Steps 2 and 3 each type a
+    // prompt into Codex -- that is what the outline's second and third bullets
+    // are -- so fewer than two prompts means one was relabelled out, not that the
+    // clip stopped prompting.
+    if (prompts < 2) {
+      ok = reject(`${RUNBOOK}: only ${prompts} \`\`\`text block(s) classify as prompts, and steps 2 and 3 each send one. A prompt relabelled as an expected-output sample leaves this check's scope without changing what is typed at the agent`);
+    }
+    return ok;
+  },
 };
 
 const name = process.argv[2];

@@ -138,6 +138,8 @@ never validated. Its stack frames are in ticketService.ts.
 For each of the two changed files:
 1. Does it follow from that finding, or from the commit correlation?
 2. Would it still be correct if the correlation were fixed?
+
+Refer to files by relative path only. Do not print absolute paths.
 ```
 
 **Expected result.** The `ticketService.ts` guard follows from the finding and stays correct
@@ -151,7 +153,7 @@ is wrong: it downgrades Express in a workspace built for Express 5.
 **Verification.** PASS if the guard is identified as sound and the pin as caused by the bad
 correlation. FAIL if the run is judged wholly bad.
 
-**Recovery.** Ask: `Which file appears in the failing stack for evt-1042?`
+**Recovery.** Ask: `Which file appears in the failing stack for evt-1042? Give the relative path.`
 
 ---
 
@@ -195,6 +197,8 @@ package.json and package-lock.json, neither of which appears in any failing stac
 
 Complete the fix in supporthub-api/modern/src/services/ticketService.ts only. Change no
 dependency.
+
+Refer to files by relative path only. Do not print absolute paths.
 ```
 
 **Expected result.** The staged guard survives, the dependency pin is gone, and the rerun's changes

@@ -413,6 +413,12 @@ check "c6" "the seeded failure actually fails" \
   "Read its own output: it names the state that disagreed. A patch that does not break a gate cannot seed the failure step 1 narrates." \
   "With run-3002.patch applied, do npm run build and npm test both fail, and does reverting the package.json hunk alone make both pass again?"
 
+check "c6" "no prompt here can answer with an absolute path" \
+  'node "${ROOT}/scripts/check.mjs" c6-prompts-forbid-absolute-paths' \
+  "Step 2 asks Codex to judge two changed files and Codex answers with file links. In Codex Desktop those render from the project root, which sits under the operator's home directory, so the account name lands on camera in the one clip that spends its middle section reading file names aloud. C2 step 4 and C3 step 1 already carry the rule; this runbook did not." \
+  "Close each prompt block with: Refer to files by relative path only. Do not print absolute paths. The check names the prompt and the line." \
+  "Do m2-c6's prompts forbid absolute paths, the way m2-c2 step 4 and m2-c3 step 1 do?"
+
 log ""
 log "STEP TO OBJECTIVE COVERAGE"
 log "  Clip 2 step 1    EO3a  sources, destinations, and window configured"

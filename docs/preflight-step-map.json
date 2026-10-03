@@ -261,6 +261,10 @@
     "the seeded failure actually fails": [
       1,
       2
+    ],
+    "no prompt here can answer with an absolute path": [
+      2,
+      3
     ]
   }
 }
