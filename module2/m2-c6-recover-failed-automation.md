@@ -46,9 +46,14 @@ module2/scripts/preflight_check.sh
 It must end `PASS: Module 2 is ready.` If a check fails it names the check, why it matters, and the
 command that fixes it. Do not record against a failing preflight.
 
-**Before the patch, not after.** The preflight's first gate is `working tree clean`, and seeding the
-run modifies two tracked files, so running it on a seeded tree fails a check that is doing its job.
-This block had the two in the opposite order.
+**Before the patch, and then clear what the run wrote.** The preflight's first gate is
+`working tree clean`, and seeding modifies two tracked files, so running it on a seeded tree fails a
+check that is doing its job. The run also rewrites the transcripts under `module*/logs/`, which would
+otherwise sit in Source Control beside the files this clip reviews.
+
+```bash
+git checkout -- module1/logs module2/logs
+```
 
 Now seed the failed run:
 

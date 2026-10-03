@@ -35,16 +35,7 @@ Both arrived in the same run. Accepting or rejecting the run as a whole gets one
 - Codex Desktop and VS Code are both open on the repository
 - the working tree is clean on `demo/m2-c2-start`, which all four Module 2 clips start from
 
-Seed the automation's output:
-
-```bash
-git apply automation/runs/run-3001.patch
-git status --short
-```
-
-Expect two modified files: `supporthub-api/modern/src/utils/priority.ts` and `docs/triage-rubric.md`.
-
-**Run the module preflight once per recording session, not per clip.** It validates the
+**Run the module preflight first, once per recording session, not per clip.** It validates the
 preconditions for all four Module 2 demos in a single pass.
 
 ```bash
@@ -53,6 +44,24 @@ module2/scripts/preflight_check.sh
 
 It must end `PASS: Module 2 is ready.` If a check fails it names the check, why it matters, and the
 command that fixes it. Do not record against a failing preflight.
+
+**Before the patch, and then clear what the run wrote.** The preflight's first gate is
+`working tree clean`, and seeding modifies two tracked files, so running it on a seeded tree fails a
+check that is doing its job. The run also rewrites the transcripts under `module*/logs/`, which would
+otherwise sit in Source Control beside the files this clip reviews.
+
+```bash
+git checkout -- module1/logs module2/logs
+```
+
+Now seed the automation's output:
+
+```bash
+git apply automation/runs/run-3001.patch
+git status --short
+```
+
+Expect two modified files: `supporthub-api/modern/src/utils/priority.ts` and `docs/triage-rubric.md`.
 
 ---
 

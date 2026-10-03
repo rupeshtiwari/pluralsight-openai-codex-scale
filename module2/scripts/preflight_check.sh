@@ -360,6 +360,12 @@ check "all" "each seeded patch touches the files its runbook names" \
   "Bring the prep block's file list and the patch back into agreement. node scripts/check.mjs seeded-patches-apply-and-touch-what-the-runbook-says names the clip and the file." \
   "Do the M2 prep blocks name the same files their seeded patches touch?"
 
+check "all" "prep blocks run the preflight before they seed" \
+  'node "${ROOT}/scripts/check.mjs" m2-prep-blocks-preflight-before-seeding' \
+  "Both blocks said: apply the patch, then run the preflight. The preflight's first gate is working tree clean and the patch modifies two tracked files, so following the block top to bottom failed a check doing its job -- and the printed remedy for a red preflight is a reset, which throws the seed away. Reordering opened a second gap, found on the first walk after the fix: the preflight rewrites the transcripts under both logs directories, so git status after seeding showed eleven files where the block promises two." \
+  "Order the block preflight, then git checkout -- module1/logs module2/logs, then git apply. node scripts/check.mjs m2-prep-blocks-preflight-before-seeding names the clip and what is out of order." \
+  "Do the M2 prep blocks run the preflight before seeding, and clear the transcripts it rewrote?"
+
 check "c5" "run-3001 patch applies" 'git apply --check automation/runs/run-3001.patch' \
   "The clip seeds its uncommitted changes with this patch; if it will not apply there is nothing to review." \
   "./module2/scripts/demo_reset.sh then re-run this check" \

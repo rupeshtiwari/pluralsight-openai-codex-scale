@@ -3465,6 +3465,58 @@ const CHECKS = {
     }
     return ok;
   },
+  /**
+   * The M2 prep blocks run the preflight before they seed, and clear what it wrote.
+   *
+   * Both blocks used to say: apply the patch, then run the preflight. The
+   * preflight's first gate is `working tree clean`, and the patch modifies two
+   * tracked files, so following the block top to bottom failed a check that was
+   * doing its job -- and the author's remedy for a red preflight is a reset,
+   * which throws away the seed.
+   *
+   * Reordering them opened a second gap, found on the first walk after the fix:
+   * the preflight rewrites the transcripts under both modules' logs directories,
+   * so `git status`
+   * after seeding showed eleven files where the block promises two. Clip 5 step 1
+   * and clip 6 step 3 both work in Source Control, where nine stray transcripts
+   * sit beside the files the clip is about.
+   *
+   * So the order is preflight, restore, seed -- asserted by position, because a
+   * block that states the right three commands in the wrong order reads fine and
+   * does not work.
+   */
+  'm2-prep-blocks-preflight-before-seeding': () => {
+    const reject = (why) => { process.stderr.write(`  ${why}\n`); return false; };
+    const CLIPS = [
+      ['module2/m2-c5-inspect-automation-diffs.md', 'run-3001.patch'],
+      ['module2/m2-c6-recover-failed-automation.md', 'run-3002.patch'],
+    ];
+    let ok = true;
+    for (const [file, patch] of CLIPS) {
+      const doc = read(file);
+      const from = doc.indexOf('## Before you start');
+      if (from < 0) { ok = reject(`${file}: no "## Before you start" block`); continue; }
+      const next = doc.indexOf('\n---', from + 1);
+      const prep = doc.slice(from, next < 0 ? doc.length : next);
+
+      const preflight = prep.indexOf('module2/scripts/preflight_check.sh');
+      const restore = prep.search(/git checkout -- [^\n]*module2\/logs/);
+      const seed = prep.indexOf(`git apply automation/runs/${patch}`);
+
+      if (preflight < 0) { ok = reject(`${file}: the prep block never runs the module preflight`); continue; }
+      if (seed < 0) { ok = reject(`${file}: the prep block never applies ${patch}`); continue; }
+      if (restore < 0) {
+        ok = reject(`${file}: the prep block does not restore module*/logs after the preflight. The run rewrites them, so the "expect two modified files" line below is false by nine`);
+        continue;
+      }
+      if (!(preflight < restore && restore < seed)) {
+        const order = [['preflight', preflight], ['restore', restore], ['seed', seed]]
+          .sort((a, b) => a[1] - b[1]).map(([n]) => n).join(' then ');
+        ok = reject(`${file}: the prep block runs ${order}. It has to be preflight then restore then seed -- seeding first fails the preflight's working tree clean gate, and not restoring leaves the transcripts in Source Control beside the files the clip reviews`);
+      }
+    }
+    return ok;
+  },
 };
 
 const name = process.argv[2];

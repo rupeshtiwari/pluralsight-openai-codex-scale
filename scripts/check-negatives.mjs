@@ -1206,6 +1206,49 @@ for (const [check, rb, saved] of [
   );
 }
 
+// The two prep blocks ARE the artifact, so the control is the real runbooks and
+// each negative removes one property of the fix. SPLIT_CASES rather than CASES
+// because this check reads both files: a root holding only one of them is red
+// for a reason that has nothing to do with the mutation, which the harness
+// correctly reported as "RED on the unmutated copy".
+{
+  const C5 = 'module2/m2-c5-inspect-automation-diffs.md';
+  const C6 = 'module2/m2-c6-recover-failed-automation.md';
+  const C = 'm2-prep-blocks-preflight-before-seeding';
+  const ctl = { [C5]: readFileSync(C5, 'utf8'), [C6]: readFileSync(C6, 'utf8') };
+  // Keyed on the commands, not the prose around them.
+  const RESTORE = /```bash\ngit checkout -- module1\/logs module2\/logs\n```\n\n/;
+  const SEED6 = /Now seed [^\n]*:\n\n```bash\ngit apply automation\/runs\/run-3002\.patch\ngit status --short\n```\n\n/;
+  const seedAbovePreflight = (s) => {
+    const m = s.match(SEED6);
+    if (!m) throw new Error('seed block not found');
+    const without = s.replace(m[0], '');
+    const j = without.indexOf('**Run the module preflight first');
+    if (j < 0) throw new Error('preflight paragraph not found');
+    return without.slice(0, j) + m[0] + without.slice(j);
+  };
+  SPLIT_CASES.push(
+    {
+      check: C,
+      what: 'clip 5 stops restoring the transcripts, so "expect two modified files" is false by nine and Source Control fills with logs beside the two files step 1 reviews',
+      control: ctl,
+      negative: { ...ctl, [C5]: ctl[C5].replace(RESTORE, '') },
+    },
+    {
+      check: C,
+      what: 'clip 6 stops restoring the transcripts -- the gap the first walk after the reorder actually hit',
+      control: ctl,
+      negative: { ...ctl, [C6]: ctl[C6].replace(RESTORE, '') },
+    },
+    {
+      check: C,
+      what: 'the seed moves back above the preflight, so following the block top to bottom fails the working tree clean gate, and the printed remedy for that is a reset, which throws the seed away',
+      control: ctl,
+      negative: { ...ctl, [C6]: seedAbovePreflight(ctl[C6]) },
+    },
+  );
+}
+
 process.stdout.write('PROVING EACH CHECK FAILS ON ITS NEGATIVE CASE\n\n');
 
 for (const c of CASES) {
