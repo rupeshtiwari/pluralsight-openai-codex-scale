@@ -36,17 +36,7 @@ harder question is which part failed, and why.
 - Codex Desktop and VS Code are both open on the repository
 - the working tree is clean on `demo/m2-c2-start`, which all four Module 2 clips start from
 
-Seed the failed run:
-
-```bash
-git apply automation/runs/run-3002.patch
-git status --short
-```
-
-Expect two modified files: `supporthub-api/modern/package.json` and
-`supporthub-api/modern/src/services/ticketService.ts`.
-
-**Run the module preflight once per recording session, not per clip.** It validates the
+**Run the module preflight first, once per recording session, not per clip.** It validates the
 preconditions for all four Module 2 demos in a single pass.
 
 ```bash
@@ -55,6 +45,20 @@ module2/scripts/preflight_check.sh
 
 It must end `PASS: Module 2 is ready.` If a check fails it names the check, why it matters, and the
 command that fixes it. Do not record against a failing preflight.
+
+**Before the patch, not after.** The preflight's first gate is `working tree clean`, and seeding the
+run modifies two tracked files, so running it on a seeded tree fails a check that is doing its job.
+This block had the two in the opposite order.
+
+Now seed the failed run:
+
+```bash
+git apply automation/runs/run-3002.patch
+git status --short
+```
+
+Expect two modified files: `supporthub-api/modern/package.json` and
+`supporthub-api/modern/src/services/ticketService.ts`.
 
 ---
 

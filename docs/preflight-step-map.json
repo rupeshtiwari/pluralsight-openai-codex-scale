@@ -257,6 +257,10 @@
     "run-3002 records the reason it chose its commit": [
       1,
       2
+    ],
+    "the seeded failure actually fails": [
+      1,
+      2
     ]
   }
 }
