@@ -1249,6 +1249,38 @@ for (const [check, rb, saved] of [
   );
 }
 
+// The C6 runbook IS the artifact, and it is the only file this check reads, so
+// CASES relocates it fine. One negative per prompt, because a check that only
+// ever looked at the first block would pass the second case.
+{
+  const RB = 'module2/m2-c6-recover-failed-automation.md';
+  const C = 'c6-prompts-forbid-absolute-paths';
+  // Keyed on the rule plus the line that precedes it in each prompt, so a
+  // reworded prompt body does not silently stop mutating anything.
+  const STEP2 = /(2\. Would it still be correct if the correlation were fixed\?\n)\n Refer to files by relative path only\. Do not print absolute paths\.\n/
+    .source.replace(' Refer', 'Refer');
+  CASES.push(
+    {
+      check: C,
+      file: RB,
+      what: "step 2's prompt loses the rule, so Codex answers with file links rendered from the operator's home directory",
+      mutate: (s) => s.replace(new RegExp(STEP2), '$1'),
+    },
+    {
+      check: C,
+      file: RB,
+      what: "step 3's rerun prompt loses the rule, which the first negative would not catch if the check only read the first prompt block",
+      mutate: (s) => s.replace(/(^dependency\.\n)\nRefer to files by relative path only\. Do not print absolute paths\.\n/m, '$1'),
+    },
+    {
+      check: C,
+      file: RB,
+      what: 'a prompt is relabelled as an expected-output sample, which would take it out of scope and quietly stop it being checked',
+      mutate: (s) => s.replace('**Prompt.**\n\n```text\nThe run acted on incident-2001', '**Expected output.**\n\n```text\nThe run acted on incident-2001'),
+    },
+  );
+}
+
 process.stdout.write('PROVING EACH CHECK FAILS ON ITS NEGATIVE CASE\n\n');
 
 for (const c of CASES) {
