@@ -1,6 +1,6 @@
 # SupportHub API
 
-[![Watch on Pluralsight](https://img.shields.io/badge/Watch_on-Pluralsight-FF1675?labelColor=2D2D2D)](https://www.pluralsight.com/courses/openai-codex-scale)
+[![Watch on Pluralsight](https://img.shields.io/badge/Watch_on-Pluralsight-FF1675?labelColor=2D2D2D)](https://app.pluralsight.com/ilx/video-courses/openai-codex-scale/course-overview)
 
 Demo repository for the Pluralsight course **OpenAI Codex at Scale**.
 
